@@ -1,0 +1,30 @@
+{
+  "name": "tanks",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "server": "ts-node-dev server",
+    "start": "npm run server && npm run client",
+    "client": "npx light-server -s client -p 3333 -w \"client/*\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/auth0": "^2.34.11",
+    "@types/express": "^4.17.13",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "@thream/socketio-jwt": "^2.1.1",
+    "auth0": "^2.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^15.0.0",
+    "express": "^4.17.2",
+    "express-oauth2-jwt-bearer": "^1.1.0",
+    "jwks-rsa": "^2.0.5",
+    "socket.io": "^4.4.1"
+  }
+}

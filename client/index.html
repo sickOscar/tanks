@@ -1,0 +1,74 @@
+<html>
+    <head>
+        <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+        <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            #chat {
+                position: fixed;
+                overflow-y: scroll;
+                width: 300px;
+                height: 100%;
+                background-color: rosybrown;
+                right: 0;
+                top: 0;
+                padding: 10px;
+            }
+            #chat .message {
+                border-bottom: 1px solid white;
+                padding: 10px 0;
+            }
+            #cell-info {
+                position: fixed;
+                background: black;
+                color: white;
+                top: 0;
+                width: 200px;
+                min-height: 100px;
+                right: 300px;
+            }
+            #actions {
+                position: fixed;
+                top: 200px;
+                right: 300px;
+                width: 200px;
+                background-color: green;
+            }
+            .hidden {
+                display: none;
+            }
+
+            label {
+                margin-bottom: 10px;
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+
+        <button id="btn-login" disabled="true">Log in</button>
+        <button id="btn-logout" disabled="true">Log out</button>
+
+    <div id="cell-info">
+
+    </div>
+
+    <div id="actions">
+        <button data-action="move">Move</button><br>
+        <button data-action="shoot">Shoot</button><br>
+        <button data-action="give-action">Give Action</button><br>
+        <button data-action="upgrade">Upgrade</button><br>
+    </div>
+
+    <div id="chat">
+        <form id="form" action="">
+            <input id="input" autocomplete="off" /><button>Send</button>
+        </form>
+    </div>
+        <script src="./board.js"></script>
+    </body>
+</html>
