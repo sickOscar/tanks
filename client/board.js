@@ -35,7 +35,7 @@ window.onload = async () => {
 
     if (isAuthenticated) {
         // show the gated content
-        getJson('http://localhost:3000/config')
+        getJson('/config')
             .then(async c => {
                 config = c;
                 configFetched = true;
@@ -67,7 +67,7 @@ window.onload = async () => {
         // Use replaceState to redirect the user away and remove the querystring parameters
         window.history.replaceState({}, document.title, "/");
 
-        getJson('http://localhost:3000/config')
+        getJson('/config')
             .then(async c => {
                 config = c;
                 configFetched = true;
@@ -110,7 +110,7 @@ let config = {
 let sio;
 
 function connectSocket(jwt) {
-    sio = io(':3000', {
+    sio = io('', {
         auth: {
             token: `Bearer ${jwt}`
         }
