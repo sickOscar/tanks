@@ -20,7 +20,9 @@ for (let i = 0; i < board.length; i++) {
 }
 
 const { Client } = require('pg')
-const db = new Client(process.env.DATABASE_URL)
+console.log(`process.env.ENVIRONMENT`, process.env.ENVIRONMENT)
+const dbUrl = process.env.ENVIRONMENT === 'production' ? `${process.env.DATABASE_URL}?sslmode=require` : process.env.DATABASE_URL;
+const db = new Client(dbUrl)
 db.connect().then(async () => {
     try {
         const res = await db.query(`
