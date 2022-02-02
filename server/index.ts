@@ -20,13 +20,7 @@ for (let i = 0; i < board.length; i++) {
 }
 
 const { Client } = require('pg')
-const db = new Client({
-    user: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    database: process.env.PG_DBNAME,
-    host: process.env.PG_HOST,
-    port: process.env.PG_PORT
-})
+const db = new Client(process.env.DATABASE_URL)
 db.connect().then(async () => {
     try {
         const res = await db.query(`
