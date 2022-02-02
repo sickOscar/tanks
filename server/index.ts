@@ -7,8 +7,45 @@ import {auth} from 'express-oauth2-jwt-bearer';
 import {authorize} from '@thream/socketio-jwt';
 import jwksClient from 'jwks-rsa'
 import {ManagementClient} from 'auth0';
+import * as fs from "fs";
 
 require('dotenv').config()
+
+const ROWS = 5;
+const COLS = 5;
+
+let board = new Array(ROWS);
+for (let i = 0; i < board.length; i++) {
+    board[i] = new Array(COLS).fill(null);
+}
+
+const { Client } = require('pg')
+const db = new Client({
+    user: process.env.PG_USER,
+    password: process.env.PG_PASSWORD,
+    database: process.env.PG_DBNAME,
+    host: process.env.PG_HOST,
+    port: process.env.PG_PORT
+})
+db.connect().then(async () => {
+    try {
+        const res = await db.query(`
+            SELECT * from games WHERE active = true
+        `)
+        board = res.rows[0].board
+    } catch (err) {
+        console.log(`error`, err)
+        await db.query(`
+            CREATE TABLE games (
+                id SERIAL PRIMARY KEY,  
+                board jsonb NOT NULL,
+                active boolean DEFAULT false
+            )    
+        `)
+    }
+})
+
+
 
 const authConfig = require('./auth_config.json');
 
@@ -27,8 +64,6 @@ const checkJwt = auth({
 });
 
 
-const ROWS = 5;
-const COLS = 5;
 
 
 enum MessageTypes {
@@ -113,7 +148,7 @@ class Tank {
     constructor(params: Partial<TankParams>) {
         const opts: TankParams = Object.assign(DEFAULT_TANK_PARAMS, params)
         this.id = opts.id;
-        this.position = opts.position;
+        this.position = new BoardPosition(opts.position.x, opts.position.y);
         this.actions = opts.actions;
         this.life = opts.life;
         this.range = opts.range;
@@ -121,12 +156,12 @@ class Tank {
         this.picture = opts.picture;
     }
 
-    static create(userId:string, name:string, picture:string):Tank {
+    static async create(userId:string, name:string, picture:string):Promise<Tank> {
         let tank:Tank;
         for (let i = 0; i < ROWS; i++) {
             for (let j = 0; j < COLS; j++) {
                 if (board[i][j] && board[i][j].id === userId) {
-                    tank = board[i][j];
+                    tank = new Tank({...board[i][j]});
                     // console.log(`tank`, tank)
                 }
             }
@@ -142,6 +177,10 @@ class Tank {
             });
             board[tankPosition.y][tankPosition.x] = tank;
         }
+
+        await db.query(`
+            UPDATE games SET board = '${JSON.stringify(board)}' WHERE active = true
+        `)
 
         return tank;
     }
@@ -186,7 +225,7 @@ class Tank {
         // this.actions -= 1;
     }
 
-    applyAction(action: PlayerActions, cell: { x: number, y: number }): boolean {
+    async applyAction(action: PlayerActions, cell: { x: number, y: number }): Promise<boolean> {
 
         if (this.actions === 0) {
             return false;
@@ -241,27 +280,28 @@ class Tank {
             }
         }
 
+        await db.query(`
+            UPDATE games SET board = '${JSON.stringify(board)}' WHERE active = true
+        `)
+
         return false;
     }
 }
 
 
-const board = new Array(ROWS);
-for (let i = 0; i < board.length; i++) {
-    board[i] = new Array(COLS).fill(null);
-}
+
 
 app.use(cors())
 app.use(express.static(path.join(__dirname, '../client')));
 
-const client = jwksClient({
+const jwksClient1 = jwksClient({
     jwksUri: 'https://codeinthedarkve.eu.auth0.com/.well-known/jwks.json'
 })
 
 io.use(
     authorize({
         secret: async (decodedToken) => {
-            const key = await client.getSigningKey(decodedToken.header.kid)
+            const key = await jwksClient1.getSigningKey(decodedToken.header.kid)
             return key.getPublicKey()
         },
         algorithms: ['RS256'],
@@ -281,7 +321,7 @@ io.use(
     })
 )
 
-io.on('connection', socket => {
+io.on('connection', async socket => {
 
     // console.log(socket.decodedToken);
     // console.log(socket.user);
@@ -289,19 +329,17 @@ io.on('connection', socket => {
     const userId = socket.decodedToken.sub;
     console.log(`new Connection ${userId}`);
 
-    const tank = Tank.create(userId, socket.user.name, socket.user.picture);
+    const tank = await Tank.create(userId, socket.user.name, socket.user.picture);
 
-
-
-    socket.emit(MessageTypes.MESSAGE, `Welcome ${userId}!`);
+    socket.emit(MessageTypes.MESSAGE, `Welcome ${socket.user.name}!`);
     socket.emit(MessageTypes.PLAYER, tank.id)
     socket.emit(MessageTypes.BOARD, JSON.stringify(board));
 
-    socket.broadcast.emit(MessageTypes.MESSAGE, `${userId} joined!`)
+    socket.broadcast.emit(MessageTypes.MESSAGE, `${socket.user.name} joined!`)
     socket.broadcast.emit(MessageTypes.BOARD, JSON.stringify(board));
 
-    socket.on(MessageTypes.PLAYER_EVENT, (action, cell, callback) => {
-        const hasBeenApplied = tank.applyAction(action, cell);
+    socket.on(MessageTypes.PLAYER_EVENT, async (action, cell, callback) => {
+        const hasBeenApplied = await tank.applyAction(action, cell);
         console.log(`${tank.id} | ${action} | ${JSON.stringify(cell)} | ${hasBeenApplied}`)
         callback(hasBeenApplied);
         if (hasBeenApplied) {

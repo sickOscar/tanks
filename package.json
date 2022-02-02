@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "server": "ts-node-dev server",
-    "start": "npm run server && npm run client",
-    "client": "npx light-server -s client -p 3333 -w \"client/*\""
+    "start": "npm run server",
+    "db": "docker rm tankdb; docker run --name tankdb -e POSTGRES_PASSWORD=password --network=host -e PGDATA=/var/lib/postgresql/data/pgdata -v ${PWD}/db:/var/lib/postgresql/data postgres"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +25,7 @@
     "express": "^4.17.2",
     "express-oauth2-jwt-bearer": "^1.1.0",
     "jwks-rsa": "^2.0.5",
+    "pg": "^8.7.1",
     "socket.io": "^4.4.1"
   }
 }
