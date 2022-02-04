@@ -122,6 +122,7 @@ function connectSocket(jwt) {
     sio.on('playerslist', setPlayers);
 
     sio.on('connect_error', error => {
+        alert('Server disconnected')
         console.error(error)
     })
 }
@@ -145,7 +146,7 @@ actionButtons.forEach(el => {
             return
         }
 
-        if (state === 'upgrade' || state === 'heal') {
+        if (state === States.upgrade ) {
             sio.emit('playerevent', state, null, (isValid) => {});
         } else {
             if (currentState === state) {
@@ -316,6 +317,12 @@ function drawEmptyCell(y, x) {
         }
     }
 
+    if (currentState === States.HEAL) {
+        if(isInRange({x: x, y: y}, player.position, player.range)) {
+            fill('rgba(110,110,110,0.67)')
+        }
+    }
+
 
     square(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE);
 
@@ -350,19 +357,31 @@ function drawPlayer(tank, isThisSession) {
         }
     }
 
-    // actions
-    fill('white')
-    textStyle(BOLD)
-    textSize(SQUARE_SIZE / 6);
-    textAlign(LEFT, TOP)
-    text(`Actions: ${tank.actions}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 10);
+    if (tank.life === 0) {
+        textSize(SQUARE_SIZE);
+        textStyle(NORMAL);
+        textAlign(LEFT, TOP)
+        text('☠', rootX, rootY)
+    } else {
+        // actions
+        fill('white')
+        textStyle(BOLD)
+        textSize(SQUARE_SIZE / 6);
+        textAlign(LEFT, TOP)
+        text(`Actions: ${tank.actions}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 10);
 
-    // range
-    fill('white')
-    textStyle(BOLD)
-    textSize(SQUARE_SIZE / 6);
-    textAlign(LEFT, TOP)
-    text(`Range: ${tank.range}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 3);
+        // range
+        fill('white')
+        textStyle(BOLD)
+        textSize(SQUARE_SIZE / 6);
+        textAlign(LEFT, TOP)
+        text(`Range: ${tank.range}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 3);
+
+    }
+
+
+
+
 }
 
 function inGrid(x, y) {

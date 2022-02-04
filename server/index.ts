@@ -60,6 +60,9 @@ async function init() {
                     console.log(`${tank.id} | ${action} | ${JSON.stringify(cell)} | ${hasBeenApplied}`)
                     callback(hasBeenApplied);
                     if (hasBeenApplied) {
+                        await db.query(`
+                            UPDATE games SET board = '${game.board.serialize()}' WHERE active = true
+                        `)
                         socket.emit(MessageTypes.BOARD, game.board.serialize());
                         socket.broadcast.emit(MessageTypes.BOARD, game.board.serialize());
                     }

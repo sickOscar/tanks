@@ -51,7 +51,7 @@ export class Tank implements ITank {
         game.board.addTank(tank);
 
         await db.query(`
-            UPDATE games SET board = '${JSON.stringify(game.board.serialize())}' WHERE active = true
+            UPDATE games SET board = '${game.board.serialize()}' WHERE active = true
         `)
 
         // @ts-ignore
@@ -63,10 +63,8 @@ export class Tank implements ITank {
     }
 
     async die(): Promise<void> {
-        this.delete();
-        await db.query(`
-            UPDATE games SET board = '${JSON.stringify(this.game.board.serialize())}' WHERE active = true
-        `)
+        // this.delete();
+        this.actions = 0;
     }
 
     move(x: number, y: number): void {
@@ -97,10 +95,16 @@ export class Tank implements ITank {
         this.useAction(3);
     }
 
-    heal() {
-        this.life += 1;
+    heal(x:number, y:number) {
+        if (this.position.x === x && this.position.y === y) {
+            this.life += 1;
+        } else {
+            const enemy:Tank = this.game.board.getAt(x, y);
+            enemy.life += 1;
+        }
         this.useAction(3);
     }
+
 
     useAction(howMany = 1) {
         this.actions -= howMany;
@@ -120,13 +124,6 @@ export class Tank implements ITank {
             return false;
         }
 
-        if (action === PlayerActions.HEAL) {
-            if (this.actions >= 3) {
-                this.heal()
-                return true;
-            }
-            return false;
-        }
 
         const x = Math.min(COLS - 1, Math.max(cell.x, 0));
         const y = Math.min(ROWS - 1, Math.max(cell.y, 0));
@@ -134,11 +131,9 @@ export class Tank implements ITank {
         const boardCell = new BoardPosition(x, y);
 
         if (action === PlayerActions.MOVE) {
-
             if (!this.game.board.isPositionValid(x, y)) {
                 return false
             }
-
             if (this.game.board.isPositionOccupied(x, y)) {
                 return false;
             }
@@ -157,8 +152,11 @@ export class Tank implements ITank {
                 return false;
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range)) {
-                await this.shoot(x, y);
-                return true;
+                const enemy = this.game.board.getAt(x, y);
+                if (enemy.life >= 0) {
+                    await this.shoot(x, y);
+                    return true;
+                }
             }
         }
 
@@ -175,9 +173,26 @@ export class Tank implements ITank {
             }
         }
 
-        await db.query(`
-            UPDATE games SET board = '${JSON.stringify(this.game.board.serialize())}' WHERE active = true
-        `)
+        if (action === PlayerActions.HEAL) {
+
+            if (!this.game.board.isPositionValid(x, y)) {
+                return false
+            }
+
+            if (!this.game.board.isPositionOccupied(x, y)) {
+                return false;
+            }
+
+            if (this.game.board.isInRange(this.position, boardCell, this.range)) {
+                if (this.actions >= 3) {
+                    this.heal(x, y);
+                    return true
+                }
+            }
+
+        }
+
+
 
         return false;
     }

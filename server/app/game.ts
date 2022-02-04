@@ -3,9 +3,7 @@ import db from "../db";
 import {Board} from "./board";
 import {GameState, IGame} from "../model/IGame";
 import {COLS, ROWS} from "../const";
-import {Tank} from "./Tank";
 import {ITank} from "../model/ITank";
-
 
 export class Game implements IGame {
 
@@ -37,7 +35,7 @@ export class Game implements IGame {
         }
 
         const dbBoard = res.rows[0].board;
-        this.state.board.load(JSON.parse(dbBoard));
+        this.state.board.load(dbBoard);
         this.id = res.rows[0].id;
     }
 
