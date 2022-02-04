@@ -42,13 +42,14 @@ window.onload = async () => {
 
                 WIDTH = config.cols * SQUARE_SIZE;
                 HEIGHT = config.rows * SQUARE_SIZE
-                createCanvas(config.cols * SQUARE_SIZE, config.rows * SQUARE_SIZE);
 
                 const jwt = await auth0.getTokenSilently()
                 connectSocket(jwt)
-
             })
-            .catch(() => createCanvas(200, 200))
+            .catch(err => {
+                console.log(err)
+                alert('oh no, something went terribly wrong')
+            })
         return;
     }
 
@@ -74,13 +75,14 @@ window.onload = async () => {
 
                 WIDTH = config.cols * SQUARE_SIZE;
                 HEIGHT = config.rows * SQUARE_SIZE
-                createCanvas(config.cols * SQUARE_SIZE, config.rows * SQUARE_SIZE);
 
                 const jwt = await auth0.getTokenSilently()
                 connectSocket(jwt);
 
-            })
-            .catch(() => createCanvas(200, 200))
+            }).catch(err => {
+                console.log(err)
+                alert('oh no, something went terribly wrong')
+            }).catch(() => createCanvas(200, 200))
 
     }
 }
@@ -98,8 +100,6 @@ logoutButton.addEventListener('click', () => {
 })
 
 // END AUTH
-
-
 
 let configFetched = false;
 let config = {
@@ -119,6 +119,7 @@ function connectSocket(jwt) {
     sio.on('player', setPlayer)
     sio.on('message', newMessage);
     sio.on('board', setBoard)
+    sio.on('playerslist', setPlayers);
 
     sio.on('connect_error', error => {
         console.error(error)
@@ -133,8 +134,8 @@ let HEIGHT = 200;
 
 const chatContainer = document.querySelector('#chat');
 const cellInfoContainer = document.querySelector('#cell-info');
-const actionButtons = document.querySelectorAll(`#actions > button`);
-
+const actionButtons = document.querySelectorAll(`#actions  button`);
+const playersContainer = document.querySelector('#players-container')
 
 
 actionButtons.forEach(el => {
@@ -144,14 +145,15 @@ actionButtons.forEach(el => {
             return
         }
 
-        if (state === 'upgrade') {
-            sio.emit('playerevent', 'upgrade', null, (isValid) => {
-                console.log('upgraded')
-            });
+        if (state === 'upgrade' || state === 'heal') {
+            sio.emit('playerevent', state, null, (isValid) => {});
         } else {
-            currentState = state;
+            if (currentState === state) {
+                currentState = States.IDLE
+            } else {
+                currentState = state;
+            }
         }
-
 
     })
 })
@@ -167,7 +169,8 @@ const States = {
     MOVE: 'move',
     SHOOT: 'shoot',
     GIVE_ACTION: 'give-action',
-    UPGRADE: 'upgrade'
+    UPGRADE: 'upgrade',
+    HEAL: 'heal'
 }
 
 let currentState = States.IDLE;
@@ -176,40 +179,21 @@ function newMessage(content) {
     const div = document.createElement('div');
     div.classList = ['message'];
     div.innerText = content;
-    chatContainer.appendChild(div);
+    // chatContainer.appendChild(div);
 }
 
 function setBoard(board) {
     localBoard = JSON.parse(board);
-
     const p = [];
 
-    // set local player + pictures
+    // set local player
     for (let i = 0; i < config.rows; i++) {
         for (let j = 0; j < config.cols; j++ ) {
-
-            if (localBoard[i][j]) {
-                const foundPlayer = localBoard[i][j];
-                p.push(foundPlayer)
-                const playerInList = players.find(pl => pl.id === foundPlayer.id)
-                if (!playerInList) {
-                    // new player
-                    loadImage(foundPlayer.picture, (loadedPicture) => {
-                        foundPlayer.loadedPicture = loadedPicture;
-                    })
-                } else {
-                    localBoard[i][j].loadedPicture = playerInList.loadedPicture;
-                }
-            }
-
-
             if (localBoard[i][j] && localBoard[i][j].id === playerId) {
                 player = localBoard[i][j];
             }
         }
     }
-
-    players = p.map(pl => pl);
 
 }
 
@@ -217,11 +201,32 @@ function setPlayer(id) {
     playerId = id;
 }
 
-function getPlayer() {
+
+function setPlayers(playersList) {
+    try {
+        players = JSON.parse(playersList);
+
+        players.forEach(p => {
+            p.loadedPicture = loadImage(p.picture)
+        })
+
+        const listItems = players.map(p => `
+            <li class="list-group-item">
+                <img src="${p.picture}"  class="img-thumbnail"> ${p.name}    
+            </li>
+        `)
+        const markup = `
+            <ul class="list-group">
+                ${listItems.join('')}
+            </ul>
+        `;
+        playersContainer.innerHTML = markup;
+
+    } catch (err) {
+        console.error(err)
+    }
 
 }
-
-
 
 async function getJson(url) {
     const token = await auth0.getTokenSilently();
@@ -235,7 +240,12 @@ async function getJson(url) {
 }
 
 function setup() {
+    const canvas = createCanvas(windowWidth, windowHeight);
+    canvas.parent('board-holder')
+}
 
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
@@ -331,7 +341,7 @@ function drawPlayer(tank, isThisSession) {
     }
 
     // life
-    for(let i = 0; i < 3; i++) {
+    for(let i = 0; i < tank.life; i++) {
         noStroke()
         if (i < tank.life) {
             fill('red')
@@ -356,7 +366,7 @@ function drawPlayer(tank, isThisSession) {
 }
 
 function inGrid(x, y) {
-    return x < config.cols * SQUARE_SIZE && y < config.rows * SQUARE_SIZE;
+    return x >= 0 && y >= 0 && x < config.cols * SQUARE_SIZE && y < config.rows * SQUARE_SIZE;
 }
 
 function getCellFromMousePos(mX, mY) {
@@ -376,7 +386,7 @@ function mouseClicked() {
     if (currentState === States.IDLE) {
         if (inGrid(mouseX, mouseY)) {
             const {x, y} = getCellFromMousePos(mouseX, mouseY)
-            showCellInfo(localBoard[y][x]);
+            // showCellInfo(localBoard[y][x]);
             return;
         }
     }
@@ -391,7 +401,6 @@ function mouseClicked() {
             }
         });
     }
-
 
 }
 

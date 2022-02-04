@@ -3,54 +3,128 @@
         <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="styles.css">
         <style>
-            * {
-                margin: 0;
-                padding: 0;
-            }
-            #chat {
-                position: fixed;
-                overflow-y: scroll;
-                width: 300px;
-                height: 100%;
-                background-color: rosybrown;
-                right: 0;
-                top: 0;
-                padding: 10px;
-            }
-            #chat .message {
-                border-bottom: 1px solid white;
-                padding: 10px 0;
-            }
-            #cell-info {
-                position: fixed;
-                background: black;
-                color: white;
-                top: 0;
-                width: 200px;
-                min-height: 100px;
-                right: 300px;
-            }
-            #actions {
-                position: fixed;
-                top: 200px;
-                right: 300px;
-                width: 200px;
-                background-color: green;
-            }
-            .hidden {
-                display: none;
-            }
 
-            label {
-                margin-bottom: 10px;
-                display: block;
-            }
+
         </style>
     </head>
     <body>
 
-        <button id="btn-login" disabled="true">Log in</button>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Tanks</a>
+
+                <form class="d-flex">
+                    <button id="btn-login" disabled="true">Log in</button>
+                    <button id="btn-logout" disabled="true">Log out</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+
+
+
+    <main role="main" >
+
+        <div class="drawer" id="rules">
+            <h2>Survive to the end and win the cash!</h2>
+
+            <p>1st $$$$ | 2nd $$$$ | 3rd $$$ | 4th $$ | First Blood: $</p>
+
+            <h4>RULES</h4>
+
+            <p>
+                All players start at a random location on the grid, and have 3 hearts and 0 Action Points.
+            </p>
+            <p>
+                Every 24 hours on a work day, everyone will receive 1 Action Point (AP).
+                The time the point is given may vary day to day.
+            </p>
+            <p>
+                At any time you like, you can do one of the four following actions:
+            </p>
+
+            <ul>
+                <li>Move to an adjacent, unoccupied square (1 AP)</li>
+                <li>Shoot someone who is within your range (1 AP). Shooting someone removes 1 heart from their health.</li>
+                <li>Upgrade your range (3 AP)</li>
+                <li>Add a heart (3 AP)</li>
+
+            </ul>
+
+            <p>
+                At the start of the game, everyone has a range of 2.
+                That is, they can shoot or trade with somehow within 2 squares of them.
+                Upgrading your shooting range increases this by 1 square each time.
+            </p>
+            <p>
+                If a player is reduced to 0 hearts, then they are dead.
+                Any action points the dead player had are transferred to the player who killed them.
+                Dead players remain on the board and not removed.
+            </p>
+            <p>
+                Players are able to send gifts of hearts or actions points to any player currently within their range.
+            </p>
+            <p>
+                Dead players can have a heart sent to them.
+                This will revive that player who will have 1 heart and 0 AP.
+            </p>
+
+            <h4>ADDITIONAL NOTES</h4>
+
+
+            <p>
+                Dead players form a jury. Each day they vote,
+                and whoever received most votes will be 'haunted',
+                and not revive any AP for that day.
+            </p>
+            <p>
+            Once a day, at a random time, a hear will spawn on the field.
+                The first player to move into the square containing the heart
+                will revive an additional heart.
+            </p>
+            <p>
+            The game ends when a clear 1st, 2nd, and 3rd place can be determined.
+                Once there are 4 players left, they will see if they can agree on the placing.
+            </p>
+            <p>
+            Action points are secret! Probably a good idea to try and hide how many you have.
+            </p>
+            <p>
+            You can't win this game without making some friends and stabbing some backs. Probably.
+            </p>
+        </div>
+
+        <div class="drawer" id="players">
+            <h4>Players online</h4>
+            <hr>
+            <div id="players-container"></div>
+        </div>
+
+        <div>
+            <div id="actions">
+                <ul>
+                    <li><button data-action="move">Move (1AP)</button><br></li>
+                    <li><button data-action="shoot">Shoot (1AP)</button><br></li>
+                    <li><button data-action="give-action">Give Action (1AP)</button><br></li>
+                    <li><button data-action="upgrade">Upgrade (3AP)</button><br></li>
+                    <li><button data-action="heal">Heal (3AP)</button><br></li>
+                </ul>
+            </div>
+            <div id="board-holder"></div>
+        </div>
+
+    </main>
+
+
+
+
+<!--
+
+    <button id="btn-login" disabled="true">Log in</button>
         <button id="btn-logout" disabled="true">Log out</button>
 
     <div id="cell-info">
@@ -69,6 +143,9 @@
             <input id="input" autocomplete="off" /><button>Send</button>
         </form>
     </div>
+
+    </body>
+    -->
         <script src="./board.js"></script>
     </body>
 </html>

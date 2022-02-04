@@ -1,0 +1,31 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css");
+
+#actions ul {
+    display: flex;
+    list-style: none;
+    padding: 0
+}
+
+.img-thumbnail {
+    width: 50px;
+}
+
+ #players {
+     display: none
+ }
+
+ #rules {
+     font-size: 12px;
+     padding: 20px;
+     max-height: 500px;
+     overflow-y: scroll;
+ }
+
+.drawer {
+    position: fixed;
+    width: 400px;
+    top: 50px;
+    right: 0;
+    border: 1px solid white;
+    background-color: #fff;
+}
