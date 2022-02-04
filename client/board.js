@@ -138,9 +138,25 @@ const cellInfoContainer = document.querySelector('#cell-info');
 const actionButtons = document.querySelectorAll(`#actions  button`);
 const playersContainer = document.querySelector('#players-container')
 
+const toggleRulesButton = document.querySelector('#toggle-rules');
+const rulesContainer = document.querySelector('#rules');
+
+toggleRulesButton.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    if (Array.from(rulesContainer.classList).includes('d-none')) {
+        rulesContainer.classList.remove('d-none');
+    } else {
+        rulesContainer.classList.add('d-none')
+    }
+})
 
 actionButtons.forEach(el => {
     el.addEventListener('click', function () {
+
+        if (!player) {
+            return;
+        }
+
         const state = this.getAttribute('data-action')
         if (!Object.values(States).includes(state)) {
             return

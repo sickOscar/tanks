@@ -14,9 +14,14 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Tanks</a>
-
+            <a class="navbar-brand" href="#">InterlogiTanks</a>
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link active" id="toggle-rules" href="#">📚 Rules</a>
+                </li>
+            </ul>
                 <form class="d-flex">
+
                     <button id="btn-login" disabled="true">Log in</button>
                     <button id="btn-logout" disabled="true">Log out</button>
                 </form>
@@ -29,30 +34,30 @@
 
     <main role="main" >
 
-        <div class="drawer" id="rules">
+        <div class="drawer d-none" id="rules">
             <h2>Survive to the end and win the cash!</h2>
 
-            <p>1st $$$$ | 2nd $$$$ | 3rd $$$ | 4th $$ | First Blood: $</p>
+            <p>1st $$$$$ | 2nd $$$$ | 3rd $$$ | 4th $$ | First Blood: $</p>
 
             <h4>RULES</h4>
 
             <p>
-                All players start at a random location on the grid, and have 3 hearts and 0 Action Points.
+                All players start at a random location on the grid and have 3 hearts and 0 Action Points.
             </p>
             <p>
-                Every 24 hours on a work day, everyone will receive 1 Action Point (AP).
+                Every 24 hours, everyone will receive 1 Action Point (AP).
                 The time the point is given may vary day to day.
             </p>
             <p>
-                At any time you like, you can do one of the four following actions:
+                At any time you like, you can do one of the following actions:
             </p>
 
             <ul>
                 <li>Move to an adjacent, unoccupied square (1 AP)</li>
                 <li>Shoot someone who is within your range (1 AP). Shooting someone removes 1 heart from their health.</li>
                 <li>Upgrade your range (3 AP)</li>
-                <li>Add a heart (3 AP)</li>
-
+                <li>Add an action to another player (1AP)</li>
+                <li>Add a heart to yourself or to another player(3 AP)</li>
             </ul>
 
             <p>
@@ -61,12 +66,13 @@
                 Upgrading your shooting range increases this by 1 square each time.
             </p>
             <p>
-                If a player is reduced to 0 hearts, then they are dead.
-                Any action points the dead player had are transferred to the player who killed them.
+                If a player is reduced to 0 hearts, then he's dead.
+                Any action point the dead player had are transferred to the player who killed them.
                 Dead players remain on the board and not removed.
             </p>
             <p>
-                Players are able to send gifts of hearts or actions points to any player currently within their range.
+                Players are able to send gifts of hearts or actions points
+                to any player currently within their range.
             </p>
             <p>
                 Dead players can have a heart sent to them.
@@ -75,26 +81,25 @@
 
             <h4>ADDITIONAL NOTES</h4>
 
-
+<!--            <p>-->
+<!--                Dead players form a jury. Each day they vote,-->
+<!--                and whoever received most votes will be 'haunted',-->
+<!--                and not revive any AP for that day.-->
+<!--            </p>-->
+<!--            <p>-->
+<!--                Once a day, at a random time, a heart will spawn on the field.-->
+<!--                The first player to move into the square containing the heart-->
+<!--                will revive an additional heart.-->
+<!--            </p>-->
             <p>
-                Dead players form a jury. Each day they vote,
-                and whoever received most votes will be 'haunted',
-                and not revive any AP for that day.
-            </p>
-            <p>
-            Once a day, at a random time, a hear will spawn on the field.
-                The first player to move into the square containing the heart
-                will revive an additional heart.
-            </p>
-            <p>
-            The game ends when a clear 1st, 2nd, and 3rd place can be determined.
+                The game ends when a clear 1st, 2nd, and 3rd place can be determined.
                 Once there are 4 players left, they will see if they can agree on the placing.
             </p>
+<!--            <p>-->
+<!--                Action points are secret! Probably a good idea to try and hide how many you have.-->
+<!--            </p>-->
             <p>
-            Action points are secret! Probably a good idea to try and hide how many you have.
-            </p>
-            <p>
-            You can't win this game without making some friends and stabbing some backs. Probably.
+                You can't win this game without making some friends and stabbing some backs. Probably.
             </p>
         </div>
 

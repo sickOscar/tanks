@@ -47,7 +47,7 @@ export class Game implements IGame {
         for (let i = 0; i < ROWS; i++) {
             for (let j = 0; j < COLS; j++) {
                 const cellContent = this.state.board.getAt(j, i);
-                if (cellContent && cellContent.id === player.id) {
+                if (cellContent && cellContent.id === player.id && cellContent.life >= 0) {
                     return true;
                 }
             }

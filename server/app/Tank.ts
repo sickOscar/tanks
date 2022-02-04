@@ -9,7 +9,7 @@ import {IGame} from "../model/IGame";
 
 const DEFAULT_TANK_PARAMS: TankParams = {
     id: Math.random().toString(36).substring(2),
-    actions: 1,
+    actions: 0,
     position: new BoardPosition(0, 0),
     life: 3,
     range: 2,
@@ -79,6 +79,7 @@ export class Tank implements ITank {
         enemy.life -= 1;
         if (enemy.life === 0) {
             console.log(`${enemy.id} was killed by ${this.id}`);
+            this.actions += enemy.actions;
             await enemy.die();
         }
         this.useAction();
