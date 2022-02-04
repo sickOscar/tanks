@@ -1,7 +1,7 @@
 
 
 let players = [];
-
+const pictures = {};
 // AUTH
 
 const loginButton = document.querySelector('#btn-login');
@@ -206,11 +206,22 @@ function setBoard(board) {
     // set local player
     for (let i = 0; i < config.rows; i++) {
         for (let j = 0; j < config.cols; j++ ) {
+            
+            if (localBoard[i][j]) {
+                if (!pictures[localBoard[i][j].id]) {
+                    pictures[localBoard[i][j].id] = loadImage(localBoard[i][j].picture)
+                }
+            }
+            
             if (localBoard[i][j] && localBoard[i][j].id === playerId) {
                 player = localBoard[i][j];
             }
         }
     }
+    
+    
+
+    
 
 }
 
@@ -223,9 +234,11 @@ function setPlayers(playersList) {
     try {
         players = JSON.parse(playersList);
 
-        players.forEach(p => {
-            p.loadedPicture = loadImage(p.picture)
-        })
+        // players.forEach(p => {
+        //     if (!player.loadedPicture) {
+        //         p.loadedPicture = loadImage(p.picture)
+        //     }
+        // })
 
         const listItems = players.map(p => `
             <li class="list-group-item">
@@ -358,9 +371,9 @@ function drawPlayer(tank, isThisSession) {
     }
     square(SQUARE_SIZE * tank.position.x, SQUARE_SIZE * tank.position.y, SQUARE_SIZE);
 
-    if (tank.loadedPicture) {
+    if (pictures[tank.id]) {
         tint(255, 126);
-        image(tank.loadedPicture, rootX, rootY, SQUARE_SIZE, SQUARE_SIZE);
+        image(pictures[tank.id], rootX, rootY, SQUARE_SIZE, SQUARE_SIZE);
     }
 
     // life
