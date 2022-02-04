@@ -183,8 +183,10 @@ actionButtons.forEach(el => {
             return
         }
 
-        if (state === States.upgrade ) {
-            sio.emit('playerevent', state, null, (isValid) => {});
+        if (state === States.UPGRADE ) {
+            sio.emit('playerevent', States.UPGRADE, null, (isValid) => {
+                console.log('upgraded');
+            });
         } else {
             if (currentState === state) {
                 currentState = States.IDLE
