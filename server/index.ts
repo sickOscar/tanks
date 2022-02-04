@@ -21,6 +21,16 @@ async function init() {
     const game = new Game();
     await game.loadActive();
 
+    setInterval(async () => {
+        await game.distributeActions();
+        io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+    }, 30000)
+
+    setInterval(async () => {
+        await game.dropHeart();
+        io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+    }, 5000)
+
     const app = express()
     const server = http.createServer(app)
     const io = new Server(server, {

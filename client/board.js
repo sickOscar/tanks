@@ -2,6 +2,33 @@
 
 let players = [];
 const pictures = {};
+
+let configFetched = false;
+let config = {
+    rows: 0,
+    cols: 0
+};
+
+let sio;
+
+let localBoard = null;
+let playerId = null;
+let player = null;
+let heartLocation = null;
+
+let stage = 'RUN';
+
+const States = {
+    IDLE: 'idle',
+    MOVE: 'move',
+    SHOOT: 'shoot',
+    GIVE_ACTION: 'give-action',
+    UPGRADE: 'upgrade',
+    HEAL: 'heal'
+}
+
+let currentState = States.IDLE;
+
 // AUTH
 
 const loginButton = document.querySelector('#btn-login');
@@ -101,13 +128,7 @@ logoutButton.addEventListener('click', () => {
 
 // END AUTH
 
-let configFetched = false;
-let config = {
-    rows: 0,
-    cols: 0
-};
 
-let sio;
 
 function connectSocket(jwt) {
     sio = io('', {
@@ -175,22 +196,7 @@ actionButtons.forEach(el => {
     })
 })
 
-let localBoard = null;
-let playerId = null;
-let player = null;
 
-let stage = 'RUN'
-
-const States = {
-    IDLE: 'idle',
-    MOVE: 'move',
-    SHOOT: 'shoot',
-    GIVE_ACTION: 'give-action',
-    UPGRADE: 'upgrade',
-    HEAL: 'heal'
-}
-
-let currentState = States.IDLE;
 
 function newMessage(content) {
     const div = document.createElement('div');
@@ -199,8 +205,10 @@ function newMessage(content) {
     // chatContainer.appendChild(div);
 }
 
-function setBoard(board) {
-    localBoard = JSON.parse(board);
+function setBoard(serverMessage) {
+
+    const parsedMessage = JSON.parse(serverMessage);
+    localBoard = parsedMessage.board;
     const p = [];
 
     // set local player
@@ -220,7 +228,7 @@ function setBoard(board) {
     }
     
     
-
+    heartLocation = parsedMessage.features.heartLocation;
     
 
 }
@@ -304,7 +312,9 @@ function drawCell(y, x) {
 
     if (localBoard[y][x] === null) {
         drawEmptyCell(y, x);
-
+        if (heartLocation && heartLocation[0] === x && heartLocation[1] === y) {
+            drawHeart(y, x);
+        }
     } else {
         if (localBoard[y][x].id === playerId) {
             drawPlayer(localBoard[y][x], true);
@@ -312,7 +322,6 @@ function drawCell(y, x) {
             drawPlayer(localBoard[y][x])
         }
     }
-
 
 }
 
@@ -323,6 +332,16 @@ function isInRange(cell1, cell2, range) {
         && cell1.y >= cell2.y - range
         && cell1.y <= cell2.y + range
     )
+}
+
+function drawHeart(y, x) {
+    const rootX = x * SQUARE_SIZE;
+    const rootY = y * SQUARE_SIZE;
+    fill('red')
+    textSize(SQUARE_SIZE / 2);
+    textStyle(NORMAL);
+    textAlign(CENTER, CENTER)
+    text('💖', rootX + SQUARE_SIZE / 2, rootY + SQUARE_SIZE / 2)
 }
 
 function drawEmptyCell(y, x) {
@@ -377,34 +396,44 @@ function drawPlayer(tank, isThisSession) {
     }
 
     // life
-    for(let i = 0; i < tank.life; i++) {
-        noStroke()
-        if (i < tank.life) {
-            fill('red')
-            let boxSize = SQUARE_SIZE / 8;
-            circle(rootX + (SQUARE_SIZE / 2) -  (boxSize * 2) + (i * boxSize * 2), rootY + SQUARE_SIZE - boxSize , boxSize)
-        }
-    }
+    // for(let i = 0; i < tank.life; i++) {
+    //     noStroke()
+    //     if (i < tank.life) {
+    //         fill('red')
+    //         let boxSize = SQUARE_SIZE / 8;
+    //         circle(rootX + (SQUARE_SIZE / 2) -  (boxSize * 2) + (i * boxSize * 2), rootY + SQUARE_SIZE - boxSize , boxSize)
+    //     }
+    // }
+
+    noStroke()
+    fill('white')
 
     if (tank.life === 0) {
+
         textSize(SQUARE_SIZE);
         textStyle(NORMAL);
-        textAlign(LEFT, TOP)
-        text('☠', rootX, rootY)
+        textAlign(CENTER, CENTER)
+        text('☠', rootX + SQUARE_SIZE / 2, rootY + SQUARE_SIZE / 2)
+
     } else {
+
+        textStyle(BOLD)
+        textAlign(LEFT, TOP)
+
+        // life
+        textSize(SQUARE_SIZE / 6);
+        text(`💓 x ${tank.life}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE - 20)
+
         // actions
-        fill('white')
         textStyle(BOLD)
         textSize(SQUARE_SIZE / 6);
         textAlign(LEFT, TOP)
-        text(`Actions: ${tank.actions}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 10);
+        text(`👊 x ${tank.actions}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 10);
 
         // range
-        fill('white')
-        textStyle(BOLD)
         textSize(SQUARE_SIZE / 6);
         textAlign(LEFT, TOP)
-        text(`Range: ${tank.range}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 3);
+        text(`👁 x ${tank.range}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 3);
 
     }
 

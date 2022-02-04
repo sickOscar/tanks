@@ -3,6 +3,7 @@ import {Tank} from "./Tank";
 import {BoardPosition} from "./boardPosition";
 import {IGame} from "../model/IGame";
 import {ITank} from "../model/ITank";
+import db from "../db";
 
 export class Board {
 
@@ -17,7 +18,7 @@ export class Board {
         }
     }
 
-    getAt(x:number, y:number) {
+    getAt(x:number, y:number):Tank|undefined {
         if (!this.board[y]) {
             return undefined
         }
@@ -102,7 +103,18 @@ export class Board {
 
             }
         }
-        return JSON.stringify(clone);
+        return JSON.stringify({
+            features: {
+                heartLocation: [this.game.heartLocation.x, this.game.heartLocation.y]
+            },
+            board: clone
+        });
+    }
+
+    async updateOnDb():Promise<void> {
+        await db.query(`
+            UPDATE games SET board = $1 WHERE active = true AND id = $2
+        `, [this.serialize(), this.game.id])
     }
 
 }

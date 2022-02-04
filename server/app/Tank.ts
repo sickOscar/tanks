@@ -69,14 +69,20 @@ export class Tank implements ITank {
 
     move(x: number, y: number): void {
         this.game.board.moveTankFromTo(this.position, new BoardPosition(x, y));
+
+        if (this.game.heartLocation.x === x && this.game.heartLocation.y === y) {
+            this.life += 1;
+            this.game.clearHeart()
+        }
+
         this.position.x = x;
         this.position.y = y;
         this.useAction();
     }
 
     async shoot(x: number, y: number): Promise<void> {
-        const enemy: Tank = this.game.board.getAt(x, y);
-        enemy.life -= 1;
+        const enemy: Tank = this.game.board.getAt(x, y) as Tank;
+        enemy.life = Math.max(0, enemy.life - 1);
         if (enemy.life === 0) {
             console.log(`${enemy.id} was killed by ${this.id}`);
             this.actions += enemy.actions;
@@ -86,7 +92,7 @@ export class Tank implements ITank {
     }
 
     giveAction(x: number, y: number): void {
-        const enemy: Tank = this.game.board.getAt(x, y);
+        const enemy: Tank = this.game.board.getAt(x, y) as Tank;
         enemy.actions += 1;
         this.useAction();
     }
@@ -100,7 +106,7 @@ export class Tank implements ITank {
         if (this.position.x === x && this.position.y === y) {
             this.life += 1;
         } else {
-            const enemy:Tank = this.game.board.getAt(x, y);
+            const enemy:Tank = this.game.board.getAt(x, y) as Tank;
             enemy.life += 1;
         }
         this.useAction(3);
@@ -153,8 +159,8 @@ export class Tank implements ITank {
                 return false;
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range)) {
-                const enemy = this.game.board.getAt(x, y);
-                if (enemy.life >= 0) {
+                const enemy = this.game.board.getAt(x, y) as Tank;
+                if (enemy.life > 0) {
                     await this.shoot(x, y);
                     return true;
                 }

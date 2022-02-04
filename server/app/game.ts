@@ -4,6 +4,7 @@ import {Board} from "./board";
 import {GameState, IGame} from "../model/IGame";
 import {COLS, ROWS} from "../const";
 import {ITank} from "../model/ITank";
+import {BoardPosition} from "./boardPosition";
 
 export class Game implements IGame {
 
@@ -11,6 +12,7 @@ export class Game implements IGame {
     activePlayers:Player[] = [];
     private state:GameState = {
         board: new Board(this),
+        heartLocation: new BoardPosition(-1, -1),
         jury: []
     };
 
@@ -35,7 +37,15 @@ export class Game implements IGame {
         }
 
         const dbBoard = res.rows[0].board;
-        this.state.board.load(dbBoard);
+        this.state.board.load(dbBoard.board);
+
+        if (dbBoard.features.heartLocation) {
+            this.state.heartLocation = new BoardPosition(
+                dbBoard.features.heartLocation.x,
+                dbBoard.features.heartLocation.y
+            )
+        }
+
         this.id = res.rows[0].id;
     }
 
@@ -64,6 +74,31 @@ export class Game implements IGame {
                 }
             }
         }
+    }
+
+    async distributeActions():Promise<void> {
+        for (let i = 0; i < ROWS; i++) {
+            for (let j = 0; j < COLS; j++) {
+                const cellContent = this.state.board.getAt(j, i);
+                if (cellContent && cellContent.life > 0) {
+                    cellContent.actions += 1;
+                }
+            }
+        }
+        await this.board.updateOnDb();
+    }
+
+    async dropHeart():Promise<void> {
+        this.state.heartLocation = this.board.getRandom();
+        await this.board.updateOnDb();
+    }
+
+    async clearHeart():Promise<void> {
+        this.state.heartLocation = new BoardPosition(-1, -1);
+    }
+
+    get heartLocation() {
+        return this.state.heartLocation;
     }
 
     get board() {
