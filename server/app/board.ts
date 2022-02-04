@@ -26,8 +26,10 @@ export class Board {
     }
 
     load(dbBoard:any[][]) {
+        console.log(`dbBoard`, dbBoard)
         for (let i = 0; i < ROWS; i++) {
             for (let j = 0; j < COLS; j++) {
+                
                 if (!this.board[i]) {
                     this.board[i] = new Array(COLS);
                 }

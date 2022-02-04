@@ -31,7 +31,7 @@ export class Game implements IGame {
         const res = await db.query(`
             SELECT * from games WHERE active = true
         `)
-
+        
         if (res.rows.length === 0) {
             throw new Error('NO ACTIVE GAME')
         }

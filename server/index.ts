@@ -20,6 +20,7 @@ async function init() {
 
     const game = new Game();
     await game.loadActive();
+    
 
     setInterval(async () => {
         await game.distributeActions();
