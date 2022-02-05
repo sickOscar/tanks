@@ -52,7 +52,7 @@ export async function prepareDb() {
                 action VARCHAR,
                 destination JSONB,
                 enemy VARCHAR,
-                created_at timestamptz DEFAULT NOW()
+                created_at timestamptz DEFAULT NOW(),
                 CONSTRAINT fk_game
                     FOREIGN KEY (game)
                         REFERENCES games(id)
