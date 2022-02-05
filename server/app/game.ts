@@ -5,6 +5,7 @@ import {GameState, IGame} from "../model/IGame";
 import {COLS, ROWS} from "../const";
 import {ITank} from "../model/ITank";
 import {BoardPosition} from "./boardPosition";
+import {Tank} from "./Tank";
 
 export class Game implements IGame {
 
@@ -93,8 +94,27 @@ export class Game implements IGame {
         await this.board.updateOnDb();
     }
 
-    async clearHeart():Promise<void> {
+    clearHeart():void {
         this.state.heartLocation = new BoardPosition(-1, -1);
+    }
+
+    async addAction(actor:Tank, action:string, dest?:BoardPosition, enemy?:Tank):Promise<void> {
+        const destination = dest ? [dest.x, dest.y] : null;
+        const en = enemy ? enemy.id : null;
+        await db.query(`
+            INSERT INTO events (game, actor, action, destination, enemy) VALUES ($1, $2, $3, $4, $5)
+        `, [this.id, actor.id, action, JSON.stringify(destination), en])
+    }
+
+    async getActions():Promise<any> {
+        const res = await db.query(`
+            SELECT * FROM events ORDER BY created_at DESC LIMIT 10 
+        `)
+        return res.rows;
+    }
+
+    getPlayers():any[] {
+        return this.board.getPlayers().map(t => t.asPlayer())
     }
 
     get heartLocation() {

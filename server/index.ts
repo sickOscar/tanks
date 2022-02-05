@@ -1,7 +1,6 @@
-import * as assert from "assert";
+import {IAction} from "./model/IAction";
 
 require('dotenv').config()
-
 import cors from 'cors';
 import express from 'express';
 import {Server} from "socket.io";
@@ -9,28 +8,29 @@ import * as http from "http";
 import * as path from "path";
 import {Tank} from "./app/Tank";
 import {MessageTypes} from "./app/messageTypes";
-import {authIoMiddleware, unauthorizeEndMiddleware} from "./auth";
+import {authIoMiddleware, checkJwt, unauthorizeEndMiddleware} from "./auth";
 import {apis} from "./apis";
 import {Player} from "./app/player";
 import {Game} from "./app/game";
 import db, {prepareDb} from "./db";
+import {schedule} from 'node-cron';
+import {BoardPosition} from "./app/boardPosition";
 
 
 async function init() {
 
     const game = new Game();
     await game.loadActive();
-    
 
-    setInterval(async () => {
+    schedule('* * 8 * *', async () => {
         await game.distributeActions();
         io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-    }, 30000)
+    })
 
-    setInterval(async () => {
+    schedule('* * 8 * *', async () => {
         await game.dropHeart();
         io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-    }, 5000)
+    })
 
     const app = express()
     const server = http.createServer(app)
@@ -66,16 +66,34 @@ async function init() {
             if (game.isAlive(player)) {
                 tank = game.getPlayerTank(player) as Tank;
                 socket.emit(MessageTypes.PLAYER, tank.id)
-                socket.on(MessageTypes.PLAYER_EVENT, async (action, cell, callback) => {
-                    const hasBeenApplied = await tank.applyAction(action, cell);
-                    console.log(`${tank.id} | ${action} | ${JSON.stringify(cell)} | ${hasBeenApplied}`)
-                    callback(hasBeenApplied);
-                    if (hasBeenApplied) {
-                        await db.query(`
-                            UPDATE games SET board = '${game.board.serialize()}' WHERE active = true
-                        `)
+                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, cell, callback) => {
+
+                    const action:IAction = {
+                        created_at: new Date(),
+                        action: actionString,
+                        actor: tank,
+                        destination: cell ? new BoardPosition(cell.x, cell.y) : undefined
+                    }
+                    const actionApplied = await tank.applyAction(action);
+
+                    console.log(`${tank.id} | ${action.action} | ${JSON.stringify(cell)} | ${!!actionApplied}`)
+                    callback(!!actionApplied);
+
+                    if (actionApplied !== false) {
+                        await game.board.updateOnDb();
                         socket.emit(MessageTypes.BOARD, game.board.serialize());
                         socket.broadcast.emit(MessageTypes.BOARD, game.board.serialize());
+
+                        const actionToSend = {
+                            created_at: actionApplied.created_at,
+                            actor: actionApplied.actor.id,
+                            destination: actionApplied.destination ? [actionApplied.destination.x, actionApplied.destination.y] : undefined,
+                            action: actionApplied.action,
+                            enemy: actionApplied.enemy ? actionApplied.enemy.id : null
+                        }
+
+                        socket.emit(MessageTypes.ACTION, actionToSend);
+                        socket.broadcast.emit(MessageTypes.ACTION, actionToSend);
                     }
                 })
             } else if (game.isInJury(player)) {
@@ -96,17 +114,24 @@ async function init() {
 
         socket.emit(MessageTypes.MESSAGE, `Welcome ${socket.user.name}!`);
         socket.emit(MessageTypes.BOARD, game.board.serialize());
-        socket.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.activePlayers))
+        socket.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPlayers()))
 
         socket.broadcast.emit(MessageTypes.MESSAGE, `${socket.user.name} joined!`)
         socket.broadcast.emit(MessageTypes.BOARD, game.board.serialize());
-        socket.broadcast.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.activePlayers))
-
-
+        socket.broadcast.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPlayers()))
 
     })
 
-// @ts-ignore
+
+    app.get('/events', checkJwt, async (req, res) => {
+        res.json(await game.getActions());
+    })
+
+    app.get('/players', checkJwt, async (req, res) => {
+        res.json(game.getPlayers());
+    })
+
+    // @ts-ignore
     app.use(unauthorizeEndMiddleware());
 
     const port = process.env.PORT || 3000;

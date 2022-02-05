@@ -26,7 +26,6 @@ export class Board {
     }
 
     load(dbBoard:any[][]) {
-        console.log(`dbBoard`, dbBoard)
         for (let i = 0; i < ROWS; i++) {
             for (let j = 0; j < COLS; j++) {
                 
@@ -117,6 +116,18 @@ export class Board {
         await db.query(`
             UPDATE games SET board = $1 WHERE active = true AND id = $2
         `, [this.serialize(), this.game.id])
+    }
+
+    getPlayers():Tank[] {
+        const players:Tank[] = [];
+        for(let i = 0; i < ROWS; i++) {
+            for (let j = 0; j < COLS; j++) {
+                if (this.getAt(j, i) !== null) {
+                    players.push(this.getAt(j ,i) as Tank)
+                }
+            }
+        }
+        return players;
     }
 
 }

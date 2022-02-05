@@ -3,5 +3,6 @@ export enum MessageTypes {
     BOARD = 'board',
     PLAYER = 'player',
     PLAYER_EVENT = 'playerevent',
-    PLAYERSLIST = 'playerslist'
+    PLAYERSLIST = 'playerslist',
+    ACTION = 'action'
 }

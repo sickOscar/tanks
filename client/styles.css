@@ -3,7 +3,17 @@
 #actions ul {
     display: flex;
     list-style: none;
-    padding: 0
+    padding: 0;
+    margin: 0;
+}
+
+#logs {
+    width: 300px;
+    min-width: 200px;
+}
+
+#board-holder {
+    overflow: scroll;
 }
 
 .img-thumbnail {

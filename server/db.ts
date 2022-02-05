@@ -41,6 +41,25 @@ export async function prepareDb() {
         `)
     }
 
+    try {
+        await db.query('SELECT * FROM events')
+    } catch (err) {
+        db.query(`
+            CREATE TABLE events (
+                id SERIAL PRIMARY KEY,
+                game INTEGER,
+                actor VARCHAR,
+                action VARCHAR,
+                destination JSONB,
+                enemy VARCHAR,
+                created_at timestamptz DEFAULT NOW()
+                CONSTRAINT fk_game
+                    FOREIGN KEY (game)
+                        REFERENCES games(id)
+            )
+        `)
+    }
+
 }
 
 

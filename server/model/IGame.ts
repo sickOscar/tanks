@@ -1,6 +1,7 @@
 import {Player} from "../app/player";
 import {Board} from "../app/board";
 import {BoardPosition} from "../app/boardPosition";
+import {Tank} from "../app/Tank";
 
 export interface GameState {
     board: Board;
@@ -16,5 +17,6 @@ export interface IGame {
     addActivePlayer(p:Player):void
     removeActivePlayer(p:Player):void;
     loadActive(dbBoard:any[][]):void;
-    clearHeart():Promise<void>
+    clearHeart():void;
+    addAction(actor:Tank, action:string, destination?:BoardPosition, enemy?:Tank):Promise<void>
 }

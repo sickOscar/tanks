@@ -2,6 +2,7 @@
 
 let players = [];
 const pictures = {};
+let events = []
 
 let configFetched = false;
 let config = {
@@ -70,13 +71,19 @@ window.onload = async () => {
                 WIDTH = config.cols * SQUARE_SIZE;
                 HEIGHT = config.rows * SQUARE_SIZE
 
+                resizeCanvas(WIDTH, HEIGHT);
+
                 const jwt = await auth0.getTokenSilently()
                 connectSocket(jwt)
             })
             .catch(err => {
                 console.log(err)
-                alert('oh no, something went terribly wrong')
             })
+
+        players = await getJson('/players')
+        events = await getJson('/events')
+
+        drawEvents()
         return;
     }
 
@@ -88,8 +95,7 @@ window.onload = async () => {
         await auth0.handleRedirectCallback();
 
         const isAuth = await auth0.isAuthenticated();
-        console.log(`isAuth`, isAuth)
-        
+
         await updateLoginUi();
 
         // Use replaceState to redirect the user away and remove the querystring parameters
@@ -103,13 +109,20 @@ window.onload = async () => {
                 WIDTH = config.cols * SQUARE_SIZE;
                 HEIGHT = config.rows * SQUARE_SIZE
 
+                resizeCanvas(WIDTH, HEIGHT);
+
                 const jwt = await auth0.getTokenSilently()
                 connectSocket(jwt);
 
             }).catch(err => {
-                console.log(err)
-                alert('oh no, something went terribly wrong')
+                console.log(err);
             }).catch(() => createCanvas(200, 200))
+
+        players = await getJson('/players')
+        events = await getJson('/events')
+
+        drawEvents()
+
 
     }
 }
@@ -126,7 +139,50 @@ logoutButton.addEventListener('click', () => {
     });
 })
 
-// END AUTH
+function drawEvents() {
+    const markup = events.map(e => {
+        const p = players.find(p => p.id === e.actor);
+
+        const pre = `<div class="event">
+                    <span class="event-date">${new Date(e.created_at).toLocaleString()}</span>
+                    <p>
+                        <img src="${p.picture}" title="${p.name}" class="img-thumbnail" alt="${p.name}"> `;
+
+        const post = `</p></div>
+            `
+
+        if (e.action === States.MOVE) {
+            return `${pre} moved to [${e.destination[0]}:${e.destination[1]}] ${post}`
+        }
+
+        if (e.action === States.UPGRADE) {
+            return `${pre} upgraded his range${post}`
+        }
+
+        if (e.action === States.SHOOT) {
+            const enemy = players.find(p => p.id === e.enemy)
+            return `${pre} shoots to <img src="${enemy.picture}" title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
+        }
+
+        if (e.action === States.GIVE_ACTION) {
+            const enemy = players.find(p => p.id === e.enemy)
+            return `${pre} gives an action to <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
+        }
+
+        if (e.action === States.HEAL) {
+            const enemy = players.find(p => p.id === e.enemy)
+            if (enemy) {
+                return `${pre} heals <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
+            }
+            return `${pre} heals himself${post}`
+
+        }
+
+
+    })
+    document.querySelector('#logs').innerHTML = markup.join('');
+}
+
 
 
 
@@ -141,14 +197,12 @@ function connectSocket(jwt) {
     sio.on('message', newMessage);
     sio.on('board', setBoard)
     sio.on('playerslist', setPlayers);
+    sio.on('action', addPlayerAction)
 
     sio.on('connect_error', error => {
-        alert('Server disconnected')
         console.error(error)
     })
 }
-
-
 
 const SQUARE_SIZE = 80;
 let WIDTH = 200;
@@ -205,6 +259,11 @@ function newMessage(content) {
     div.classList = ['message'];
     div.innerText = content;
     // chatContainer.appendChild(div);
+}
+
+function addPlayerAction(action) {
+    events.unshift(action)
+    drawEvents();
 }
 
 function setBoard(serverMessage) {
@@ -279,22 +338,20 @@ async function getJson(url) {
         .catch(console.error);
 }
 
+
 function setup() {
-    const canvas = createCanvas(windowWidth, windowHeight);
+    const canvas = createCanvas(100, 100);
     canvas.parent('board-holder')
 }
 
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
-}
-
 function draw() {
-    background(81);
+    background('white');
     if (!configFetched || !localBoard) {
         return;
     }
 
     if (stage === 'RUN') {
+        background(81)
         drawBoard();
     }
 
