@@ -351,7 +351,7 @@ function draw() {
     }
 
     if (stage === 'RUN') {
-        background(81)
+        background('#3e852e')
         drawBoard();
     }
 

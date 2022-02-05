@@ -22,12 +22,12 @@ async function init() {
     const game = new Game();
     await game.loadActive();
 
-    schedule('* * 8 * *', async () => {
+    schedule('0 28 10 * * *', async () => {
         await game.distributeActions();
         io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
     })
 
-    schedule('* * 8 * *', async () => {
+    schedule('0 28 10 * * *', async () => {
         await game.dropHeart();
         io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
     })
