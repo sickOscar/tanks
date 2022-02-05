@@ -92,3 +92,8 @@ body {
 .nav-link, .nav-link:active, .nav-link:hover {
     color: black
 }
+
+button:disabled {
+    opacity: .3;
+    pointer-events: none;
+}
