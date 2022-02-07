@@ -24,7 +24,7 @@ async function init() {
 
     const actionTimeoutDelay = 3600 * 1000;
 
-    schedule('0 0 11 * * *', async () => {
+    schedule('0 0 12 * * *', async () => {
         setTimeout(async () => {
             try {
                 await game.distributeActions();
