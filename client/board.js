@@ -75,6 +75,15 @@ async function updateLoginUi() {
     loginButton.style.display = isAuthenticated ? 'none' : 'block';
     logoutButton.disabled = !isAuthenticated;
     logoutButton.style.display = !isAuthenticated ? 'none' : 'block';
+
+    if (isAuthenticated) {
+        document.querySelector('#board-holder').classList.remove(['d-none']);
+        document.querySelector('#right-side').classList.remove(['d-none'])
+    } else {
+        document.querySelector('#board-holder').classList.add(['d-none']);
+        document.querySelector('#right-side').classList.add(['d-none'])
+    }
+
 }
 
 window.onload = async () => {

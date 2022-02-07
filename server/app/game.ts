@@ -21,7 +21,10 @@ export class Game implements IGame {
     }
 
     addActivePlayer(player:Player) {
-        this.activePlayers.push(player)
+        if (!this.activePlayers.find(p => p.id === player.id)) {
+            this.activePlayers.push(player)
+        }
+
     }
 
     removeActivePlayer(player:Player) {
