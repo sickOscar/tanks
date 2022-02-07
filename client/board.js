@@ -10,6 +10,8 @@ let config = {
     cols: 0
 };
 
+let backgroundImage;
+
 let sio;
 
 let localBoard = null;
@@ -62,28 +64,7 @@ window.onload = async () => {
     const isAuthenticated = await auth0.isAuthenticated();
 
     if (isAuthenticated) {
-        // show the gated content
-        getJson('/config')
-            .then(async c => {
-                config = c;
-                configFetched = true;
-
-                WIDTH = config.cols * SQUARE_SIZE;
-                HEIGHT = config.rows * SQUARE_SIZE
-
-                resizeCanvas(WIDTH, HEIGHT);
-
-                const jwt = await auth0.getTokenSilently()
-                connectSocket(jwt)
-            })
-            .catch(err => {
-                console.log(err)
-            })
-
-        players = await getJson('/players')
-        events = await getJson('/events')
-
-        drawEvents()
+        await initCanvas()
         return;
     }
 
@@ -94,37 +75,37 @@ window.onload = async () => {
         // Process the login state
         await auth0.handleRedirectCallback();
 
-        const isAuth = await auth0.isAuthenticated();
-
         await updateLoginUi();
 
         // Use replaceState to redirect the user away and remove the querystring parameters
         window.history.replaceState({}, document.title, "/");
 
-        getJson('/config')
-            .then(async c => {
-                config = c;
-                configFetched = true;
-
-                WIDTH = config.cols * SQUARE_SIZE;
-                HEIGHT = config.rows * SQUARE_SIZE
-
-                resizeCanvas(WIDTH, HEIGHT);
-
-                const jwt = await auth0.getTokenSilently()
-                connectSocket(jwt);
-
-            }).catch(err => {
-                console.log(err);
-            }).catch(() => createCanvas(200, 200))
-
-        players = await getJson('/players')
-        events = await getJson('/events')
-
-        drawEvents()
-
-
+        await initCanvas()
     }
+}
+
+async function initCanvas() {
+    getJson('/config')
+        .then(async c => {
+            config = c;
+            configFetched = true;
+
+            WIDTH = config.cols * SQUARE_SIZE;
+            HEIGHT = config.rows * SQUARE_SIZE
+
+            resizeCanvas(WIDTH, HEIGHT);
+
+            const jwt = await auth0.getTokenSilently()
+            connectSocket(jwt);
+
+        }).catch(err => {
+        console.log(err);
+    }).catch(() => createCanvas(200, 200))
+
+    players = await getJson('/players')
+    events = await getJson('/events')
+
+    drawEvents()
 }
 
 loginButton.addEventListener('click', () => {
@@ -161,7 +142,7 @@ function drawEvents() {
 
         if (e.action === States.SHOOT) {
             const enemy = players.find(p => p.id === e.enemy)
-            return `${pre} shoots to <img src="${enemy.picture}" title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
+            return `${pre} shoots <img src="${enemy.picture}" title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
         }
 
         if (e.action === States.GIVE_ACTION) {
@@ -287,6 +268,10 @@ function setBoard(serverMessage) {
             }
         }
     }
+
+    if (player) {
+        document.querySelector('#actions').style.display = 'block'
+    }
     
     
     heartLocation = parsedMessage.features.heartLocation;
@@ -338,6 +323,9 @@ async function getJson(url) {
         .catch(console.error);
 }
 
+function preload() {
+    backgroundImage = loadImage('tanks.jpg');
+}
 
 function setup() {
     const canvas = createCanvas(100, 100);
@@ -345,13 +333,14 @@ function setup() {
 }
 
 function draw() {
-    background('white');
+    // background('white');
     if (!configFetched || !localBoard) {
         return;
     }
 
     if (stage === 'RUN') {
-        background('#3e852e')
+        // background('#3e852e');
+        image(backgroundImage, 0, 0);
         drawBoard();
     }
 

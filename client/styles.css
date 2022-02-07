@@ -16,6 +16,7 @@ body {
 }
 
 #actions {
+    display: none;
     margin-bottom: 2rem;
 }
 
@@ -58,10 +59,12 @@ body {
 
 .drawer {
     position: fixed;
-    width: 400px;
-    top: 50px;
-    right: 0;
+    width: 80%;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100px;
     border: 1px solid black;
+    z-index: 1000;
 }
 
 .drawer__container {
@@ -96,4 +99,12 @@ body {
 button:disabled {
     opacity: .3;
     pointer-events: none;
+}
+
+.event {
+    padding: 5px 10px;
+}
+
+.event-date {
+    font-size: 10px;
 }
