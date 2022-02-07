@@ -133,7 +133,6 @@ async function initCanvas() {
     }).catch(() => createCanvas(200, 200))
 
     players = await getJson('/players')
-    console.log(`players`, players)
     events = await getJson('/events')
 
     drawEvents()
@@ -176,8 +175,6 @@ function drawEvents() {
 
         if (e.action === States.SHOOT) {
             const enemy = players.find(p => p.id === e.enemy)
-            console.log(`e.enemy`, e.enemy)
-            console.log(`enemy`, enemy)
             return `${pre} shoots <img src="${enemy.picture}" title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
         }
 
@@ -377,6 +374,30 @@ function draw() {
         drawBoard();
     }
 
+    drawCursor();
+
+}
+
+function drawCursor() {
+
+    cursor('default')
+
+    if (currentState === States.SHOOT) {
+        cursor('pointer');
+    }
+
+    if (currentState === States.MOVE) {
+        cursor('pointer');
+    }
+
+    if (currentState === States.GIVE_ACTION) {
+        cursor('pointer');
+    }
+
+    if (currentState === States.HEAL) {
+        cursor('pointer');
+    }
+
 }
 
 function drawBoard() {
@@ -386,12 +407,14 @@ function drawBoard() {
     for (let y = 0; y < config.rows; y++) {
         fill('black')
         noStroke()
+        textSize(12);
         textAlign(CENTER, CENTER)
         text(y, 10, y * SQUARE_SIZE + SQUARE_SIZE / 2);
         for (let x = 0; x < config.cols; x++) {
             if (y === 0) {
                 fill('black')
                 noStroke()
+                textSize(12);
                 textAlign(CENTER, CENTER)
                 text(letters[x], x * SQUARE_SIZE + SQUARE_SIZE / 2, 10);
             }
@@ -440,28 +463,32 @@ function drawHeart(y, x) {
 
 function drawEmptyCell(y, x) {
     noFill()
+    strokeWeight(2);
+
+    const highlightColor = 'rgba(84,175,60,0.57)'
+
 
     if (currentState === States.MOVE) {
         if(isInRange({x: x, y: y}, player.position, 1)) {
-            fill('rgba(110,110,110,0.67)')
+            fill(highlightColor)
         }
     }
 
     if (currentState === States.SHOOT) {
         if(isInRange({x: x, y: y}, player.position, player.range)) {
-            fill('rgba(110,110,110,0.67)')
+            fill(highlightColor)
         }
     }
 
     if (currentState === States.GIVE_ACTION) {
         if(isInRange({x: x, y: y}, player.position, player.range)) {
-            fill('rgba(110,110,110,0.67)')
+            fill(highlightColor)
         }
     }
 
     if (currentState === States.HEAL) {
         if(isInRange({x: x, y: y}, player.position, player.range)) {
-            fill('rgba(110,110,110,0.67)')
+            fill(highlightColor)
         }
     }
 
@@ -572,6 +599,15 @@ function mouseClicked() {
             }
         });
     }
+
+}
+
+
+function mouseMoved() {
+
+
+
+
 
 }
 
