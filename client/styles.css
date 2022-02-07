@@ -1,10 +1,33 @@
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css");
 
+@font-face {
+    font-family: Cyber;
+    src: url("https://assets.codepen.io/605876/Blender-Pro-Bold.otf");
+    font-display: swap;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Cyber', sans-serif;
+    background-color: #fefe33;
+}
+
+#actions {
+    margin-bottom: 2rem;
+}
+
 #actions ul {
     display: flex;
     list-style: none;
     padding: 0;
     margin: 0;
+}
+
+#actions ul li {
+    margin: 0 10px;
 }
 
 #logs {
@@ -25,10 +48,12 @@
  }
 
  #rules {
-     font-size: 12px;
-     padding: 20px;
+     font-size: 15px;
+     max-height: 500px;
      max-height: 500px;
      overflow-y: scroll;
+     overflow-x: hidden;
+     color: white;
  }
 
 .drawer {
@@ -36,6 +61,39 @@
     width: 400px;
     top: 50px;
     right: 0;
-    border: 1px solid white;
-    background-color: #fff;
+    border: 1px solid black;
+}
+
+.drawer__container {
+    background-color: black;
+    padding: 20px;
+}
+
+.drawer h1.cyberpunk {
+    background-color: #fefe33;
+    color: black;
+    padding: 20px;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+}
+
+.user-actions button {
+    margin: 0 10px;
+}
+
+.main-content {
+    width: 100%;
+    height: 100%;
+}
+
+.nav-link, .nav-link:active, .nav-link:hover {
+    color: black
+}
+
+button:disabled {
+    opacity: .3;
+    pointer-events: none;
 }
