@@ -92,6 +92,13 @@ export class Tank implements ITank {
             console.log(`${enemy.id} was killed by ${this.id}`);
             this.actions += enemy.actions;
             await enemy.die();
+            this.game.sendMessageToChat(`
+⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
+
+*${enemy.name.toUpperCase()}* WAS KILLED BY *${this.name.toUpperCase()}* (${new Date().toLocaleString()})
+
+⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
+            `, 'shoot')
         }
 
         await this.game.addAction(this, 'shoot', new BoardPosition(x, y), enemy)

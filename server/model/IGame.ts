@@ -18,5 +18,6 @@ export interface IGame {
     removeActivePlayer(p:Player):void;
     loadActive(dbBoard:any[][]):void;
     clearHeart():void;
+    sendMessageToChat(message:string, botSearch?:string):void;
     addAction(actor:Tank, action:string, destination?:BoardPosition, enemy?:Tank):Promise<void>
 }

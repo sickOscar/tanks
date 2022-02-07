@@ -22,14 +22,25 @@ async function init() {
     const game = new Game();
     await game.loadActive();
 
-    schedule('0 40 9 * * *', async () => {
-        await game.distributeActions();
-        io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-    })
+    schedule('0 0 9 * * *', async () => {
+        setTimeout(async () => {
+            try {
+                await game.distributeActions();
+                await game.dropHeart();
+                game.sendMessageToChat(`
+💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+        
+*IT'S ACTION TIME!!!!*
 
-    schedule('0 40 9 * * *', async () => {
-        await game.dropHeart();
-        io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+`, 'action')
+                io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+            } catch (err) {
+                console.log('Failed to distribute actions')
+            }
+
+        }, Math.round(Math.random()* 3600 * 1000))
+
     })
 
     const app = express()
@@ -97,7 +108,7 @@ async function init() {
                     }
                 })
             } else if (game.isInJury(player)) {
-
+                // DO NOTHING REAL TIME
 
             } else {
                 console.log(`CREATE TANK FOR ${userId}`)

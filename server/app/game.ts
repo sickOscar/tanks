@@ -6,6 +6,7 @@ import {COLS, ROWS} from "../const";
 import {ITank} from "../model/ITank";
 import {BoardPosition} from "./boardPosition";
 import {Tank} from "./Tank";
+import axios from "axios";
 
 export class Game implements IGame {
 
@@ -48,6 +49,15 @@ export class Game implements IGame {
                 dbBoard.features.heartLocation.x,
                 dbBoard.features.heartLocation.y
             )
+        }
+
+        for (let i = 0; i < ROWS; i++) {
+            for (let j = 0; j < COLS; j++) {
+                const el = this.board.getAt(j, i);
+                if (el && el.life === 0) {
+                    this.state.jury.push(el);
+                }
+            }
         }
 
         this.id = res.rows[0].id;
@@ -114,6 +124,66 @@ export class Game implements IGame {
             SELECT * FROM events ORDER BY created_at DESC LIMIT 10 
         `)
         return res.rows;
+    }
+
+    sendMessageToChat(message: string, botSearch?: string): void {
+
+        if (!process.env.GIPHY_API_KEY || !process.env.GOOGLE_CHAT_WEBHOOK) {
+            return;
+        }
+
+        // NON CAMBIARE IN ASYNC AWAIT che se fallisce è un casino
+        axios.post(
+            process.env.GOOGLE_CHAT_WEBHOOK as string,
+            {text: message},
+            {
+                headers: {
+                    'Content-Type': 'application/json; charset=UTF-8',
+                },
+            }
+        )
+            .then(() => {
+                if (botSearch) {
+                    const apiKey = process.env.GIPHY_API_KEY
+                    axios.get(`https://api.giphy.com/v1/gifs/random?api_key=${apiKey}&tag=${botSearch}`)
+                        .then(response => {
+                            axios.post(
+                                process.env.GOOGLE_CHAT_WEBHOOK as string,
+                                {
+                                    cards: [{
+                                        sections: [{
+                                            widgets: [{
+                                                image: {
+                                                    imageUrl: response.data.data.images.downsized.url,
+                                                    onClick: {
+                                                        openLink: {
+                                                            "url": "https://tanks-office-ruiner.herokuapp.com"
+                                                        }
+                                                    }
+                                                }
+                                            }]
+                                        }]
+                                    }]
+                                },
+                                {
+                                    headers: {
+                                        'Content-Type': 'application/json; charset=UTF-8',
+                                    },
+                                }
+                            )
+                                .then(() => {
+                                    console.log(`Sent message: /random ${botSearch}`);
+                                })
+                                .catch(err => {
+                                    console.log(`err`, err)
+                                })
+
+                        })
+                        .catch(err => {
+                            console.log(`err`, err)
+                        })
+                }
+            })
     }
 
     getPlayers():any[] {
