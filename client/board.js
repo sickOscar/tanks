@@ -72,7 +72,9 @@ const configureClient = async () => {
 async function updateLoginUi() {
     const isAuthenticated = await auth0.isAuthenticated();
     loginButton.disabled = isAuthenticated;
+    loginButton.style.display = isAuthenticated ? 'none' : 'block';
     logoutButton.disabled = !isAuthenticated;
+    logoutButton.style.display = !isAuthenticated ? 'none' : 'block';
 }
 
 window.onload = async () => {
@@ -180,7 +182,13 @@ function drawEvents() {
 
 
     })
-    document.querySelector('#logs').innerHTML = markup.join('');
+    const logsContainer = document.querySelector('#logs-container')
+    logsContainer.innerHTML = markup.join('');
+
+
+    const logsBox = document.querySelector('#logs');
+    logsBox.style.height = HEIGHT / 2;
+
 }
 
 
@@ -194,7 +202,7 @@ function connectSocket(jwt) {
     });
 
     sio.on('player', setPlayer)
-    sio.on('message', newMessage);
+    // sio.on('message', newMessage);
     sio.on('board', setBoard)
     sio.on('playerslist', setPlayers);
     sio.on('action', addPlayerAction)
@@ -208,7 +216,6 @@ const SQUARE_SIZE = 80;
 let WIDTH = 200;
 let HEIGHT = 200;
 
-const chatContainer = document.querySelector('#chat');
 const cellInfoContainer = document.querySelector('#cell-info');
 const actionButtons = document.querySelectorAll(`#actions  button`);
 const playersContainer = document.querySelector('#players-container')
@@ -252,14 +259,6 @@ actionButtons.forEach(el => {
     })
 })
 
-
-
-function newMessage(content) {
-    const div = document.createElement('div');
-    div.classList = ['message'];
-    div.innerText = content;
-    // chatContainer.appendChild(div);
-}
 
 function addPlayerAction(action) {
     events.unshift(action)

@@ -117,6 +117,10 @@ export class Game implements IGame {
         return this.board.getPlayers().map(t => t.asPlayer())
     }
 
+    getPeopleOnline():any[] {
+        return this.activePlayers;
+    }
+
     get heartLocation() {
         return this.state.heartLocation;
     }

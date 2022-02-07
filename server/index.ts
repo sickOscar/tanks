@@ -107,6 +107,7 @@ async function init() {
 
             socket.on('disconnect', () => {
                 game.removeActivePlayer(player);
+                socket.broadcast.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPeopleOnline()))
             })
 
         }
@@ -114,11 +115,11 @@ async function init() {
 
         socket.emit(MessageTypes.MESSAGE, `Welcome ${socket.user.name}!`);
         socket.emit(MessageTypes.BOARD, game.board.serialize());
-        socket.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPlayers()))
+        socket.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPeopleOnline()))
 
         socket.broadcast.emit(MessageTypes.MESSAGE, `${socket.user.name} joined!`)
         socket.broadcast.emit(MessageTypes.BOARD, game.board.serialize());
-        socket.broadcast.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPlayers()))
+        socket.broadcast.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPeopleOnline()))
 
     })
 

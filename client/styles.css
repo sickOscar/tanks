@@ -31,31 +31,41 @@ body {
     margin: 0 10px;
 }
 
-#logs {
+#right-side {
     width: 300px;
     min-width: 200px;
 }
 
 #board-holder {
-    overflow: scroll;
+    overflow-x: scroll;
 }
 
 .img-thumbnail {
     width: 50px;
 }
 
- #players {
-     display: none
- }
+#players {
+    /*display: none*/
+}
 
- #rules {
-     font-size: 15px;
-     max-height: 500px;
-     max-height: 500px;
-     overflow-y: scroll;
-     overflow-x: hidden;
-     color: white;
- }
+#logs-container {
+    max-height: 100%;
+    overflow-y: scroll;
+    padding-bottom: 60px;
+}
+#logs {
+    overflow-y: hidden;
+    border-bottom: 2px solid black
+}
+
+#rules {
+    font-size: 15px;
+    max-height: 500px;
+    max-height: 500px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    color: white;
+}
 
 .drawer {
     position: fixed;
