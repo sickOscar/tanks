@@ -133,6 +133,7 @@ async function initCanvas() {
     }).catch(() => createCanvas(200, 200))
 
     players = await getJson('/players')
+    console.log(`players`, players)
     events = await getJson('/events')
 
     drawEvents()
@@ -151,6 +152,9 @@ logoutButton.addEventListener('click', () => {
 })
 
 function drawEvents() {
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
     const markup = events.map(e => {
         const p = players.find(p => p.id === e.actor);
 
@@ -163,7 +167,7 @@ function drawEvents() {
             `
 
         if (e.action === States.MOVE) {
-            return `${pre} moved to [${e.destination[0]}:${e.destination[1]}] ${post}`
+            return `${pre} moved to [${letters[e.destination[0]]}:${e.destination[1]}] ${post}`
         }
 
         if (e.action === States.UPGRADE) {
@@ -172,6 +176,8 @@ function drawEvents() {
 
         if (e.action === States.SHOOT) {
             const enemy = players.find(p => p.id === e.enemy)
+            console.log(`e.enemy`, e.enemy)
+            console.log(`enemy`, enemy)
             return `${pre} shoots <img src="${enemy.picture}" title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
         }
 
@@ -213,7 +219,7 @@ function connectSocket(jwt) {
     sio.on('player', setPlayer)
     // sio.on('message', newMessage);
     sio.on('board', setBoard)
-    sio.on('playerslist', setPlayers);
+    sio.on('playerslist', setOnline);
     sio.on('action', addPlayerAction)
 
     sio.on('connect_error', error => {
@@ -311,9 +317,9 @@ function setPlayer(id) {
 }
 
 
-function setPlayers(playersList) {
+function setOnline(playersList) {
     try {
-        players = JSON.parse(playersList);
+        const onlinePlayers = JSON.parse(playersList);
 
         // players.forEach(p => {
         //     if (!player.loadedPicture) {
@@ -321,7 +327,7 @@ function setPlayers(playersList) {
         //     }
         // })
 
-        const listItems = players.map(p => `
+        const listItems = onlinePlayers.map(p => `
             <li class="list-group-item">
                 <img src="${p.picture}"  class="img-thumbnail"> ${p.name}    
             </li>
@@ -374,8 +380,21 @@ function draw() {
 }
 
 function drawBoard() {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+
     for (let y = 0; y < config.rows; y++) {
+        fill('black')
+        noStroke()
+        textAlign(CENTER, CENTER)
+        text(y, 10, y * SQUARE_SIZE + SQUARE_SIZE / 2);
         for (let x = 0; x < config.cols; x++) {
+            if (y === 0) {
+                fill('black')
+                noStroke()
+                textAlign(CENTER, CENTER)
+                text(letters[x], x * SQUARE_SIZE + SQUARE_SIZE / 2, 10);
+            }
             drawCell(y, x);
         }
     }
