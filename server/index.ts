@@ -22,7 +22,9 @@ async function init() {
     const game = new Game();
     await game.loadActive();
 
-    schedule('0 0 9 * * *', async () => {
+    const actionTimeoutDelay = 3600 * 1000;
+
+    schedule('0 0 11 * * *', async () => {
         setTimeout(async () => {
             try {
                 await game.distributeActions();
@@ -39,7 +41,7 @@ async function init() {
                 console.log('Failed to distribute actions')
             }
 
-        }, Math.round(Math.random()* 3600 * 1000))
+        }, Math.round(Math.random()* actionTimeoutDelay))
 
     })
 
