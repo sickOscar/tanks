@@ -222,13 +222,13 @@
     white-space: nowrap;
 }
 
-.navbar-brand:before {
+.navbar-brand.glitched:before {
     left: 3px;
     text-shadow: -3px 2px #87cefa;
     animation: glitch-1 3s ease-in reverse infinite;
 }
 
-.navbar-brand:after {
+.navbar-brand.glitched:after {
     left: -3px;
     text-shadow: -5px 2px #fff;
     animation: glitch-2 3s ease-in-out reverse infinite;
