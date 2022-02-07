@@ -53,8 +53,8 @@ export class Board {
     }
 
     getRandom(): BoardPosition {
-        const tankX = Math.floor(Math.random() * ROWS);
-        const tankY = Math.floor(Math.random() * COLS);
+        const tankX = Math.floor(Math.random() * COLS);
+        const tankY = Math.floor(Math.random() * ROWS);
         if (this.isPositionOccupied(tankX, tankY)) {
             return this.getRandom();
         }
