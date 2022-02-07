@@ -30,6 +30,25 @@ const States = {
 
 let currentState = States.IDLE;
 
+const titleQuerySelector = ".navbar-brand";
+
+const titleGlitchInterval = 5000;
+const titleGlithAnimationDuration = 2000;
+
+function randomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+setInterval(() => {
+    const title = document.querySelector(titleQuerySelector);
+
+    title.classList.add("glitched");
+
+    setTimeout(() => {
+        title.classList.remove("glitched");
+    }, titleGlithAnimationDuration);
+}, titleGlitchInterval + randomNumber(-500, 500));
+
 // AUTH
 
 const loginButton = document.querySelector('#btn-login');
