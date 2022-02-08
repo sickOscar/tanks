@@ -157,6 +157,10 @@ function drawEvents() {
     const markup = events.map(e => {
         const p = players.find(p => p.id === e.actor);
 
+        if (!p) {
+            return '';
+        }
+
         const pre = `<div class="event">
                     <span class="event-date">${new Date(e.created_at).toLocaleString()}</span>
                     <p>
