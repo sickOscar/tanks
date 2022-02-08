@@ -72,9 +72,9 @@ const configureClient = async () => {
 async function updateLoginUi() {
     const isAuthenticated = await auth0.isAuthenticated();
     loginButton.disabled = isAuthenticated;
-    loginButton.style.display = isAuthenticated ? 'none' : 'block';
+    loginButton.style.display = isAuthenticated ? 'none' : 'flex';
     logoutButton.disabled = !isAuthenticated;
-    logoutButton.style.display = !isAuthenticated ? 'none' : 'block';
+    logoutButton.style.display = !isAuthenticated ? 'none' : 'flex';
 
     if (isAuthenticated) {
         document.querySelector('#board-holder').classList.remove(['d-none']);
@@ -200,14 +200,7 @@ function drawEvents() {
     })
     const logsContainer = document.querySelector('#logs-container')
     logsContainer.innerHTML = markup.join('');
-
-
-    const logsBox = document.querySelector('#logs');
-    logsBox.style.height = HEIGHT / 2;
-
 }
-
-
 
 
 function connectSocket(jwt) {
