@@ -32,27 +32,29 @@ body {
 }
 
 #right-side {
-    width: 300px;
     min-width: 200px;
+    margin: 0 1rem;
+    flex: 1;
 }
 
 #board-holder {
-    overflow-x: scroll;
+    overflow-x: auto;
 }
 
 .img-thumbnail {
     width: 50px;
+    padding: 0;
 }
 
 #players {
-    /*display: none*/
+    margin-top: 2rem;
 }
 
-#logs-container {
-    max-height: 100%;
-    overflow-y: scroll;
-    padding-bottom: 60px;
+#logs-container, #players-container {
+    max-height: 400px;
+    overflow-y: auto;
 }
+
 #logs {
     overflow-y: hidden;
     border-bottom: 2px solid black
@@ -61,10 +63,10 @@ body {
 #rules {
     font-size: 15px;
     max-height: 500px;
-    max-height: 500px;
     overflow-y: scroll;
     overflow-x: hidden;
     color: white;
+    background-color: #fefe33;
 }
 
 .drawer {
@@ -83,7 +85,6 @@ body {
 }
 
 .drawer h1.cyberpunk {
-    background-color: #fefe33;
     color: black;
     padding: 20px;
 }
@@ -111,10 +112,22 @@ button:disabled {
     pointer-events: none;
 }
 
-.event {
-    padding: 5px 10px;
+.event img {
+    border: 1px solid black;
 }
 
 .event-date {
     font-size: 10px;
+}
+
+.list-group-item {
+    border: none;
+    background: transparent;
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.list-group-item img {
+    border: 1px solid black;
+    margin-right: .5rem;
 }
