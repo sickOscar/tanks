@@ -121,8 +121,8 @@ export class Game implements IGame {
 
     async getActions():Promise<any> {
         const res = await db.query(`
-            SELECT * FROM events ORDER BY created_at DESC LIMIT 10 
-        `)
+            SELECT * FROM events WHERE game = $1 ORDER BY created_at DESC LIMIT 10 
+        `, [this.id])
         return res.rows;
     }
 
