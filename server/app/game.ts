@@ -15,7 +15,6 @@ export class Game implements IGame {
     private state:GameState = {
         board: new Board(this),
         heartLocation: [],
-        jury: []
     };
 
     constructor() {
@@ -49,20 +48,19 @@ export class Game implements IGame {
                 .map((heartPosition:number[]) => new BoardPosition(heartPosition[0], heartPosition[1]))
         }
 
-        for (let i = 0; i < ROWS; i++) {
-            for (let j = 0; j < COLS; j++) {
-                const el = this.board.getAt(j, i);
-                if (el && el.life === 0) {
-                    this.state.jury.push(el);
-                }
-            }
-        }
-
         this.id = res.rows[0].id;
     }
 
     isInJury(player:Player):boolean {
-        return !!this.state.jury.find(p => p.id === player.id);
+        for (let x = 0; x < COLS; x++) {
+            for (let y = 0; y < ROWS; y++) {
+                const pl = this.board.getAt(x, y)
+                if (pl && pl.id === player.id && pl.life <= 0) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     isAlive(player:Player):boolean {
@@ -198,6 +196,26 @@ export class Game implements IGame {
 
     getPeopleOnline():any[] {
         return this.activePlayers;
+    }
+
+    async getTodaysPollResults():Promise<{vote_for:string, count:number, name:string, picture:string}[]> {
+        const results = await db.query(`
+            SELECT vote_for, COUNT(*) as count FROM votes 
+            WHERE voted_at = CURRENT_DATE
+            GROUP BY vote_for
+            ORDER BY count DESC
+            
+        `)
+        const gamePlayers = this.getPlayers();
+        return results.rows.map((res:{vote_for:string, count:string}) => {
+            const player = gamePlayers.find(p => p.id === res.vote_for)
+            return {
+                vote_for: res.vote_for,
+                count: +res.count,
+                name: player.name,
+                picture: player.picture
+            }
+        })
     }
 
     hasHeartOn(x:number, y:number):boolean {
