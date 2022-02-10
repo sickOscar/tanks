@@ -407,6 +407,7 @@ function drawPlayerHover() {
 
 
     textAlign(LEFT, TOP)
+    noStroke()
     fill('#fff');
     text(activePlayerHover.name,
         activePlayerHover.position.x * SQUARE_SIZE + SQUARE_SIZE - 15 + 5,
