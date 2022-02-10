@@ -98,7 +98,9 @@ export class Tank implements ITank {
 *${enemy.name.toUpperCase()}* WAS KILLED BY *${this.name.toUpperCase()}* (${new Date().toLocaleString()})
 
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
-            `, 'shoot')
+            `, 'shoot');
+
+            await this.game.addAction(this, 'kill', new BoardPosition(x, y), enemy)
         }
 
         await this.game.addAction(this, 'shoot', new BoardPosition(x, y), enemy)

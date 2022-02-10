@@ -149,6 +149,10 @@ async function init() {
         res.json(game.getPlayers());
     })
 
+    app.get('/scoreboard', checkJwt, async (req, res) => {
+        res.send(await game.getScoreboard());
+    })
+
     // @ts-ignore
     app.use(unauthorizeEndMiddleware());
 

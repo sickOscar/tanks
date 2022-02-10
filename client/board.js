@@ -56,6 +56,7 @@ setInterval(() => {
 
 const loginButton = document.querySelector('#btn-login');
 const logoutButton = document.querySelector('#btn-logout');
+const scoreboardDomElement = document.querySelector(".scoreboard");
 
 let auth0 = null;
 const fetchAuthConfig = () => fetch("/auth_config.json");
@@ -284,13 +285,13 @@ function setBoard(serverMessage) {
     // set local player
     for (let i = 0; i < config.rows; i++) {
         for (let j = 0; j < config.cols; j++ ) {
-            
+
             if (localBoard[i][j]) {
                 if (!pictures[localBoard[i][j].id]) {
                     pictures[localBoard[i][j].id] = loadImage(localBoard[i][j].picture)
                 }
             }
-            
+
             if (localBoard[i][j] && localBoard[i][j].id === playerId) {
                 player = localBoard[i][j];
             }
@@ -300,11 +301,11 @@ function setBoard(serverMessage) {
     if (player) {
         document.querySelector('#actions').style.display = 'block'
     }
-    
-    
+
+
     heartLocation = parsedMessage.features.heartLocation;
     // console.log(`heartLocation`, heartLocation)
-    
+
 
 }
 
@@ -515,7 +516,7 @@ function drawEmptyCell(y, x) {
         }
     }
 
-    
+
     if (mouseHoveredCell[0] === x && mouseHoveredCell[1] === y) {
         fill('rgba(255,255,255,0.11)')
     }
@@ -631,9 +632,78 @@ function mouseClicked() {
 
 }
 
-
-
-
 function animate(cell, animation) {
 
+}
+
+async function toggleScoreboard() {
+    if (scoreboardDomElement.classList.contains("invisible")) {
+        await fetchScoreboardResult();
+        document.querySelector(".scoreboard").classList.remove("invisible");
+    } else {
+        scoreboardDomElement.classList.add("invisible");
+    }
+}
+
+async function fetchScoreboardResult() {
+    const scoreboard = await getJson("/scoreboard");
+    buildScoreboardTemplate(scoreboard);
+}
+
+function buildScoreboardTemplate(data) {
+    scoreboardDomElement.innerHTML = "";
+
+    const tableHead = () => {
+        return `
+            <thead>
+                <tr>
+                    <td style="width: 40%">
+                        Player
+                    </td>
+                    <td style="width: 15%">
+                        Kills
+                    </td>
+                    <td style="width: 15%">
+                        Deahts
+                    </td>
+                    <td style="width: 15%">
+                        Has revived
+                    </td>
+                    <td style="width: 15%">
+                        Has been revived
+                    </td>
+                </tr>
+            </thead>
+    `};
+
+    const tableData = () => {
+        return `
+            <tbody>
+                ${data.map(({ name, kills, deaths, hasHeal, hasBeenHealed }) => {
+                    return `
+                        <tr>
+                            <td>
+                                ${name}
+                            </td>
+                            <td>
+                                ${kills}
+                            </td>
+                            <td>
+                                ${deaths}
+                            </td>
+                            <td>
+                                ${hasHeal}
+                            </td>
+                            <td>
+                                ${hasBeenHealed}
+                            </td>
+                        </tr>
+                    `})
+                }
+            </tbody>`.replaceAll(",", "")
+    };
+
+    const table = `<table class="scoreboard-table">${tableHead()}${tableData()}</table>`;
+
+    scoreboardDomElement.innerHTML = table;
 }

@@ -7,6 +7,9 @@ import {ITank} from "../model/ITank";
 import {BoardPosition} from "./boardPosition";
 import {Tank} from "./Tank";
 import axios from "axios";
+import {IScoreboardRow} from "../model/IScoreboard";
+import {IEvent} from "../model/IEvent";
+import ScoreboardDTO from "../dto/Scoreboard.dto";
 
 export class Game implements IGame {
 
@@ -204,6 +207,16 @@ export class Game implements IGame {
         return !!this.heartLocation.find((heartPos:BoardPosition) => {
             return heartPos.x === x && heartPos.y === y;
         })
+    }
+
+    async getScoreboard(): Promise<IScoreboardRow[]> {
+        const res = await db.query(`
+            SELECT * from events WHERE game = $1 and action = 'kill' OR action = 'heal'
+        `, [this.id]);
+
+        const rows: IEvent[] = res.rows;
+
+        return ScoreboardDTO.fromEventsToScoreboard(rows, this.getPlayers());
     }
 
     get heartLocation() {
