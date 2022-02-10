@@ -44,7 +44,10 @@
     <main role="main"  >
 
         <div class="drawer d-none" id="rules">
-            <h1 class="cyberpunk">Survive to the end and win the cash!</h1>
+            <h1 class="cyberpunk">
+                Survive to the end and win the cash!
+                <span class="close-modal-button">X</span>
+            </h1>
 
             <div class="drawer__container">
                 <p>1st $$$$$ | 2nd $$$$ | 3rd $$$ | 4th $$ | First Blood: $</p>
@@ -102,13 +105,15 @@
                     This will revive that player who will have 1 heart and 0 AP.
                 </p>
 
+                <h4>THE JURY</h4>
+
+                <p>
+                    Dead players form a jury. Each day they can vote for another alive player;
+                    every 3 votes, that player gets immediately 1 AP.
+                </p>
+
                 <h4>ADDITIONAL NOTES</h4>
 
-                <!--            <p>-->
-                <!--                Dead players form a jury. Each day they vote,-->
-                <!--                and whoever received most votes will be 'haunted',-->
-                <!--                and not revive any AP for that day.-->
-                <!--            </p>-->
                 <p>
                     Once a day, at a random time, a heart will spawn on the field.
                     The first player to move into the square containing the heart
@@ -127,10 +132,54 @@
             </div>
         </div>
 
+        <div class="drawer d-none" id="poll-results">
+            <h1 class="cyberpunk">
+                Today's jury results
+                <span class="close-modal-button">X</span>
+            </h1>
 
+            <div class="drawer__container" >
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Player Name</th>
+                            <th>Votes Received</th>
+                        </tr>
+                    </thead>
+                    <tbody id="poll-results-table">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <div class="main-content">
-            <div id="actions">
+
+            <form id="poll" class="d-none">
+                <h4 style="margin-right: 50px">Sorry, you are dead now... 😞 at least until someone revives you!</h4>
+                <div class="poll-inner">
+                    <label for="vote" style="margin-right: 30px">
+                        Now you are in the jury and can vote for an alive player!<br>
+                        3 votes from the jury and the player immediately receives an action point.<br>
+                        You can vote only once a day. A juror's vote is secret.
+                    </label>
+                    <select name="vote" id="vote" >
+
+                    </select>
+                    <button class="cybr-btn" style="margin: 0 20px" type="submit" >
+                        Vote!
+                        <span aria-hidden class="cybr-btn__glitch"></span>
+                    </button>
+                    <button class="cybr-btn"  type="button" id="show-poll-results">
+                        View current results
+                        <span aria-hidden class="cybr-btn__glitch"></span>
+                    </button>
+                </div>
+
+            </form>
+
+            <div id="actions" class="d-none">
                 <ul>
                     <li>
                         <button class="cybr-btn" data-action="move">
@@ -197,7 +246,7 @@
 
     </main>
 
-
+    <div id="modal-overlay" class="d-none"></div>
 
 
 <!--

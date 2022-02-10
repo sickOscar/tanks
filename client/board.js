@@ -33,6 +33,52 @@ const States = {
 
 let currentState = States.IDLE;
 
+const voteSelect = document.querySelector('select#vote');
+const pollForm = document.querySelector('form#poll');
+const showPollResultsButton = document.querySelector('button#show-poll-results')
+const actionsContainer = document.querySelector('#actions');
+const pollResultsContainer = document.querySelector('#poll-results')
+const pollResultsTable = document.querySelector('#poll-results-table')
+const modalOverlay = document.querySelector('#modal-overlay');
+
+pollForm.addEventListener('submit', event => {
+    event.preventDefault();
+    sio.emit('playerevent', 'vote', voteSelect.value, response => {
+        if (!response) {
+            alert(`Well, no. You already voted today. The blockchain doesn't lie`)
+        } else {
+            alert('Thank you!')
+        }
+    })
+})
+
+document.addEventListener('click', event => {
+    if (Array.from(event.target.classList).includes('close-modal-button')) {
+        document.querySelectorAll('.drawer').forEach(el => {
+            el.classList.add('d-none');
+        })
+        modalOverlay.classList.add('d-none');
+    }
+})
+
+showPollResultsButton.addEventListener('click', event => {
+    event.preventDefault();
+    pollResultsContainer.classList.remove('d-none');
+    modalOverlay.classList.remove('d-none');
+
+    getJson('poll')
+        .then(response => {
+            pollResultsTable.innerHTML = response.map(row => `
+                <tr>
+                    <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
+                    <td>${row.name}</td>
+                    <td>${row.count}</td>
+                </tr>
+            `).join('')
+        })
+        .catch(console.error)
+})
+
 const titleQuerySelector = ".navbar-brand";
 
 const titleGlitchInterval = 5000;
@@ -51,6 +97,8 @@ setInterval(() => {
         title.classList.remove("glitched");
     }, titleGlithAnimationDuration);
 }, titleGlitchInterval + randomNumber(-500, 500));
+
+
 
 // AUTH
 
@@ -157,7 +205,23 @@ function drawEvents() {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     const markup = events.map(e => {
-        const p = players.find(p => p.id === e.actor);
+
+        let p = players.find(p => p.id === e.actor);
+
+        if (!p && e.actor === 'jury') {
+            const enemy = players.find(p => p.id === e.enemy)
+            p = {
+                picture: '',
+                name: 'jury'
+            }
+            const pre = `<div class="event">
+                    <span class="event-date">${new Date(e.created_at).toLocaleString()}</span>
+                    <p>`;
+
+            const post = `</p></div>
+            `
+            return`${pre}the jury added action to <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
+        }
 
         if (!p) {
             return '';
@@ -236,11 +300,8 @@ const rulesContainer = document.querySelector('#rules');
 
 toggleRulesButton.addEventListener('click', (ev) => {
     ev.preventDefault();
-    if (Array.from(rulesContainer.classList).includes('d-none')) {
-        rulesContainer.classList.remove('d-none');
-    } else {
-        rulesContainer.classList.add('d-none')
-    }
+    rulesContainer.classList.remove('d-none');
+    modalOverlay.classList.remove('d-none');
 })
 
 actionButtons.forEach(el => {
@@ -280,12 +341,16 @@ function setBoard(serverMessage) {
 
     const parsedMessage = JSON.parse(serverMessage);
     localBoard = parsedMessage.board;
-    const p = [];
+    const playersList = [];
 
     // set local player
     for (let i = 0; i < config.rows; i++) {
         for (let j = 0; j < config.cols; j++ ) {
 
+            if (localBoard[i][j]) {
+                playersList.push(localBoard[i][j]);
+            }
+          
             if (localBoard[i][j]) {
                 if (!pictures[localBoard[i][j].id]) {
                     pictures[localBoard[i][j].id] = loadImage(localBoard[i][j].picture)
@@ -298,13 +363,28 @@ function setBoard(serverMessage) {
         }
     }
 
-    if (player) {
-        document.querySelector('#actions').style.display = 'block'
+    if (player && player.life > 0) {
+        actionsContainer.classList.remove('d-none');
+        pollForm.classList.add('d-none')
     }
-
 
     heartLocation = parsedMessage.features.heartLocation;
     // console.log(`heartLocation`, heartLocation)
+
+
+    if (player && player.life <= 0) {
+        actionsContainer.classList.add('d-none');
+        pollForm.classList.remove('d-none')
+    }
+
+    voteSelect.innerHTML = playersList
+        .filter(p => p.life > 0)
+        .map(p => `
+            <option value=${p.id}>${p.name}</option>
+        `)
+        .join('')
+
+    heartLocation = parsedMessage.features.heartLocation;
 
 
 }

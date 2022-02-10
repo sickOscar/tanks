@@ -104,24 +104,19 @@ export class Tank implements ITank {
         }
 
         await this.game.addAction(this, 'shoot', new BoardPosition(x, y), enemy)
-
         this.useAction();
     }
 
     async giveAction(x: number, y: number): Promise<void> {
         const enemy: Tank = this.game.board.getAt(x, y) as Tank;
         enemy.actions += 1;
-
         await this.game.addAction(this, 'give-action', new BoardPosition(x, y), enemy)
-
         this.useAction();
     }
 
     async upgrade():Promise<void> {
         this.range += 1;
-
         await this.game.addAction(this, 'upgrade')
-
         this.useAction(3);
     }
 
@@ -138,6 +133,38 @@ export class Tank implements ITank {
         this.useAction(3);
     }
 
+    async vote(enemy:ITank):Promise<void> {
+
+        await db.query('BEGIN');
+        await db.query(`
+            INSERT INTO votes (game, voter, vote_for)
+            VALUES ($1, $2, $3)
+        `, [this.game.id, this.id, enemy.id])
+
+        const res = await db.query(`
+            SELECT vote_for, COUNT(*) FROM votes
+            WHERE game = $1 AND vote_for = $2 AND voted_at = CURRENT_DATE
+            GROUP BY vote_for
+        `, [this.game.id, enemy.id])
+
+        if (parseInt(res.rows[0].count)%3 === 0) {
+            enemy.actions += 1;
+
+            await this.game.addAction({id:'jury'} as Tank, 'give-action', undefined, enemy)
+        }
+
+        await db.query('COMMIT');
+
+    }
+
+    async hasVotedToday():Promise<boolean> {
+        const res = await db.query(`
+            SELECT * FROM votes 
+            WHERE game = $1 AND voter = $2 AND voted_at = CURRENT_DATE 
+        `, [this.game.id, this.id])
+        return res.rows.length >= 1;
+    }
+
     asPlayer():any {
         return {
             id: this.id,
@@ -151,6 +178,27 @@ export class Tank implements ITank {
     }
 
     async applyAction(action: IAction): Promise<false|IAction> {
+
+        if (action.action === PlayerActions.VOTE) {
+            if (!this.game.isInJury(this.asPlayer())) {
+                console.log(`not in jury`)
+                return false
+            }
+            if (!action.enemy) {
+                console.log('not enemy')
+                return false;
+            }
+            if (action.enemy && action.enemy.life <= 0) {
+                console.log('invalid enemy')
+                return false;
+            }
+            if (await this.hasVotedToday()) {
+                console.log('has voted today')
+                return false;
+            }
+            await this.vote(action.enemy);
+            return action;
+        }
 
         if (this.actions <= 0 || this.life <= 0) {
             return false;
@@ -219,15 +267,12 @@ export class Tank implements ITank {
         }
 
         if (action.action === PlayerActions.HEAL) {
-
             if (!this.game.board.isPositionValid(x, y)) {
                 return false
             }
-
             if (!this.game.board.isPositionOccupied(x, y)) {
                 return false;
             }
-
             if (this.game.board.isInRange(this.position, boardCell, this.range)) {
                 if (this.actions >= 3) {
                     await this.heal(x, y);
@@ -235,8 +280,9 @@ export class Tank implements ITank {
                     return action
                 }
             }
-
         }
+
+
 
         return false;
     }

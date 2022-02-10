@@ -15,6 +15,7 @@ import {Game} from "./app/game";
 import db, {prepareDb} from "./db";
 import {schedule} from 'node-cron';
 import {BoardPosition} from "./app/boardPosition";
+import {PlayerActions} from "./app/playerActions";
 const assert = require('assert');
 
 
@@ -83,17 +84,26 @@ async function init() {
             if (game.isAlive(player)) {
                 tank = game.getPlayerTank(player) as Tank;
                 socket.emit(MessageTypes.PLAYER, tank.id)
-                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, cell, callback) => {
+                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, callback) => {
 
                     const action:IAction = {
                         created_at: new Date(),
                         action: actionString,
                         actor: tank,
-                        destination: cell ? new BoardPosition(cell.x, cell.y) : undefined
+                        destination: undefined
                     }
+
+                    if (payload && payload.x && payload.y) {
+                        action.destination = new BoardPosition(payload.x, payload.y);
+                    }
+                    
+                    if (actionString === PlayerActions.VOTE) {
+                        action.enemy = game.getPlayerTank({id:payload} as Player)
+                    }
+                    
                     const actionApplied = await tank.applyAction(action);
 
-                    console.log(`${tank.id} | ${action.action} | ${JSON.stringify(cell)} | ${!!actionApplied}`)
+                    console.log(`${tank.id} | ${action.action} | ${JSON.stringify(payload)} | ${!!actionApplied}`)
                     callback(!!actionApplied);
 
                     if (actionApplied !== false) {
@@ -101,7 +111,7 @@ async function init() {
                         socket.emit(MessageTypes.BOARD, game.board.serialize());
                         socket.broadcast.emit(MessageTypes.BOARD, game.board.serialize());
 
-                        const actionToSend = {
+                        const event = {
                             created_at: actionApplied.created_at,
                             actor: actionApplied.actor.id,
                             destination: actionApplied.destination ? [actionApplied.destination.x, actionApplied.destination.y] : undefined,
@@ -109,8 +119,8 @@ async function init() {
                             enemy: actionApplied.enemy ? actionApplied.enemy.id : null
                         }
 
-                        socket.emit(MessageTypes.ACTION, actionToSend);
-                        socket.broadcast.emit(MessageTypes.ACTION, actionToSend);
+                        socket.emit(MessageTypes.ACTION, event);
+                        socket.broadcast.emit(MessageTypes.ACTION, event);
                     }
                 })
             } else if (game.isInJury(player)) {
@@ -151,6 +161,9 @@ async function init() {
 
     app.get('/scoreboard', checkJwt, async (req, res) => {
         res.send(await game.getScoreboard());
+
+    app.get('/poll', checkJwt, async (req, res) => {
+        res.json(await game.getTodaysPollResults())
     })
 
     // @ts-ignore

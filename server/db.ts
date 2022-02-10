@@ -60,6 +60,22 @@ export async function prepareDb() {
         `)
     }
 
+    try {
+        await db.query(`SELECT * FROM votes`)
+    } catch (err) {
+        db.query(`
+            CREATE TABLE votes (
+                voted_at DATE DEFAULT CURRENT_DATE,
+                game INTEGER,
+                voter VARCHAR NOT NULL,
+                vote_for VARCHAR NOT NULL,
+                CONSTRAINT fk_game
+                    FOREIGN KEY (game)
+                        REFERENCES games(id)
+            )
+        `)
+    }
+
 }
 
 
