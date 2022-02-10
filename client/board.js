@@ -11,7 +11,8 @@ let config = {
 };
 
 let backgroundImage;
-
+let mouseHoveredCell = [-1, -1];
+let activePlayerHover = null;
 let sio;
 
 let localBoard = null;
@@ -316,12 +317,6 @@ function setOnline(playersList) {
     try {
         const onlinePlayers = JSON.parse(playersList);
 
-        // players.forEach(p => {
-        //     if (!player.loadedPicture) {
-        //         p.loadedPicture = loadImage(p.picture)
-        //     }
-        // })
-
         const listItems = onlinePlayers.map(p => `
             <li class="list-group-item">
                 <img src="${p.picture}"  class="img-thumbnail"> ${p.name}    
@@ -361,10 +356,17 @@ function setup() {
 }
 
 function draw() {
+
+    activePlayerHover = null;
+
     // background('white');
     if (!configFetched || !localBoard) {
         return;
     }
+
+    const mouseCellX = Math.floor(mouseX / SQUARE_SIZE);
+    const mouseCellY = Math.floor(mouseY / SQUARE_SIZE)
+    mouseHoveredCell = [mouseCellX, mouseCellY];
 
     if (stage === 'RUN') {
         // background('#3e852e');
@@ -373,6 +375,7 @@ function draw() {
     }
 
     drawCursor();
+    drawPlayerHover();
 
 }
 
@@ -395,6 +398,27 @@ function drawCursor() {
     if (currentState === States.HEAL) {
         cursor('pointer');
     }
+}
+
+function drawPlayerHover() {
+    if (!activePlayerHover) {
+        return;
+    }
+
+    fill('rgba(0,0,0,0.3)');
+    noStroke();
+    rect(
+        activePlayerHover.position.x * SQUARE_SIZE + SQUARE_SIZE - 15,
+        activePlayerHover.position.y * SQUARE_SIZE  + (SQUARE_SIZE /2) - 15,
+        100, 30
+    )
+
+    textAlign(LEFT, TOP)
+    fill('#fff');
+    text(activePlayerHover.name,
+        activePlayerHover.position.x * SQUARE_SIZE + SQUARE_SIZE - 15 + 5,
+        activePlayerHover.position.y * SQUARE_SIZE + (SQUARE_SIZE /2) - 15 + 5
+    )
 
 }
 
@@ -497,6 +521,10 @@ function drawEmptyCell(y, x) {
         }
     }
 
+    
+    if (mouseHoveredCell[0] === x && mouseHoveredCell[1] === y) {
+        fill('rgba(255,255,255,0.11)')
+    }
 
     square(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE);
 
@@ -563,7 +591,9 @@ function drawPlayer(tank, isThisSession) {
 
     }
 
-
+    if (mouseHoveredCell[0] === tank.position.x && mouseHoveredCell[1] === tank.position.y) {
+        activePlayerHover = tank;
+    }
 
 
 }
@@ -608,13 +638,7 @@ function mouseClicked() {
 }
 
 
-function mouseMoved() {
 
-
-
-
-
-}
 
 function animate(cell, animation) {
 
