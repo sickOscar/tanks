@@ -45,18 +45,21 @@ export class Board {
         if (!this.board[y]) {
             return true; // ?? invalid position
         }
-        return this.board[y][x] !== null
+        return this.board[y][x] !== null;
     }
 
     isPositionValid(x: number, y: number): boolean {
         return x >= 0 && y >= 0 && this.board[y] !== undefined && this.board[y][x] !== undefined;
     }
 
-    getRandom(): BoardPosition {
+    getEmptyRandom(): BoardPosition {
         const tankX = Math.floor(Math.random() * COLS);
         const tankY = Math.floor(Math.random() * ROWS);
         if (this.isPositionOccupied(tankX, tankY)) {
-            return this.getRandom();
+            return this.getEmptyRandom();
+        }
+        if (this.game.hasHeartOn(tankX, tankY)) {
+            return this.getEmptyRandom()
         }
         return new BoardPosition(tankX, tankY);
     }
@@ -106,7 +109,9 @@ export class Board {
         }
         return JSON.stringify({
             features: {
-                heartLocation: [this.game.heartLocation.x, this.game.heartLocation.y]
+                heartLocation: this.game.heartLocation.map((heartPos) => {
+                    return [heartPos.x, heartPos.y]
+                })
             },
             board: clone
         });

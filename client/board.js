@@ -302,6 +302,7 @@ function setBoard(serverMessage) {
     
     
     heartLocation = parsedMessage.features.heartLocation;
+    // console.log(`heartLocation`, heartLocation)
     
 
 }
@@ -426,9 +427,16 @@ function drawCell(y, x) {
 
     if (localBoard[y][x] === null) {
         drawEmptyCell(y, x);
-        if (heartLocation && heartLocation[0] === x && heartLocation[1] === y) {
-            drawHeart(y, x);
+
+        if (heartLocation) {
+            const hasHeart = heartLocation.find(loc => {
+                return loc[0] === x && loc[1] === y
+            })
+            if (hasHeart) {
+                drawHeart(y, x);
+            }
         }
+
     } else {
         if (localBoard[y][x].id === playerId) {
             drawPlayer(localBoard[y][x], true);

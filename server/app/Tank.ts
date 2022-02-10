@@ -41,7 +41,7 @@ export class Tank implements ITank {
 
     static async create(game: IGame, userId: string, name: string, picture: string): Promise<Tank> {
 
-        const tankPosition = game.board.getRandom();
+        const tankPosition = game.board.getEmptyRandom();
         const tank = new Tank(game, {
             id: userId,
             position: tankPosition,
@@ -72,9 +72,9 @@ export class Tank implements ITank {
     async move(x: number, y: number): Promise<void> {
         this.game.board.moveTankFromTo(this.position, new BoardPosition(x, y));
 
-        if (this.game.heartLocation.x === x && this.game.heartLocation.y === y) {
+        if (this.game.hasHeartOn(x, y)) {
             this.life += 1;
-            this.game.clearHeart()
+            this.game.clearHeart(x, y)
         }
 
         this.position.x = x;

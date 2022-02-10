@@ -14,7 +14,7 @@ export class Game implements IGame {
     activePlayers:Player[] = [];
     private state:GameState = {
         board: new Board(this),
-        heartLocation: new BoardPosition(-1, -1),
+        heartLocation: [],
         jury: []
     };
 
@@ -45,10 +45,8 @@ export class Game implements IGame {
         this.state.board.load(dbBoard.board);
 
         if (dbBoard.features.heartLocation) {
-            this.state.heartLocation = new BoardPosition(
-                dbBoard.features.heartLocation.x,
-                dbBoard.features.heartLocation.y
-            )
+            this.state.heartLocation = dbBoard.features.heartLocation
+                .map((heartPosition:number[]) => new BoardPosition(heartPosition[0], heartPosition[1]))
         }
 
         for (let i = 0; i < ROWS; i++) {
@@ -103,12 +101,20 @@ export class Game implements IGame {
     }
 
     async dropHeart():Promise<void> {
-        this.state.heartLocation = this.board.getRandom();
+        this.state.heartLocation.push(this.board.getEmptyRandom());
         await this.board.updateOnDb();
     }
 
-    clearHeart():void {
-        this.state.heartLocation = new BoardPosition(-1, -1);
+    clearHeart(x:number, y:number):void {
+
+        const heartIndex = this.heartLocation.findIndex((heartPos) => {
+            return heartPos.x === x && heartPos.y === y
+        })
+
+        if (heartIndex > -1) {
+            this.state.heartLocation.splice(heartIndex, 1);
+        }
+
     }
 
     async addAction(actor:Tank, action:string, dest?:BoardPosition, enemy?:Tank):Promise<void> {
@@ -192,6 +198,12 @@ export class Game implements IGame {
 
     getPeopleOnline():any[] {
         return this.activePlayers;
+    }
+
+    hasHeartOn(x:number, y:number):boolean {
+        return !!this.heartLocation.find((heartPos:BoardPosition) => {
+            return heartPos.x === x && heartPos.y === y;
+        })
     }
 
     get heartLocation() {

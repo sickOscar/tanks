@@ -15,6 +15,7 @@ import {Game} from "./app/game";
 import db, {prepareDb} from "./db";
 import {schedule} from 'node-cron';
 import {BoardPosition} from "./app/boardPosition";
+const assert = require('assert');
 
 
 async function init() {
@@ -22,9 +23,12 @@ async function init() {
     const game = new Game();
     await game.loadActive();
 
-    const actionTimeoutDelay = 3600 * 1000;
+    assert(process.env.ACTION_CRON_EXPRESSION, 'ENV MISSING: ACTION_CRON_EXPRESSION')
+    assert(process.env.ACTION_TIMEOUT_DELAY, `ENV MISSING: ACTION_TIMEOUT_DELAY`)
 
-    schedule('0 0 12 * * *', async () => {
+    const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
+
+    schedule(process.env.ACTION_CRON_EXPRESSION as string, async () => {
         setTimeout(async () => {
             try {
                 await game.distributeActions();
