@@ -405,13 +405,6 @@ function drawPlayerHover() {
         return;
     }
 
-    fill('rgba(0,0,0,0.3)');
-    noStroke();
-    rect(
-        activePlayerHover.position.x * SQUARE_SIZE + SQUARE_SIZE - 15,
-        activePlayerHover.position.y * SQUARE_SIZE  + (SQUARE_SIZE /2) - 15,
-        100, 30
-    )
 
     textAlign(LEFT, TOP)
     fill('#fff');
