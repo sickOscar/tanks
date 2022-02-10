@@ -93,6 +93,8 @@ async function init() {
                         destination: undefined
                     }
 
+                    console.log(`${tank.id} | ${action.action} | ${JSON.stringify(payload)}`);
+
                     if (payload && payload.x && payload.y) {
                         action.destination = new BoardPosition(payload.x, payload.y);
                     }
