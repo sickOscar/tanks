@@ -639,7 +639,7 @@ function animate(cell, animation) {
 async function toggleScoreboard() {
     if (scoreboardDomElement.classList.contains("invisible")) {
         await fetchScoreboardResult();
-        document.querySelector(".scoreboard").classList.remove("invisible");
+        scoreboardDomElement.classList.remove("invisible");
     } else {
         scoreboardDomElement.classList.add("invisible");
     }
