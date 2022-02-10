@@ -9,10 +9,10 @@
     --color: hsl(0, 0%, 100%);
     --font-size: 15px;
     --shadow-primary-hue: 180;
-    --label-size: 9px;
+    --label-size: 11px;
     --shadow-secondary-hue: 60;
     --shadow-secondary: hsl(var(--shadow-secondary-hue), 90%, 60%);
-    --clip: polygon(0 0, 100% 0, 100% 100%, 95% 100%, 95% 90%, 85% 90%, 85% 100%, 8% 100%, 0 70%);
+    --clip: polygon(0 0, 100% 0, 100% 100%, 95% 100%, 95% 80%, 75% 80%, 75% 100%, 8% 100%, 0 70%);
     --border: 4px;
     --shimmy-distance: 5;
     --clip-one: polygon(0 2%, 100% 2%, 100% 95%, 95% 95%, 95% 90%, 85% 90%, 85% 95%, 8% 95%, 0 70%);
@@ -76,7 +76,7 @@
     letter-spacing: 1px;
     line-height: 1;
     bottom: -5%;
-    right: 1%;
+    right: 4.5%;
     font-weight: normal;
     color: hsl(0, 0%, 0%);
     font-size: var(--label-size);
