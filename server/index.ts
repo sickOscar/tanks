@@ -95,7 +95,7 @@ async function init() {
 
                     console.log(`${tank.id} | ${action.action} | ${JSON.stringify(payload)}`);
 
-                    if (payload && payload.x && payload.y) {
+                    if (payload && payload.x !== undefined && payload.y !== undefined) {
                         action.destination = new BoardPosition(payload.x, payload.y);
                     }
                     
