@@ -29,6 +29,7 @@ async function init() {
 
     const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
 
+    /*
     schedule(process.env.ACTION_CRON_EXPRESSION as string, async () => {
         setTimeout(async () => {
             try {
@@ -49,7 +50,7 @@ async function init() {
         }, Math.round(Math.random()* actionTimeoutDelay))
 
     })
-
+     */
     const app = express()
     const server = http.createServer(app)
     const io = new Server(server, {
