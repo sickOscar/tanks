@@ -86,6 +86,8 @@ async function init() {
                 socket.emit(MessageTypes.PLAYER, tank.id)
                 socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, callback) => {
 
+
+
                     const action:IAction = {
                         created_at: new Date(),
                         action: actionString,
@@ -94,6 +96,13 @@ async function init() {
                     }
 
                     console.log(`${tank.id} | ${action.action} | ${JSON.stringify(payload)}`);
+
+                    const stopGameDate = process.env.STOP_GAME_DATE;
+                    if (stopGameDate && new Date(stopGameDate) < new Date()) {
+                        callback(false);
+                        console.log('OUT OF TIME')
+                        return;
+                    }
 
                     if (payload && payload.x !== undefined && payload.y !== undefined) {
                         action.destination = new BoardPosition(payload.x, payload.y);
