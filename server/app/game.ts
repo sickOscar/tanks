@@ -10,9 +10,9 @@ import axios from "axios";
 
 export class Game implements IGame {
 
-    id:number = 0;
-    activePlayers:Player[] = [];
-    private state:GameState = {
+    id: number = 0;
+    activePlayers: Player[] = [];
+    private state: GameState = {
         board: new Board(this),
         heartLocation: [],
     };
@@ -20,24 +20,38 @@ export class Game implements IGame {
     constructor() {
     }
 
-    addActivePlayer(player:Player) {
+    addActivePlayer(player: Player) {
         if (!this.activePlayers.find(p => p.id === player.id)) {
             this.activePlayers.push(player)
         }
 
     }
 
-    removeActivePlayer(player:Player) {
+    removeActivePlayer(player: Player) {
         this.activePlayers = this.activePlayers.filter(p => p.id !== player.id);
     }
 
     async loadActive() {
-        const res = await db.query(`
+        let res = await db.query(`
             SELECT * from games WHERE active = true
         `)
-        
+
         if (res.rows.length === 0) {
-            throw new Error('NO ACTIVE GAME')
+
+            const emptyBoard = new Array(ROWS);
+            for (let i = 0; i < emptyBoard.length; i++) {
+                emptyBoard[i] = new Array(COLS).fill(null);
+            }
+
+            await db.query(`
+                INSERT INTO games (active, board) VALUES (true, $1)
+            `, [{board: emptyBoard, features: {heartLocation: []}}]
+            )
+
+            res = await db.query(`
+                SELECT * from games WHERE active = true
+            `)
+
         }
 
         const dbBoard = res.rows[0].board;
@@ -45,13 +59,13 @@ export class Game implements IGame {
 
         if (dbBoard.features.heartLocation) {
             this.state.heartLocation = dbBoard.features.heartLocation
-                .map((heartPosition:number[]) => new BoardPosition(heartPosition[0], heartPosition[1]))
+                .map((heartPosition: number[]) => new BoardPosition(heartPosition[0], heartPosition[1]))
         }
 
         this.id = res.rows[0].id;
     }
 
-    isInJury(player:Player):boolean {
+    isInJury(player: Player): boolean {
         for (let x = 0; x < COLS; x++) {
             for (let y = 0; y < ROWS; y++) {
                 const pl = this.board.getAt(x, y)
@@ -63,7 +77,7 @@ export class Game implements IGame {
         return false
     }
 
-    isAlive(player:Player):boolean {
+    isAlive(player: Player): boolean {
         for (let i = 0; i < ROWS; i++) {
             for (let j = 0; j < COLS; j++) {
                 const cellContent = this.state.board.getAt(j, i);
@@ -75,7 +89,7 @@ export class Game implements IGame {
         return false;
     }
 
-    getPlayerTank(player:Player):ITank|undefined {
+    getPlayerTank(player: Player): ITank | undefined {
         for (let i = 0; i < ROWS; i++) {
             for (let j = 0; j < COLS; j++) {
                 const cellContent = this.state.board.getAt(j, i);
@@ -86,7 +100,7 @@ export class Game implements IGame {
         }
     }
 
-    async distributeActions():Promise<void> {
+    async distributeActions(): Promise<void> {
         for (let i = 0; i < ROWS; i++) {
             for (let j = 0; j < COLS; j++) {
                 const cellContent = this.state.board.getAt(j, i);
@@ -98,12 +112,12 @@ export class Game implements IGame {
         await this.board.updateOnDb();
     }
 
-    async dropHeart():Promise<void> {
+    async dropHeart(): Promise<void> {
         this.state.heartLocation.push(this.board.getEmptyRandom());
         await this.board.updateOnDb();
     }
 
-    clearHeart(x:number, y:number):void {
+    clearHeart(x: number, y: number): void {
 
         const heartIndex = this.heartLocation.findIndex((heartPos) => {
             return heartPos.x === x && heartPos.y === y
@@ -115,7 +129,7 @@ export class Game implements IGame {
 
     }
 
-    async addAction(actor:Tank, action:string, dest?:BoardPosition, enemy?:Tank):Promise<void> {
+    async addAction(actor: Tank, action: string, dest?: BoardPosition, enemy?: Tank): Promise<void> {
         const destination = dest ? [dest.x, dest.y] : null;
         const en = enemy ? enemy.id : null;
         await db.query(`
@@ -123,7 +137,7 @@ export class Game implements IGame {
         `, [this.id, actor.id, action, JSON.stringify(destination), en])
     }
 
-    async getActions():Promise<any> {
+    async getActions(): Promise<any> {
         const res = await db.query(`
             SELECT * FROM events WHERE game = $1 ORDER BY created_at DESC LIMIT 10 
         `, [this.id])
@@ -190,15 +204,15 @@ export class Game implements IGame {
             })
     }
 
-    getPlayers():any[] {
+    getPlayers(): any[] {
         return this.board.getPlayers().map(t => t.asPlayer())
     }
 
-    getPeopleOnline():any[] {
+    getPeopleOnline(): any[] {
         return this.activePlayers;
     }
 
-    async getTodaysPollResults():Promise<{vote_for:string, count:number, name:string, picture:string}[]> {
+    async getTodaysPollResults(): Promise<{ vote_for: string, count: number, name: string, picture: string }[]> {
         const results = await db.query(`
             SELECT vote_for, COUNT(*) as count FROM votes 
             WHERE voted_at = CURRENT_DATE
@@ -207,7 +221,7 @@ export class Game implements IGame {
             
         `)
         const gamePlayers = this.getPlayers();
-        return results.rows.map((res:{vote_for:string, count:string}) => {
+        return results.rows.map((res: { vote_for: string, count: string }) => {
             const player = gamePlayers.find(p => p.id === res.vote_for)
             return {
                 vote_for: res.vote_for,
@@ -218,8 +232,8 @@ export class Game implements IGame {
         })
     }
 
-    hasHeartOn(x:number, y:number):boolean {
-        return !!this.heartLocation.find((heartPos:BoardPosition) => {
+    hasHeartOn(x: number, y: number): boolean {
+        return !!this.heartLocation.find((heartPos: BoardPosition) => {
             return heartPos.x === x && heartPos.y === y;
         })
     }
@@ -232,7 +246,7 @@ export class Game implements IGame {
         return this.state.board;
     }
 
-    set board (board:Board) {
+    set board(board: Board) {
         this.state.board = board;
     }
 }

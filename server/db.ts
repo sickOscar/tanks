@@ -18,11 +18,12 @@ export async function prepareDb() {
     try {
         await db.query('SELECT * FROM games')
     } catch (err) {
-        db.query(`
+        console.log('Creating games table');
+        await db.query(`
             CREATE TABLE games (
                 id SERIAL PRIMARY KEY,
                 board JSONB NOT NULL,
-                active
+                active BOOLEAN DEFAULT TRUE NOT NULL
             )
         `)
     }
@@ -30,13 +31,12 @@ export async function prepareDb() {
     try {
         await db.query('SELECT * FROM players')
     } catch (err) {
-        db.query(`
+        console.log('Creating players table');
+        await db.query(`
             CREATE TABLE players (
                 sub VARCHAR,
                 game INTEGER,
-                CONSTRAINT fk_game
-                    FOREIGN KEY (game)
-                        REFERENCES games(id)
+                FOREIGN KEY (game) REFERENCES games(id)
             )
         `)
     }
@@ -44,7 +44,8 @@ export async function prepareDb() {
     try {
         await db.query('SELECT * FROM events')
     } catch (err) {
-        db.query(`
+        console.log('Creating events table');
+        await db.query(`
             CREATE TABLE events (
                 id SERIAL PRIMARY KEY,
                 game INTEGER,
@@ -53,9 +54,7 @@ export async function prepareDb() {
                 destination JSONB,
                 enemy VARCHAR,
                 created_at timestamptz DEFAULT NOW(),
-                CONSTRAINT fk_game
-                    FOREIGN KEY (game)
-                        REFERENCES games(id)
+                CONSTRAINT fk_game FOREIGN KEY (game) REFERENCES games(id)
             )
         `)
     }
@@ -69,9 +68,7 @@ export async function prepareDb() {
                 game INTEGER,
                 voter VARCHAR NOT NULL,
                 vote_for VARCHAR NOT NULL,
-                CONSTRAINT fk_game
-                    FOREIGN KEY (game)
-                        REFERENCES games(id)
+                CONSTRAINT fk_game FOREIGN KEY (game) REFERENCES games(id)
             )
         `)
     }

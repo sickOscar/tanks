@@ -87,8 +87,6 @@ async function init() {
                 socket.emit(MessageTypes.PLAYER, tank.id)
                 socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, callback) => {
 
-
-
                     const action:IAction = {
                         created_at: new Date(),
                         action: actionString,
