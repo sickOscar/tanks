@@ -221,6 +221,11 @@
             <div class="d-flex">
                 <div id="board-holder" class="d-none"></div>
                 <div id="right-side" class="d-none">
+                    <button class="cybr-btn scoreboard-button d-none" data-action="scoreboard" onclick="toggleScoreboard()">
+                        Scoreboard
+                        <span aria-hidden class="cybr-btn__glitch"></span>
+                        <span aria-hidden class="cybr-btn__tag"></span>
+                    </button>
                     <div id="logs">
                         <h4>What happens</h4>
                         <hr>
@@ -236,6 +241,8 @@
             </div>
 
         </div>
+
+        <div class="scoreboard invisible"></div>
 
     </main>
 

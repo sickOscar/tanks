@@ -142,6 +142,47 @@ button:disabled {
     margin-right: .5rem;
 }
 
+
+.scoreboard-button {
+    margin-bottom: 1rem;
+    margin-left: auto;
+}
+
+.scoreboard {
+    position: fixed;
+    width: 80%;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100px;
+    height: 40%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #fefe33;
+    border: 1px solid black;
+    z-index: 99999;
+    padding: 20px;
+}
+
+.scoreboard.invisible {
+    display: none;
+}
+
+.scoreboard-table {
+    width: 100%;
+    font-size: 20px;
+}
+
+.scoreboard-table thead {
+    border-bottom: 1px solid black;
+}
+
+.scoreboard-table tbody:before {
+    content: "a";
+    display: block;
+    line-height: .5em;
+    color: transparent;
+}
+
 #poll {
     padding-left: 20px;
     /*display: flex;*/
