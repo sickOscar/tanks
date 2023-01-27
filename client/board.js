@@ -18,7 +18,7 @@ let sio;
 let localBoard = null;
 let playerId = null;
 let player = null;
-let heartLocation = null;
+let heartsLocations = null;
 
 let stage = 'RUN';
 
@@ -379,7 +379,7 @@ function setBoard(serverMessage) {
         `)
         .join('')
 
-    heartLocation = parsedMessage.features.heartLocation;
+    heartsLocations = parsedMessage.features.heartsLocations;
 
 }
 
@@ -521,8 +521,8 @@ function drawCell(y, x) {
     if (localBoard[y][x] === null) {
         drawEmptyCell(y, x);
 
-        if (heartLocation) {
-            const hasHeart = heartLocation.find(loc => {
+        if (heartsLocations) {
+            const hasHeart = heartsLocations.find(loc => {
                 return loc[0] === x && loc[1] === y
             })
             if (hasHeart) {

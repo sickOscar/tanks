@@ -14,17 +14,13 @@ export class Game implements IGame {
     activePlayers: Player[] = [];
     private state: GameState = {
         board: new Board(this),
-        heartLocation: [],
+        heartsLocations: [],
     };
-
-    constructor() {
-    }
 
     addActivePlayer(player: Player) {
         if (!this.activePlayers.find(p => p.id === player.id)) {
             this.activePlayers.push(player)
         }
-
     }
 
     removeActivePlayer(player: Player) {
@@ -45,7 +41,7 @@ export class Game implements IGame {
 
             await db.query(`
                 INSERT INTO games (active, board) VALUES (true, $1)
-            `, [{board: emptyBoard, features: {heartLocation: []}}]
+            `, [{board: emptyBoard, features: {heartsLocations: []}}]
             )
 
             res = await db.query(`
@@ -57,8 +53,8 @@ export class Game implements IGame {
         const dbBoard = res.rows[0].board;
         this.state.board.load(dbBoard.board);
 
-        if (dbBoard.features.heartLocation) {
-            this.state.heartLocation = dbBoard.features.heartLocation
+        if (dbBoard.features.heartsLocations) {
+            this.state.heartsLocations = dbBoard.features.heartsLocations
                 .map((heartPosition: number[]) => new BoardPosition(heartPosition[0], heartPosition[1]))
         }
 
@@ -113,18 +109,18 @@ export class Game implements IGame {
     }
 
     async dropHeart(): Promise<void> {
-        this.state.heartLocation.push(this.board.getEmptyRandom());
+        this.state.heartsLocations.push(this.board.getEmptyRandom());
         await this.board.updateOnDb();
     }
 
     clearHeart(x: number, y: number): void {
 
-        const heartIndex = this.heartLocation.findIndex((heartPos) => {
+        const heartIndex = this.heartsLocations.findIndex((heartPos:BoardPosition) => {
             return heartPos.x === x && heartPos.y === y
         })
 
         if (heartIndex > -1) {
-            this.state.heartLocation.splice(heartIndex, 1);
+            this.state.heartsLocations.splice(heartIndex, 1);
         }
 
     }
@@ -233,13 +229,13 @@ export class Game implements IGame {
     }
 
     hasHeartOn(x: number, y: number): boolean {
-        return !!this.heartLocation.find((heartPos: BoardPosition) => {
+        return !!this.heartsLocations.find((heartPos: BoardPosition) => {
             return heartPos.x === x && heartPos.y === y;
         })
     }
 
-    get heartLocation() {
-        return this.state.heartLocation;
+    get heartsLocations() {
+        return this.state.heartsLocations;
     }
 
     get board() {

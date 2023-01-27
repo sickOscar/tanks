@@ -51,6 +51,19 @@ async function init() {
 
     })
      */
+
+    setInterval(async () => {
+        try {
+            await game.distributeActions();
+            await game.dropHeart();
+            io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+        } catch (err) {
+            console.log(`err`, err)
+            console.log('Failed to distribute actions')
+        }
+    }, 5000)
+
+
     const app = express()
     const server = http.createServer(app)
     const io = new Server(server, {

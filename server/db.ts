@@ -15,6 +15,8 @@ const db = new Client(connectionParams)
 
 export async function prepareDb() {
 
+    console.log('Connected to database!')
+
     try {
         await db.query('SELECT * FROM games')
     } catch (err) {

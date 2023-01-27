@@ -6,13 +6,13 @@ import {ITank} from "./ITank";
 
 export interface GameState {
     board: Board;
-    heartLocation:BoardPosition[];
+    heartsLocations:BoardPosition[];
 }
 
 export interface IGame {
     id:number;
     board:Board;
-    heartLocation:BoardPosition[];
+    heartsLocations:BoardPosition[];
     activePlayers:Player[];
     getTodaysPollResults():Promise<{vote_for:string, count:number, name:string, picture:string}[]>
     addActivePlayer(p:Player):void

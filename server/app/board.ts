@@ -109,7 +109,7 @@ export class Board {
         }
         return JSON.stringify({
             features: {
-                heartLocation: this.game.heartLocation.map((heartPos) => {
+                heartsLocations: this.game.heartsLocations.map((heartPos) => {
                     return [heartPos.x, heartPos.y]
                 })
             },
