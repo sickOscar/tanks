@@ -14,7 +14,6 @@ import {Player} from "./app/player";
 import {Game} from "./app/game";
 import db, {prepareDb} from "./db";
 import {schedule} from 'node-cron';
-import {BoardPosition} from "./app/boardPosition";
 import {PlayerActions} from "./app/playerActions";
 const assert = require('assert');
 
@@ -52,16 +51,16 @@ async function init() {
     })
      */
 
-    setInterval(async () => {
-        try {
-            await game.distributeActions();
-            await game.dropHeart();
-            io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-        } catch (err) {
-            console.log(`err`, err)
-            console.log('Failed to distribute actions')
-        }
-    }, 5000)
+    // setInterval(async () => {
+    //     try {
+    //         await game.distributeActions();
+    //         await game.dropHeart();
+    //         io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+    //     } catch (err) {
+    //         console.log(`err`, err)
+    //         console.log('Failed to distribute actions')
+    //     }
+    // }, 500000)
 
 
     const app = express()
@@ -96,6 +95,7 @@ async function init() {
             let tank:Tank;
 
             if (game.isAlive(player)) {
+                console.log(`isAlive`)
                 tank = game.getPlayerTank(player) as Tank;
                 socket.emit(MessageTypes.PLAYER, tank.id)
                 socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, callback) => {
@@ -114,10 +114,11 @@ async function init() {
                         callback(false);
                         console.log('OUT OF TIME')
                         return;
+
                     }
 
-                    if (payload && payload.x !== undefined && payload.y !== undefined) {
-                        action.destination = new BoardPosition(payload.x, payload.y);
+                    if (payload && payload.q !== undefined && payload.r !== undefined) {
+                        action.destination = {q: payload.q, r: payload.r}
                     }
                     
                     if (actionString === PlayerActions.VOTE) {
@@ -137,7 +138,7 @@ async function init() {
                         const event = {
                             created_at: actionApplied.created_at,
                             actor: actionApplied.actor.id,
-                            destination: actionApplied.destination ? [actionApplied.destination.x, actionApplied.destination.y] : undefined,
+                            destination: actionApplied.destination ? [actionApplied.destination.q, actionApplied.destination.r] : undefined,
                             action: actionApplied.action,
                             enemy: actionApplied.enemy ? actionApplied.enemy.id : null
                         }

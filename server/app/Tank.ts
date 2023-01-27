@@ -1,16 +1,16 @@
-import {BoardPosition} from "./boardPosition";
 import {COLS, ROWS} from "../const";
 import {PlayerActions} from "./playerActions";
 import db from "../db";
 import {ITank, TankParams} from "../model/ITank";
 import {IGame} from "../model/IGame";
 import {IAction} from "../model/IAction";
+import {AxialCoordinates} from "honeycomb-grid";
 
 
 const DEFAULT_TANK_PARAMS: TankParams = {
     id: Math.random().toString(36).substring(2),
     actions: 0,
-    position: new BoardPosition(0, 0),
+    position: {q: 0, r: 0},
     life: 3,
     range: 2,
     name: '',
@@ -21,7 +21,7 @@ export class Tank implements ITank {
     game: IGame;
     id: string;
     actions: number;
-    position: BoardPosition;
+    position: AxialCoordinates;
     life: number;
     range: number;
     name: string;
@@ -31,7 +31,7 @@ export class Tank implements ITank {
         this.game = game;
         const opts: TankParams = Object.assign({}, DEFAULT_TANK_PARAMS, params)
         this.id = opts.id;
-        this.position = new BoardPosition(opts.position.x, opts.position.y);
+        this.position = opts.position;
         this.actions = opts.actions;
         this.life = opts.life;
         this.range = opts.range;
@@ -42,6 +42,7 @@ export class Tank implements ITank {
     static async create(game: IGame, userId: string, name: string, picture: string): Promise<Tank> {
 
         const tankPosition = game.board.getEmptyRandom();
+        console.log(`new tankPosition`, tankPosition);
         const tank = new Tank(game, {
             id: userId,
             position: tankPosition,
@@ -52,16 +53,16 @@ export class Tank implements ITank {
 
         await db.query(`
             UPDATE games
-            SET board = '${game.board.serialize()}'
+            SET board = $1
             WHERE active = true
-        `)
+        `, [game.board.serialize()])
 
         // @ts-ignore
         return tank;
     }
 
     delete(): void {
-        this.game.board.clearCell(this.position.x, this.position.y);
+        this.game.board.clearCell(this.position.q, this.position.r);
     }
 
     async die(): Promise<void> {
@@ -69,24 +70,24 @@ export class Tank implements ITank {
         this.actions = 0;
     }
 
-    async move(x: number, y: number): Promise<void> {
-        this.game.board.moveTankFromTo(this.position, new BoardPosition(x, y));
+    async move(q: number, r: number): Promise<void> {
+        this.game.board.moveTankFromTo(this.position, {q, r});
 
-        if (this.game.hasHeartOn(x, y)) {
+        if (this.game.hasHeartOn(q, r)) {
             this.life += 1;
-            this.game.clearHeart(x, y)
+            this.game.clearHeart(q, r)
         }
 
-        this.position.x = x;
-        this.position.y = y;
+        this.position.q = q;
+        this.position.r = r;
 
-        await this.game.addAction(this, 'move', new BoardPosition(x, y))
+        await this.game.addAction(this, 'move', {q, r})
 
         this.useAction();
     }
 
-    async shoot(x: number, y: number): Promise<void> {
-        const enemy: Tank = this.game.board.getAt(x, y) as Tank;
+    async shoot(q: number, r: number): Promise<void> {
+        const enemy: Tank = this.game.board.getAt(q, r) as Tank;
         enemy.life = Math.max(0, enemy.life - 1);
         if (enemy.life === 0) {
             console.log(`${enemy.id} was killed by ${this.id}`);
@@ -101,14 +102,14 @@ export class Tank implements ITank {
             `, 'shoot')
         }
 
-        await this.game.addAction(this, 'shoot', new BoardPosition(x, y), enemy)
+        await this.game.addAction(this, 'shoot', {q, r}, enemy)
         this.useAction();
     }
 
-    async giveAction(x: number, y: number): Promise<void> {
-        const enemy: Tank = this.game.board.getAt(x, y) as Tank;
+    async giveAction(q: number, r: number): Promise<void> {
+        const enemy: Tank = this.game.board.getAt(q, r) as Tank;
         enemy.actions += 1;
-        await this.game.addAction(this, 'give-action', new BoardPosition(x, y), enemy)
+        await this.game.addAction(this, 'give-action', {q, r}, enemy)
         this.useAction();
     }
 
@@ -118,14 +119,14 @@ export class Tank implements ITank {
         this.useAction(3);
     }
 
-    async heal(x: number, y: number):Promise<void> {
-        if (this.position.x === x && this.position.y === y) {
+    async heal(q: number, r: number):Promise<void> {
+        if (this.position.q === q && this.position.r === r) {
             this.life += 1;
             await this.game.addAction(this, 'heal')
         } else {
-            const enemy: Tank = this.game.board.getAt(x, y) as Tank;
+            const enemy: Tank = this.game.board.getAt(q, r) as Tank;
             enemy.life += 1;
-            await this.game.addAction(this, 'heal', new BoardPosition(x, y), enemy)
+            await this.game.addAction(this, 'heal', {q, r}, enemy)
         }
 
         this.useAction(3);
@@ -210,54 +211,54 @@ export class Tank implements ITank {
             return false;
         }
 
-        const dest = action.destination as BoardPosition;
-        const x = Math.min(COLS - 1, Math.max(dest.x, 0));
-        const y = Math.min(ROWS - 1, Math.max(dest.y, 0));
+        const dest = action.destination as AxialCoordinates;
+        const q = Math.min(COLS - 1, Math.max(dest.q, 0));
+        const r = Math.min(ROWS - 1, Math.max(dest.r, 0));
 
-        const boardCell = new BoardPosition(x, y);
+        const boardCell = {q, r};
 
         if (action.action === PlayerActions.MOVE) {
-            if (!this.game.board.isPositionValid(x, y)) {
+            if (!this.game.board.isPositionValid(q, r)) {
                 return false
             }
-            if (this.game.board.isPositionOccupied(x, y)) {
+            if (this.game.board.isPositionOccupied(q, r)) {
                 return false;
             }
             if (this.game.board.isInRange(this.position, boardCell, 1)) {
-                await this.move(x, y);
+                await this.move(q, r);
                 return action;
             }
         }
 
         if (action.action === PlayerActions.SHOOT) {
-            if (!this.game.board.isPositionOccupied(x, y) || !this.game.board.isPositionValid(x, y)) {
+            if (!this.game.board.isPositionOccupied(q, r) || !this.game.board.isPositionValid(q, r)) {
                 return false;
             }
             // friendly fire
-            if (this.position.x === x && this.position.y === y) {
+            if (this.position.q === q && this.position.r === r) {
                 return false;
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range)) {
-                const enemy = this.game.board.getAt(x, y) as Tank;
+                const enemy = this.game.board.getAt(q, r) as Tank;
                 if (enemy.life > 0) {
-                    await this.shoot(x, y);
-                    action.enemy = this.game.board.getAt(x, y);
+                    await this.shoot(q, r);
+                    action.enemy = this.game.board.getAt(q, r);
                     return action;
                 }
             }
         }
 
         if (action.action === PlayerActions.GIVE_ACTION) {
-            if (!this.game.board.isPositionOccupied(x, y) || !this.game.board.isPositionValid(x, y)) {
+            if (!this.game.board.isPositionOccupied(q, r) || !this.game.board.isPositionValid(q, r)) {
                 return false;
             }
-            if (this.position.x === x && this.position.y === y) {
+            if (this.position.q === q && this.position.r === r) {
                 return false;
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range)) {
-                action.enemy = this.game.board.getAt(x, y) as Tank;
+                action.enemy = this.game.board.getAt(q, r) as Tank;
                 if (action.enemy.life > 0) {
-                    await this.giveAction(x, y);
+                    await this.giveAction(q, r);
                     return action;
                 }
 
@@ -265,16 +266,16 @@ export class Tank implements ITank {
         }
 
         if (action.action === PlayerActions.HEAL) {
-            if (!this.game.board.isPositionValid(x, y)) {
+            if (!this.game.board.isPositionValid(q, r)) {
                 return false
             }
-            if (!this.game.board.isPositionOccupied(x, y)) {
+            if (!this.game.board.isPositionOccupied(q, r)) {
                 return false;
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range)) {
                 if (this.actions >= 3) {
-                    await this.heal(x, y);
-                    action.enemy = this.game.board.getAt(x, y)
+                    await this.heal(q, r);
+                    action.enemy = this.game.board.getAt(q, r)
                     return action
                 }
             }

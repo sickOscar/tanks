@@ -1,12 +1,12 @@
 import {Player} from "./player";
 import db from "../db";
-import {Board} from "./board";
+import {Board, TanksHex} from "./board";
 import {GameState, IGame} from "../model/IGame";
 import {COLS, ROWS} from "../const";
 import {ITank} from "../model/ITank";
-import {BoardPosition} from "./boardPosition";
 import {Tank} from "./Tank";
 import axios from "axios";
+import {AxialCoordinates, Hex} from "honeycomb-grid";
 
 export class Game implements IGame {
 
@@ -28,83 +28,64 @@ export class Game implements IGame {
     }
 
     async loadActive() {
-        let res = await db.query(`
-            SELECT * from games WHERE active = true
-        `)
+        let res = await db.query(`SELECT * from games WHERE active = true`)
 
         if (res.rows.length === 0) {
-
-            const emptyBoard = new Array(ROWS);
-            for (let i = 0; i < emptyBoard.length; i++) {
-                emptyBoard[i] = new Array(COLS).fill(null);
-            }
-
-            await db.query(`
-                INSERT INTO games (active, board) VALUES (true, $1)
-            `, [{board: emptyBoard, features: {heartsLocations: []}}]
-            )
-
-            res = await db.query(`
-                SELECT * from games WHERE active = true
-            `)
-
+            const emptyBoard = new Board(this).serialize();
+            await db.query(`INSERT INTO games (active, board) VALUES (true, $1)`, [emptyBoard])
+            res = await db.query(`SELECT * from games WHERE active = true`)
         }
 
         const dbBoard = res.rows[0].board;
-        this.state.board.load(dbBoard.board);
+        console.log(`dbBoard`, dbBoard)
+        this.state.board.load(dbBoard.grid);
 
         if (dbBoard.features.heartsLocations) {
             this.state.heartsLocations = dbBoard.features.heartsLocations
-                .map((heartPosition: number[]) => new BoardPosition(heartPosition[0], heartPosition[1]))
+                .map((heartPosition: number[]) => ({q: heartPosition[0], r: heartPosition[1]}))
         }
 
         this.id = res.rows[0].id;
     }
 
     isInJury(player: Player): boolean {
-        for (let x = 0; x < COLS; x++) {
-            for (let y = 0; y < ROWS; y++) {
-                const pl = this.board.getAt(x, y)
-                if (pl && pl.id === player.id && pl.life <= 0) {
-                    return true
-                }
+        let inJury = false;
+        this.board.forEach((hex: TanksHex) => {
+            if (hex?.tank?.id === player.id && hex.tank.life <= 0) {
+                inJury = true;
             }
-        }
-        return false
+        })
+        return inJury;
     }
 
     isAlive(player: Player): boolean {
-        for (let i = 0; i < ROWS; i++) {
-            for (let j = 0; j < COLS; j++) {
-                const cellContent = this.state.board.getAt(j, i);
-                if (cellContent && cellContent.id === player.id && cellContent.life >= 0) {
-                    return true;
-                }
+        let isAlive = false;
+        this.board.forEach((hex: TanksHex) => {
+            const tank = hex?.tank;
+            if (tank && tank.id === player.id && tank.life >= 0) {
+                isAlive = true
             }
-        }
-        return false;
+        })
+        return isAlive;
     }
 
     getPlayerTank(player: Player): ITank | undefined {
-        for (let i = 0; i < ROWS; i++) {
-            for (let j = 0; j < COLS; j++) {
-                const cellContent = this.state.board.getAt(j, i);
-                if (cellContent && cellContent.id === player.id) {
-                    return cellContent;
-                }
+        let tank: ITank | undefined;
+        this.board.forEach((hex: TanksHex) => {
+            if (hex?.tank?.id === player.id) {
+                tank = hex.tank
             }
-        }
+        });
+        return tank;
     }
 
     async distributeActions(): Promise<void> {
-        for (let i = 0; i < ROWS; i++) {
-            for (let j = 0; j < COLS; j++) {
-                const cellContent = this.state.board.getAt(j, i);
-                if (cellContent && cellContent.life > 0) {
-                    cellContent.actions += 1;
-                }
+        this.board.forEach((hex: TanksHex) => {
+            const tank = hex.tank;
+            if (tank && tank.life > 0) {
+                tank.actions += 1;
             }
-        }
+        })
         await this.board.updateOnDb();
     }
 
@@ -113,10 +94,10 @@ export class Game implements IGame {
         await this.board.updateOnDb();
     }
 
-    clearHeart(x: number, y: number): void {
+    clearHeart(q: number, r: number): void {
 
-        const heartIndex = this.heartsLocations.findIndex((heartPos:BoardPosition) => {
-            return heartPos.x === x && heartPos.y === y
+        const heartIndex = this.heartsLocations.findIndex((heartPos:AxialCoordinates) => {
+            return heartPos.q === q && heartPos.r === r
         })
 
         if (heartIndex > -1) {
@@ -125,8 +106,8 @@ export class Game implements IGame {
 
     }
 
-    async addAction(actor: Tank, action: string, dest?: BoardPosition, enemy?: Tank): Promise<void> {
-        const destination = dest ? [dest.x, dest.y] : null;
+    async addAction(actor: Tank, action: string, dest?: AxialCoordinates, enemy?: Tank): Promise<void> {
+        const destination = dest ? [dest.q, dest.r] : null;
         const en = enemy ? enemy.id : null;
         await db.query(`
             INSERT INTO events (game, actor, action, destination, enemy) VALUES ($1, $2, $3, $4, $5)
@@ -229,8 +210,8 @@ export class Game implements IGame {
     }
 
     hasHeartOn(x: number, y: number): boolean {
-        return !!this.heartsLocations.find((heartPos: BoardPosition) => {
-            return heartPos.x === x && heartPos.y === y;
+        return !!this.heartsLocations.find((heartPos: AxialCoordinates) => {
+            return heartPos.q === x && heartPos.r === y;
         })
     }
 

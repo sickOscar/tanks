@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import {checkJwt} from "./auth";
 import {COLS, ROWS} from "./const";
+import db from "./db";
 
 export const apis = express.Router();
 
@@ -9,10 +10,14 @@ apis.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/index.html'))
 })
 
-apis.get('/config', checkJwt, (req, res) => {
+apis.get('/config', checkJwt, async (req, res) => {
+
+    const grid = await db.query(`SELECT * FROM games WHERE active = true`);
+
     res.json({
         rows: ROWS,
-        cols: COLS
+        cols: COLS,
+        ...grid.rows[0].board
     })
 })
 
