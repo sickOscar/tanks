@@ -28,12 +28,16 @@ export class Game implements IGame {
     }
 
     async loadActive() {
+        console.log(`Loading game from database...`)
         let res = await db.query(`SELECT * from games WHERE active = true`)
 
         if (res.rows.length === 0) {
+            console.log(`No active game found, creating a new one...`)
             const emptyBoard = new Board(this).serialize();
             await db.query(`INSERT INTO games (active, board) VALUES (true, $1)`, [emptyBoard])
             res = await db.query(`SELECT * from games WHERE active = true`)
+        } else {
+            console.log(`Active game found, loading...`)
         }
 
         const dbBoard = res.rows[0].board;
@@ -73,7 +77,7 @@ export class Game implements IGame {
         let tank: ITank | undefined;
         this.board.forEach((hex: TanksHex) => {
             if (hex?.tank?.id === player.id) {
-                tank = hex.tank
+                tank = hex.tank;
             }
         });
         return tank;
@@ -182,7 +186,9 @@ export class Game implements IGame {
     }
 
     getPlayers(): any[] {
-        return this.board.getPlayers().map(t => t.asPlayer())
+        return this.board.getPlayers().map(t => {
+            return t.asPlayer()
+        })
     }
 
     getPeopleOnline(): any[] {

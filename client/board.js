@@ -31,7 +31,10 @@ const States = {
 const X_OFFSET = 50;
 const Y_OFFSET = 50;
 
-const SQUARE_SIZE = 40;
+const HEX_SIDE = 45;
+const HEX_WIDTH = 2 * (Math.sqrt(3)/2) * HEX_SIDE;
+const HEX_HEIGHT = HEX_SIDE * Math.sqrt(3);
+
 let WIDTH = 200;
 let HEIGHT = 200;
 
@@ -169,8 +172,8 @@ window.onload = async () => {
 
 function resizeGrid(grid) {
     grid.hexSettings.dimensions = {
-        xRadius: SQUARE_SIZE,
-        yRadius: SQUARE_SIZE
+        xRadius: HEX_SIDE,
+        yRadius: HEX_SIDE
     }
     return grid;
 }
@@ -195,17 +198,13 @@ async function initCanvas() {
     configFetched = true;
     setupLocalGrid(c.grid);
 
-    WIDTH = c.cols * SQUARE_SIZE * 2;
-    HEIGHT = c.rows * SQUARE_SIZE * 2;
-    
-    console.log(`WIDTH`, WIDTH)
-    console.log(`HEIGHT`, HEIGHT)
+    WIDTH = c.cols * HEX_WIDTH + X_OFFSET;
+    HEIGHT = c.rows * HEX_HEIGHT + Y_OFFSET;
 
     resizeCanvas(WIDTH, HEIGHT);
 
     const jwt = await auth0.getTokenSilently()
     connectSocket(jwt);
-
 
     players = await getJson('/players')
     events = await getJson('/events')
@@ -363,7 +362,6 @@ function addPlayerAction(action) {
 function setBoard(serverMessage) {
 
     const parsedMessage = JSON.parse(serverMessage);
-    console.log(`parsedMessage`, parsedMessage)
 
     setupLocalGrid(parsedMessage.grid);
 
@@ -478,17 +476,16 @@ function draw() {
 
     activePlayerHover = null;
 
-    // background('white');
+    clear();
     if (!configFetched || !localGrid) {
         return;
     }
 
-    const mouseCellX = Math.floor(mouseX / SQUARE_SIZE);
-    const mouseCellY = Math.floor(mouseY / SQUARE_SIZE)
+    const mouseCellX = Math.floor(mouseX / HEX_SIDE);
+    const mouseCellY = Math.floor(mouseY / HEX_SIDE)
     mouseHoveredCell = [mouseCellX, mouseCellY];
 
     if (stage === 'RUN') {
-        // background('#3e852e');
         image(backgroundImage, 0, 0);
         drawBoard();
     }
@@ -524,13 +521,11 @@ function drawPlayerHover() {
         return;
     }
 
-
-    textAlign(LEFT, TOP)
     noStroke()
     fill('#fff');
     text(activePlayerHover.name,
-        activePlayerHover.position.x * SQUARE_SIZE + SQUARE_SIZE - 15 + 5,
-        activePlayerHover.position.y * SQUARE_SIZE + (SQUARE_SIZE /2) - 15 + 5
+        activePlayerHover.position.x * HEX_SIDE + HEX_SIDE - 15 + 5,
+        activePlayerHover.position.y * HEX_SIDE + (HEX_SIDE /2) - 15 + 5
     )
 
 }
@@ -546,6 +541,18 @@ function drawBoard() {
 }
 
 
+function drawCoordinates(hex) {
+    noStroke()
+    fill('#fff');
+    textSize(10);
+    textAlign(CENTER);
+    text(
+        `q: ${hex.q} r: ${hex.r}`,
+        hex.corners[0].x - (HEX_WIDTH / 2) + X_OFFSET,
+        hex.corners[0].y + Y_OFFSET
+    )
+}
+
 function drawCell(hex) {
     stroke('white')
 
@@ -554,10 +561,10 @@ function drawCell(hex) {
 
         if (heartsLocations) {
             const hasHeart = heartsLocations.find(loc => {
-                return loc[0] === x && loc[1] === y
+                return loc[0] === hex.q && loc[1] === hex.r
             })
             if (hasHeart) {
-                drawHeart(y, x);
+                drawHeart(hex);
             }
         }
 
@@ -570,20 +577,26 @@ function drawCell(hex) {
         }
     }
 
+    // drawCoordinates(hex);
+
 }
 
 function isInRange(cell1, cell2, range) {
     return localGrid.distance(cell1, cell2) <= range
 }
 
-function drawHeart(y, x) {
-    const rootX = x * SQUARE_SIZE;
-    const rootY = y * SQUARE_SIZE;
+function drawHeart(hex) {
+
+    const corners = hex.corners;
+
     fill('red')
-    textSize(SQUARE_SIZE / 2);
-    textStyle(NORMAL);
-    textAlign(CENTER, CENTER)
-    text('💖', rootX + SQUARE_SIZE / 2, rootY + SQUARE_SIZE / 2)
+    textSize(HEX_SIDE);
+    textAlign(CENTER);
+    text(
+        '💖',
+        corners[0].x - HEX_WIDTH / 2 + X_OFFSET,
+        corners[0].y + HEX_HEIGHT / 2 + Y_OFFSET
+    )
 }
 
 function drawEmptyCell(hex) {
@@ -626,8 +639,13 @@ function drawEmptyCell(hex) {
 
     const [...corners] = hex.corners;
     beginShape();
+    let first = true;
     corners.forEach(({ x, y }) => {
         vertex(x + X_OFFSET, y + Y_OFFSET);
+        if (first) {
+            circle(x + X_OFFSET, y + Y_OFFSET, 5)
+        }
+        first = false;
     });
     endShape(CLOSE);
 
@@ -635,7 +653,8 @@ function drawEmptyCell(hex) {
 
 function drawPlayer(hex, isThisSession) {
 
-    fill('white')
+    const tank = hex.tank;
+    fill('rgba(0,0,0,0.5)');
 
     const [...corners] = hex.corners;
     beginShape();
@@ -660,98 +679,95 @@ function drawPlayer(hex, isThisSession) {
 
     if (pictures[hex.tank.id]) {
 
-        // const hexaMask = createGraphics(WIDTH, HEIGHT);
-        //
-        // hexaMask.fill('rgba(0, 0, 0, 1');
-        // hexaMask.circle(0, 0, 1000);
-        //
-        // pictures[hex.tank.id].mask(hexaMask);
-
         // tint(255, 126);
+
+        const upperTriangleHeight = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
+
         image(
             pictures[hex.tank.id],
-            corners[0].x,
-            corners[0].y + SQUARE_SIZE,
-            SQUARE_SIZE,
-            SQUARE_SIZE
+            corners[0].x - HEX_WIDTH + X_OFFSET,
+            corners[0].y - upperTriangleHeight + Y_OFFSET,
+            HEX_WIDTH,
+            HEX_HEIGHT
         );
     }
 
-    // // life
-    // // for(let i = 0; i < tank.life; i++) {
-    // //     noStroke()
-    // //     if (i < tank.life) {
-    // //         fill('red')
-    // //         let boxSize = SQUARE_SIZE / 8;
-    // //         circle(rootX + (SQUARE_SIZE / 2) -  (boxSize * 2) + (i * boxSize * 2), rootY + SQUARE_SIZE - boxSize , boxSize)
-    // //     }
-    // // }
-    //
-    // noStroke()
-    // fill('white')
-    //
-    // if (tank.life === 0) {
-    //
-    //     textSize(SQUARE_SIZE);
-    //     textStyle(NORMAL);
-    //     textAlign(CENTER, CENTER)
-    //     text('☠', rootX + SQUARE_SIZE / 2, rootY + SQUARE_SIZE / 2)
-    //
-    // } else {
-    //
-    //     textStyle(BOLD)
-    //     textAlign(LEFT, TOP)
-    //
-    //     // life
-    //     textSize(SQUARE_SIZE / 6);
-    //     text(`💓 x ${tank.life}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE - 20)
-    //
-    //     // actions
-    //     textStyle(BOLD)
-    //     textSize(SQUARE_SIZE / 6);
-    //     textAlign(LEFT, TOP)
-    //     text(`👊 x ${tank.actions}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 10);
-    //
-    //     // range
-    //     textSize(SQUARE_SIZE / 6);
-    //     textAlign(LEFT, TOP)
-    //     text(`👁 x ${tank.range}`, rootX + SQUARE_SIZE / 10, rootY + SQUARE_SIZE / 3);
-    //
+    // life
+    // for(let i = 0; i < tank.life; i++) {
+    //     noStroke()
+    //     if (i < tank.life) {
+    //         fill('red')
+    //         let boxSize = SQUARE_SIZE / 8;
+    //         circle(rootX + (SQUARE_SIZE / 2) -  (boxSize * 2) + (i * boxSize * 2), rootY + SQUARE_SIZE - boxSize , boxSize)
+    //     }
     // }
+
+    noStroke()
+    fill('white')
+
+    if (tank.life === 0) {
+
+        textSize(HEX_SIDE);
+        textAlign(CENTER);
+
+        text(
+            '☠',
+            corners[0].x - HEX_WIDTH / 2 + X_OFFSET,
+            corners[0].y + HEX_HEIGHT / 2 + Y_OFFSET
+        )
+
+    } else {
+
+        textSize(12);
+        textAlign(LEFT);
+
+        // life
+
+        text(
+            `💓 x ${tank.life}`,
+            corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
+            corners[0].y + 15 + Y_OFFSET
+        )
+
+        // actions
+        text(
+            `👊 x ${tank.actions}`,
+            corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
+            corners[0].y + 30 + Y_OFFSET
+        );
+
+        // range
+        text(
+            `👁 x ${tank.range}`,
+            corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
+            corners[0].y + 45 + Y_OFFSET
+        );
+
+    }
+
     //
     // if (mouseHoveredCell[0] === tank.position.x && mouseHoveredCell[1] === tank.position.y) {
     //     activePlayerHover = tank;
     // }
 
-
-}
-
-function inGrid(x, y) {
-    return x >= 0 && y >= 0 && x < config.cols * SQUARE_SIZE && y < config.rows * SQUARE_SIZE;
-}
-
-function getCellFromMousePos(mX, mY) {
-    const x = Math.floor(mX / SQUARE_SIZE);
-    const y = Math.floor(mY / SQUARE_SIZE);
-    return {x, y}
-}
-
-function showCellInfo(cell) {
-    if (cell !== null) {
-        cellInfoContainer.innerHTML = `life: ${cell.life} <br/> id : ${cell.id}`;
-    }
 }
 
 function mouseClicked() {
 
     if (currentState === States.IDLE) {
-        const hex = localGrid.pointToHex({ x: mouseX, y: mouseY });
+        const hex = localGrid.pointToHex(
+            { x: mouseX - X_OFFSET, y: mouseY - Y_OFFSET },
+            { allowOutside: false }
+        );
         if (hex) {
             return;
         }
     }
 
-    const hex = localGrid.pointToHex({ x: mouseX, y: mouseY });
+    const hex = localGrid.pointToHex(
+        { x: mouseX - X_OFFSET, y: mouseY - Y_OFFSET},
+        { allowOutside: false }
+    );
     if (hex) {
         sio.emit('playerevent', currentState, {q: hex.q, r: hex.r}, (isValid) => {
             if (isValid) {
@@ -761,8 +777,6 @@ function mouseClicked() {
             }
         });
     }
-
-
 
 }
 

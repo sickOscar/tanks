@@ -1,12 +1,12 @@
-import {BoardPosition} from "../app/boardPosition";
 import {IGame} from "./IGame";
+import {AxialCoordinates} from "honeycomb-grid";
 
 export interface TankParams {
     id: string,
-    position: BoardPosition,
-    life: 0 | 1 | 2 | 3,
+    position: AxialCoordinates,
+    life: number,
     actions: number,
-    range: 2 | 3,
+    range: number,
     name: string;
     picture: string;
 }
@@ -15,7 +15,7 @@ export interface ITank {
     game: IGame;
     id: string;
     actions: number;
-    position: BoardPosition;
+    position: AxialCoordinates;
     life: number;
     range: number;
     name: string;

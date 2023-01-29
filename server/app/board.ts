@@ -7,7 +7,12 @@ import db from "../db";
 import {AxialCoordinates, defineHex, Grid, rectangle} from "honeycomb-grid";
 
 export class TanksHex extends defineHex() {
-    tank: ITank | null = null;
+    tank: Tank | null = null;
+
+    constructor(...args: any) {
+        super(...args);
+        this.tank = args[0].tank;
+    }
 }
 
 export class Board {
@@ -20,7 +25,7 @@ export class Board {
         this.board = new Grid(TanksHex, rectangle({width: COLS, height: ROWS}));
     }
 
-    getAt(q:number, r:number):ITank|undefined|null {
+    getAt(q:number, r:number):Tank|undefined|null {
         return this.board.getHex({q, r})?.tank;
     }
 
@@ -28,8 +33,11 @@ export class Board {
         this.board.forEach(cb);
     }
 
-    load(dbBoard:any) {
-        this.board = Grid.fromJSON(dbBoard) as unknown as Grid<TanksHex>;
+    load(dbGrid:any) {
+        const coords = dbGrid.coordinates.map(({q, r, tank}:any) => {
+            return {q, r, tank: tank ? new Tank(this.game, tank) : null}
+        })
+        this.board = new Grid(TanksHex, coords);
     }
 
     isPositionOccupied(q: number,r: number): boolean {
@@ -41,8 +49,33 @@ export class Board {
     }
 
     getEmptyRandom(): AxialCoordinates {
-        const tankQ = Math.floor(Math.random() * COLS);
-        const tankR = Math.floor(Math.random() * ROWS);
+
+        let minQ = 0;
+        let minR = 0;
+        let maxQ = 0;
+        let maxR = 0;
+
+        this.board.forEach((hex: TanksHex) => {
+            if (hex.q < minQ) {
+                minQ = hex.q;
+            }
+            if (hex.r < minR) {
+                minR = hex.r;
+            }
+            if (hex.q > maxQ) {
+                maxQ = hex.q;
+            }
+            if (hex.r > maxR) {
+                maxR = hex.r;
+            }
+        });
+
+        const qDiff = maxQ - minQ;
+        const rDiff = maxR - minR;
+
+        const tankQ = Math.floor(Math.random() * qDiff) + minQ;
+        const tankR = Math.floor(Math.random() * rDiff) + minR;
+
         if (this.isPositionOccupied(tankQ, tankR)) {
             return this.getEmptyRandom();
         }
@@ -83,7 +116,9 @@ export class Board {
         this.board.getHex({q, r})!.tank = null;
     }
 
-    addTank(tank:ITank):void {
+    addTank(tank:Tank):void {
+        console.log(`tank.position`, tank.position)
+        console.log(`this.board`, this.board)
         this.board.getHex(tank.position)!.tank = tank;
     }
 
@@ -120,13 +155,11 @@ export class Board {
 
     getPlayers():Tank[] {
         const players:Tank[] = [];
-
         this.board.forEach((hex) => {
             if (hex.tank) {
-                players.push(hex.tank as Tank)
+                players.push(hex.tank)
             }
         });
-
         return players;
     }
 

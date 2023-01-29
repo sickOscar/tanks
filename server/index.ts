@@ -51,16 +51,16 @@ async function init() {
     })
      */
 
-    // setInterval(async () => {
-    //     try {
-    //         await game.distributeActions();
-    //         await game.dropHeart();
-    //         io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-    //     } catch (err) {
-    //         console.log(`err`, err)
-    //         console.log('Failed to distribute actions')
-    //     }
-    // }, 500000)
+    setInterval(async () => {
+        try {
+            await game.distributeActions();
+            await game.dropHeart();
+            io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+        } catch (err) {
+            console.log(`err`, err)
+            console.log('Failed to distribute actions')
+        }
+    }, 50000)
 
 
     const app = express()
@@ -94,8 +94,8 @@ async function init() {
 
             let tank:Tank;
 
+
             if (game.isAlive(player)) {
-                console.log(`isAlive`)
                 tank = game.getPlayerTank(player) as Tank;
                 socket.emit(MessageTypes.PLAYER, tank.id)
                 socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, callback) => {
