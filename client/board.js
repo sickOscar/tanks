@@ -7,7 +7,6 @@ let events = []
 let configFetched = false;
 
 let backgroundImage;
-let mouseHoveredCell = [-1, -1];
 let activePlayerHover = null;
 let sio;
 
@@ -37,6 +36,8 @@ const HEX_HEIGHT = HEX_SIDE * Math.sqrt(3);
 
 let WIDTH = 200;
 let HEIGHT = 200;
+
+let maskGraphics;
 
 let currentState = States.IDLE;
 
@@ -202,6 +203,10 @@ async function initCanvas() {
     HEIGHT = c.rows * HEX_HEIGHT + Y_OFFSET;
 
     resizeCanvas(WIDTH, HEIGHT);
+
+    // 79 is SUPER RANDOM
+    // don't understand properly how to calculate the size of the mask
+    maskGraphics = createGraphics(79, 79);
 
     const jwt = await auth0.getTokenSilently()
     connectSocket(jwt);
@@ -469,6 +474,9 @@ function preload() {
 function setup() {
     const canvas = createCanvas(100, 100);
     canvas.parent('board-holder')
+
+    maskGraphics = createGraphics(100, 100);
+
     frameRate(2)
 }
 
@@ -480,10 +488,6 @@ function draw() {
     if (!configFetched || !localGrid) {
         return;
     }
-
-    const mouseCellX = Math.floor(mouseX / HEX_SIDE);
-    const mouseCellY = Math.floor(mouseY / HEX_SIDE)
-    mouseHoveredCell = [mouseCellX, mouseCellY];
 
     if (stage === 'RUN') {
         image(backgroundImage, 0, 0);
@@ -521,23 +525,20 @@ function drawPlayerHover() {
         return;
     }
 
-    noStroke()
-    fill('#fff');
-    text(activePlayerHover.name,
-        activePlayerHover.position.x * HEX_SIDE + HEX_SIDE - 15 + 5,
-        activePlayerHover.position.y * HEX_SIDE + (HEX_SIDE /2) - 15 + 5
-    )
+    const hex = activePlayerHover;
+
+    textSize(14);
+    noStroke();
+    fill('white');
+    textAlign(CENTER);
+    text(hex.tank.name, hex.corners[2].x + X_OFFSET, hex.corners[2].y + Y_OFFSET + 16)
 
 }
 
 function drawBoard() {
-
     noFill();
     stroke('white');
-    
-
-    localGrid.forEach(drawCell)
-
+    localGrid.forEach(drawCell);
 }
 
 
@@ -630,11 +631,6 @@ function drawEmptyCell(hex) {
         }
     }
 
-    
-    // if (mouseHoveredCell[0] === x && mouseHoveredCell[1] === y) {
-    //     fill('rgba(255,255,255,0.11)')
-    // }
-
     // square(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE);
 
     const [...corners] = hex.corners;
@@ -654,35 +650,27 @@ function drawEmptyCell(hex) {
 function drawPlayer(hex, isThisSession) {
 
     const tank = hex.tank;
-    fill('rgba(0,0,0,0.5)');
-
     const [...corners] = hex.corners;
-    beginShape();
-    corners.forEach(({ x, y }) => {
-        vertex(x + X_OFFSET, y + Y_OFFSET);
-    });
-    endShape(CLOSE);
-
-    // const rootX = tank.position.x * SQUARE_SIZE;
-    // const rootY = tank.position.y * SQUARE_SIZE;
-    //
-    // if (isThisSession) {
-    //     fill('#305c30')
-    // } else {
-    //     fill('#801c1c')
-    // }
-    // square(SQUARE_SIZE * tank.position.x, SQUARE_SIZE * tank.position.y, SQUARE_SIZE);
-    //
-
-
-
 
     if (pictures[hex.tank.id]) {
 
-        // tint(255, 126);
-
         const upperTriangleHeight = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
 
+        const origin = corners[4];
+        const originOffset = createVector(origin.x + X_OFFSET, origin.y + Y_OFFSET);
+        originOffset.y = originOffset.y - upperTriangleHeight;
+
+        maskGraphics.fill('rgba(0,0,0,1)');
+        maskGraphics.beginShape();
+        corners.forEach(({ x, y }) => {
+            maskGraphics.vertex(x + X_OFFSET - originOffset.x, y + Y_OFFSET - originOffset.y);
+        })
+        maskGraphics.endShape(CLOSE);
+
+
+        pictures[hex.tank.id].mask(maskGraphics);
+
+        tint(255, 130)
         image(
             pictures[hex.tank.id],
             corners[0].x - HEX_WIDTH + X_OFFSET,
@@ -690,20 +678,13 @@ function drawPlayer(hex, isThisSession) {
             HEX_WIDTH,
             HEX_HEIGHT
         );
-    }
+        tint(255, 255)
 
-    // life
-    // for(let i = 0; i < tank.life; i++) {
-    //     noStroke()
-    //     if (i < tank.life) {
-    //         fill('red')
-    //         let boxSize = SQUARE_SIZE / 8;
-    //         circle(rootX + (SQUARE_SIZE / 2) -  (boxSize * 2) + (i * boxSize * 2), rootY + SQUARE_SIZE - boxSize , boxSize)
-    //     }
-    // }
+    }
 
     noStroke()
     fill('white')
+    textStyle('bold');
 
     if (tank.life === 0) {
 
@@ -745,10 +726,17 @@ function drawPlayer(hex, isThisSession) {
 
     }
 
-    //
-    // if (mouseHoveredCell[0] === tank.position.x && mouseHoveredCell[1] === tank.position.y) {
-    //     activePlayerHover = tank;
-    // }
+    stroke('white');
+    noFill();
+    beginShape();
+    corners.forEach(({ x, y }) => {
+        vertex(x + X_OFFSET, y + Y_OFFSET);
+    });
+    endShape(CLOSE);
+
+    if (localGrid.pointToHex({x:mouseX - X_OFFSET, y:mouseY - Y_OFFSET}).equals({q:hex.q, r:hex.r})) {
+        activePlayerHover = hex;
+    }
 
 }
 

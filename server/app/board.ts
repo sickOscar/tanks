@@ -1,7 +1,6 @@
 import {COLS, ROWS} from "../const";
 import {Tank} from "./Tank";
 import {IGame} from "../model/IGame";
-import {ITank} from "../model/ITank";
 import db from "../db";
 
 import {AxialCoordinates, defineHex, Grid, rectangle} from "honeycomb-grid";
@@ -73,8 +72,8 @@ export class Board {
         const qDiff = maxQ - minQ;
         const rDiff = maxR - minR;
 
-        const tankQ = Math.floor(Math.random() * qDiff) + minQ;
-        const tankR = Math.floor(Math.random() * rDiff) + minR;
+        const tankQ = Math.round(Math.random() * qDiff) + minQ;
+        const tankR = Math.round(Math.random() * rDiff) + minR;
 
         if (this.isPositionOccupied(tankQ, tankR)) {
             return this.getEmptyRandom();
