@@ -1,27 +1,67 @@
 import {COLS, ROWS} from "../const";
 import {Tank} from "./Tank";
-import {IGame} from "../model/IGame";
 import db from "../db";
 
 import {AxialCoordinates, defineHex, Grid, rectangle} from "honeycomb-grid";
+import {Game} from "./game";
 
 export class TanksHex extends defineHex() {
     tank: Tank | null = null;
+    tile: number = 0;
+
 
     constructor(...args: any) {
         super(...args);
         this.tank = args[0].tank;
+        this.tile = args[0].tile;
     }
 }
 
 export class Board {
 
-    private game:IGame
+    private game:Game
     private board:Grid<TanksHex>;
 
-    constructor(game:IGame) {
+    constructor(game:Game) {
         this.game = game;
         this.board = new Grid(TanksHex, rectangle({width: COLS, height: ROWS}));
+
+        const map = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 3, 3, 0, 0, 1, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 1, 1],
+            [1, 0, 0, 3, 3, 3, 0, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 1],
+            [1, 1, 0, 3, 3, 3, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 0, 0, 3, 3, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 1],
+            [1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1, 1],
+            [1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ]
+
+        const square = rectangle<TanksHex>({width: COLS, height: ROWS});
+        const traversedGrid = this.board.traverse(square, {});
+
+        let x = 0;
+        let y = 0;
+        traversedGrid.forEach((hex: TanksHex) => {
+            // console.log(hex.q, hex.r, `-> `, y, x, `(`, map[y][x])
+
+            hex.tile = map[y][x];
+
+            x++;
+            if (x >= COLS) {
+                x = 0;
+                y++;
+            }
+
+        })
+
+
     }
 
     getAt(q:number, r:number):Tank|undefined|null {
@@ -33,9 +73,10 @@ export class Board {
     }
 
     load(dbGrid:any) {
-        const coords = dbGrid.coordinates.map(({q, r, tank}:any) => {
-            return {q, r, tank: tank ? new Tank(this.game, tank) : null}
+        const coords = dbGrid.coordinates.map(({q, r, tank, tile}:any) => {
+            return {q, r, tank: tank ? new Tank(this.game, tank) : null, tile}
         })
+
         this.board = new Grid(TanksHex, coords);
     }
 
@@ -75,18 +116,32 @@ export class Board {
         const tankQ = Math.round(Math.random() * qDiff) + minQ;
         const tankR = Math.round(Math.random() * rDiff) + minR;
 
+
+        if (!this.isPositionWalkable(tankQ, tankR)) {
+            return this.getEmptyRandom();
+        }
         if (this.isPositionOccupied(tankQ, tankR)) {
             return this.getEmptyRandom();
         }
         if (this.game.hasHeartOn(tankQ, tankR)) {
             return this.getEmptyRandom()
         }
+        if (this.game.hasActionOn(tankQ, tankR)) {
+            return this.getEmptyRandom()
+        }
+
         return {q: tankQ, r: tankR};
+    }
+
+    isPositionWalkable(q: number, r: number): boolean {
+        const hex = this.board.getHex({q, r});
+        return hex?.tile !== 1;
     }
 
     isInRange(cell1:AxialCoordinates, cell2: AxialCoordinates, range: number) {
         return this.board.distance(cell1, cell2) <= range;
     }
+
 
     moveTankFromTo(start:AxialCoordinates, dest:AxialCoordinates):void {
 
@@ -105,6 +160,8 @@ export class Board {
         if (!destinationHex) {
             throw new Error('MOVE: Invalid destination')
         }
+
+        console.log(`moving`)
 
         destinationHex.tank = tank;
         startingHex.tank = null;
@@ -125,13 +182,16 @@ export class Board {
         const clone = this.board.toJSON();
         return JSON.stringify({
             features: {
-                heartsLocations: this.game.heartsLocations.map((heartPos) => {
+                heartsLocations: this.game.heartsLocations.map((heartPos:AxialCoordinates) => {
                     return [heartPos.q, heartPos.r]
+                }),
+                actionsLocations: this.game.actionsLocations.map((actionPos:AxialCoordinates) => {
+                    return [actionPos.q, actionPos.r]
                 })
             },
             grid: {
                 ...clone,
-                coordinates: clone.coordinates.map((coord:AxialCoordinates & {tank?:Tank}) => {
+                coordinates: clone.coordinates.map((coord:AxialCoordinates & {tank?:Tank, tile?: number}) => {
                     if (coord.tank) {
                         const tank:any = Object.assign({}, coord.tank);
                         delete tank.game;

@@ -1,4 +1,13 @@
 import db from "../db";
+import {AxialCoordinates} from "honeycomb-grid";
+
+export interface Action {
+    actor: any;
+    created_at: any;
+    action: string;
+    enemy?: any;
+    destination?: AxialCoordinates;
+}
 
 export interface PlayerParams {
     id: string;

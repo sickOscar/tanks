@@ -1,23 +1,16 @@
-
-
 let players = [];
 const pictures = {};
 let events = []
-
 let configFetched = false;
-
 let backgroundImage;
 let activePlayerHover = null;
 let sio;
-
 let playerId = null;
 let player = null;
 let heartsLocations = null;
-
+let actionsLocations = null;
 let localGrid = null;
-
 let stage = 'RUN';
-
 const States = {
     IDLE: 'idle',
     MOVE: 'move',
@@ -26,21 +19,17 @@ const States = {
     UPGRADE: 'upgrade',
     HEAL: 'heal'
 }
-
 const X_OFFSET = 50;
 const Y_OFFSET = 50;
-
-const HEX_SIDE = 45;
+const HEX_SIDE = 40;
 const HEX_WIDTH = 2 * (Math.sqrt(3)/2) * HEX_SIDE;
 const HEX_HEIGHT = HEX_SIDE * Math.sqrt(3);
-
+const HEX_TOP_TRIANGLE_HEIGHT = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
 let WIDTH = 200;
 let HEIGHT = 200;
-
 let maskGraphics;
-
+let hoverHex;
 let currentState = States.IDLE;
-
 const voteSelect = document.querySelector('select#vote');
 const pollForm = document.querySelector('form#poll');
 const showPollResultsButton = document.querySelector('button#show-poll-results')
@@ -48,6 +37,8 @@ const actionsContainer = document.querySelector('#actions');
 const pollResultsContainer = document.querySelector('#poll-results')
 const pollResultsTable = document.querySelector('#poll-results-table')
 const modalOverlay = document.querySelector('#modal-overlay');
+const loginButton = document.querySelector('#btn-login');
+const logoutButton = document.querySelector('#btn-logout');
 
 pollForm.addEventListener('submit', event => {
     event.preventDefault();
@@ -87,31 +78,15 @@ showPollResultsButton.addEventListener('click', event => {
         .catch(console.error)
 })
 
-const titleQuerySelector = ".navbar-brand";
-
-const titleGlitchInterval = 5000;
-const titleGlithAnimationDuration = 2000;
 
 function randomNumber(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-setInterval(() => {
-    const title = document.querySelector(titleQuerySelector);
-
-    title.classList.add("glitched");
-
-    setTimeout(() => {
-        title.classList.remove("glitched");
-    }, titleGlithAnimationDuration);
-}, titleGlitchInterval + randomNumber(-500, 500));
-
 
 
 // AUTH
 
-const loginButton = document.querySelector('#btn-login');
-const logoutButton = document.querySelector('#btn-logout');
 
 let auth0 = null;
 const fetchAuthConfig = () => fetch("/auth_config.json");
@@ -184,10 +159,12 @@ function setupLocalGrid(grid) {
 
     const TanksHex = class extends Honeycomb.defineHex(resizedGrid.hexSettings) {
         tank = null;
+        tile = 0;
 
-        constructor({q, r, tank}) {
+        constructor({q, r, tank, tile}) {
             super({q, r});
             this.tank = tank;
+            this.tile = tile
         }
     }
     localGrid = new Honeycomb.Grid(TanksHex, resizedGrid.coordinates);
@@ -204,9 +181,9 @@ async function initCanvas() {
 
     resizeCanvas(WIDTH, HEIGHT);
 
-    // 79 is SUPER RANDOM
+    // MAGIC: 69 is SUPER RANDOM
     // don't understand properly how to calculate the size of the mask
-    maskGraphics = createGraphics(79, 79);
+    maskGraphics = createGraphics(69, 69);
 
     const jwt = await auth0.getTokenSilently()
     connectSocket(jwt);
@@ -368,29 +345,10 @@ function setBoard(serverMessage) {
 
     const parsedMessage = JSON.parse(serverMessage);
 
+    console.log(`parsedMessage`, parsedMessage)
     setupLocalGrid(parsedMessage.grid);
 
     const playersList = [];
-
-    // set local player
-    // for (let i = 0; i < config.rows; i++) {
-    //     for (let j = 0; j < config.cols; j++ ) {
-    //
-    //         if (localBoard[i][j]) {
-    //             playersList.push(localBoard[i][j]);
-    //         }
-    //
-    //         if (localBoard[i][j]) {
-    //             if (!pictures[localBoard[i][j].id]) {
-    //                 pictures[localBoard[i][j].id] = loadImage(localBoard[i][j].picture)
-    //             }
-    //         }
-    //
-    //         if (localBoard[i][j] && localBoard[i][j].id === playerId) {
-    //             player = localBoard[i][j];
-    //         }
-    //     }
-    // }
 
     localGrid.forEach(hex => {
         if (hex.tank) {
@@ -426,6 +384,7 @@ function setBoard(serverMessage) {
         .join('')
 
     heartsLocations = parsedMessage.features.heartsLocations;
+    actionsLocations = parsedMessage.features.actionsLocations;
 
 }
 
@@ -469,6 +428,12 @@ async function getJson(url) {
 
 function preload() {
     backgroundImage = loadImage('tanks.jpg');
+    tiles = [
+        loadImage('./assets/grass.png'),
+        loadImage('./assets/sea.png'),
+        loadImage('./assets/desert.png'),
+        loadImage('./assets/forest.png'),
+    ]
 }
 
 function setup() {
@@ -477,7 +442,7 @@ function setup() {
 
     maskGraphics = createGraphics(100, 100);
 
-    frameRate(2)
+    frameRate(10)
 }
 
 function draw() {
@@ -490,7 +455,7 @@ function draw() {
     }
 
     if (stage === 'RUN') {
-        image(backgroundImage, 0, 0);
+        // image(backgroundImage, 0, 0);
         drawBoard();
     }
 
@@ -569,6 +534,16 @@ function drawCell(hex) {
             }
         }
 
+        if (actionsLocations) {
+            const hasAction = actionsLocations.find(loc => {
+                return loc[0] === hex.q && loc[1] === hex.r
+            })
+            if (hasAction) {
+                drawAction(hex);
+            }
+        }
+
+
     } else {
 
         if (hex.tank?.id === playerId) {
@@ -586,12 +561,30 @@ function isInRange(cell1, cell2, range) {
     return localGrid.distance(cell1, cell2) <= range
 }
 
+function isWalkable(hex) {
+    return hex.tile !== 1;
+}
+
+function drawAction(hex) {
+
+    const corners = hex.corners;
+
+    fill('white');
+    textSize(HEX_SIDE + 5 * Math.sin(frameCount * 0.1));
+    textAlign(CENTER);
+    text(
+        '👊',
+        corners[0].x - HEX_WIDTH / 2 + X_OFFSET,
+        corners[0].y + HEX_HEIGHT / 2 + Y_OFFSET
+    )
+}
+
 function drawHeart(hex) {
 
     const corners = hex.corners;
 
     fill('red')
-    textSize(HEX_SIDE);
+    textSize(HEX_SIDE + 5 * Math.sin(frameCount * 0.1));
     textAlign(CENTER);
     text(
         '💖',
@@ -603,12 +596,32 @@ function drawHeart(hex) {
 function drawEmptyCell(hex) {
     noFill()
     strokeWeight(2);
+    stroke('rgb(243,235,173)');
+    // noStroke();
 
-    const highlightColor = 'rgba(84,175,60,0.57)'
+    const [...corners] = hex.corners;
 
+    image(
+        tiles[hex.tile],
+        corners[4].x + X_OFFSET,
+        corners[4].y + Y_OFFSET - HEX_TOP_TRIANGLE_HEIGHT,
+        HEX_WIDTH,
+        HEX_HEIGHT + 9, // +5 WHY???
+    )
+
+    const highlightColor = 'rgba(255, 255, 255, 0.3)'
+
+    if (localGrid.pointToHex({x: mouseX - X_OFFSET, y: mouseY - Y_OFFSET}) === hex) {
+        fill(highlightColor);
+    } else {
+        // fill('rgb(38,91,34)')
+    }
 
     if (currentState === States.MOVE) {
-        if(isInRange(hex, player.position, 1)) {
+        if(
+            isInRange(hex, player.position, 1)
+            && isWalkable(hex)
+        ) {
             fill(highlightColor)
         }
     }
@@ -631,9 +644,6 @@ function drawEmptyCell(hex) {
         }
     }
 
-    // square(SQUARE_SIZE * x, SQUARE_SIZE * y, SQUARE_SIZE);
-
-    const [...corners] = hex.corners;
     beginShape();
     let first = true;
     corners.forEach(({ x, y }) => {
@@ -645,6 +655,8 @@ function drawEmptyCell(hex) {
     });
     endShape(CLOSE);
 
+
+
 }
 
 function drawPlayer(hex, isThisSession) {
@@ -654,11 +666,9 @@ function drawPlayer(hex, isThisSession) {
 
     if (pictures[hex.tank.id]) {
 
-        const upperTriangleHeight = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
-
         const origin = corners[4];
         const originOffset = createVector(origin.x + X_OFFSET, origin.y + Y_OFFSET);
-        originOffset.y = originOffset.y - upperTriangleHeight;
+        originOffset.y = originOffset.y - HEX_TOP_TRIANGLE_HEIGHT;
 
         maskGraphics.fill('rgba(0,0,0,1)');
         maskGraphics.beginShape();
@@ -670,15 +680,15 @@ function drawPlayer(hex, isThisSession) {
 
         pictures[hex.tank.id].mask(maskGraphics);
 
-        tint(255, 130)
+        // tint(255, 130)
         image(
             pictures[hex.tank.id],
             corners[0].x - HEX_WIDTH + X_OFFSET,
-            corners[0].y - upperTriangleHeight + Y_OFFSET,
+            corners[0].y - HEX_TOP_TRIANGLE_HEIGHT + Y_OFFSET,
             HEX_WIDTH,
             HEX_HEIGHT
         );
-        tint(255, 255)
+        // tint(255, 255)
 
     }
 

@@ -1,246 +1,240 @@
 <html>
-    <head>
-        <title>InterlogiTanks</title>
-        <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
-        <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-        <script type="module" src="https://unpkg.com/honeycomb-grid@4.0.0-beta.8/dist/honeycomb-grid.umd.js"></script>
-        <link rel="stylesheet" href="styles.css">
-        <link rel="stylesheet" href="cyberpunk.css">
-    </head>
-    <body>
+<head>
+    <title>InterlogiTanks</title>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+            integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script type="module" src="https://unpkg.com/honeycomb-grid@4.0.0-beta.8/dist/honeycomb-grid.umd.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <div class="d-flex align-items-center">
-                <div class="navbar-brand" href="#" data-text='InterlogiTanks'>
-                    InterlogiTanks
-                </div>
-                <a class="nav-link" id="toggle-rules" href="#">
-
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center">
+            <div class="navbar-brand text-8xl" href="#">
+                <h1>InterlogiDragons</h1>
+            </div>
+            <a class="nav-link" id="toggle-rules" href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="inline bi bi-info-circle-fill" viewBox="0 0 16 16">
                         <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
                     </svg>
-                    GAME RULES
-                </a>
-            </div>
-            <form class="user-actions">
-                <button class="cybr-btn" id="btn-login"  data-action="heal" disabled="true">
-                    Log in
-                    <span aria-hidden class="cybr-btn__glitch"></span>
-                </button>
-                <button class="cybr-btn" id="btn-logout"  data-action="heal" disabled="true">
-                    Log out
-                    <span aria-hidden class="cybr-btn__glitch"></span>
-                </button>
-            </form>
+                GAME RULES
+            </a>
         </div>
-    </nav>
-
-
-
-
-    <main role="main"  >
-
-        <div class="drawer d-none" id="rules">
-            <h1 class="cyberpunk">
-                Survive to the end and win the cash!
-                <span class="close-modal-button">X</span>
-            </h1>
-
-            <div class="drawer__container">
-                <p>1st $$$$$ | 2nd $$$$ | 3rd $$$ | 4th $$ | First Blood: $</p>
-
-                <h4>RULES</h4>
-
-                <p>
-                    All players start at a random location on the grid and have 3 hearts (💖) and 0 Action Points (👊).
-                </p>
-                <p>
-                    Every 24 hours, everyone will receive 1 Action Point (AP).
-                    The time the point is given may vary day to day.
-                </p>
-                <p>
-                    At any time you like, you can do one of the following actions:
-                </p>
-
-                <ul>
-                    <li>
-                        Move to an adjacent, unoccupied square (1 AP)<br>
-                        <img src="moving.png" alt="Moving Rules">
-
-                    </li>
-                    <li>
-                        Shoot someone who is within your range (1 AP). Shooting someone removes 1 heart from their health.<br>
-                        <img src="range.png" alt="Range Rules">
-
-                    </li>
-                    <li>Upgrade your range (3 AP)</li>
-                    <li>Add an action to another player (1AP)</li>
-                    <li>Add a heart to yourself or to another player(3 AP)</li>
-                </ul>
-
-                <p>
-
-
-                </p>
-
-                <p>
-                    At the start of the game, everyone has a range of 2.
-                    That is, they can shoot or trade with somehow within 2 squares of them.
-                    Upgrading your shooting range increases this by 1 square each time.
-                </p>
-                <p>
-                    If a player is reduced to 0 hearts, then he's dead.
-                    Any action point the dead player had are transferred to the player who killed them.
-                    Dead players remain on the board.
-                </p>
-                <p>
-                    Players are able to send gifts of hearts or actions points
-                    to any player currently within their range.
-                </p>
-                <p>
-                    Dead players can have a heart sent to them.
-                    This will revive that player who will have 1 heart and 0 AP.
-                </p>
-
-                <h4>THE JURY</h4>
-
-                <p>
-                    Dead players form a jury. Each day they can vote for another alive player;
-                    every 3 votes, that player gets immediately 1 AP.
-                </p>
-
-                <h4>ADDITIONAL NOTES</h4>
-
-                <p>
-                    Once a day, at a random time, a heart will spawn on the field.
-                    The first player to move into the square containing the heart
-                    will revive an additional heart.
-                </p>
-                <p>
-                    The game ends when a clear 1st, 2nd, and 3rd place can be determined.
-                    Once there are 4 players left, they will see if they can agree on the placing.
-                </p>
-                <!--            <p>-->
-                <!--                Action points are secret! Probably a good idea to try and hide how many you have.-->
-                <!--            </p>-->
-                <p>
-                    You can't win this game without making some friends and stabbing some backs. Probably.
-                </p>
-            </div>
-        </div>
-
-        <div class="drawer d-none" id="poll-results">
-            <h1 class="cyberpunk">
-                Today's jury results
-                <span class="close-modal-button">X</span>
-            </h1>
-
-            <div class="drawer__container" >
-                <table class="table table-dark table-striped">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Player Name</th>
-                            <th>Votes Received</th>
-                        </tr>
-                    </thead>
-                    <tbody id="poll-results-table">
-
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="main-content">
-
-            <form id="poll" class="d-none">
-                <h4 style="margin-right: 50px">Sorry, you are dead now... 😞 at least until someone revives you!</h4>
-                <div class="poll-inner">
-                    <label for="vote" style="margin-right: 30px">
-                        Now you are in the jury and can vote for an alive player!<br>
-                        3 votes from the jury and the player immediately receives an action point.<br>
-                        You can vote only once a day. A juror's vote is secret.
-                    </label>
-                    <select name="vote" id="vote" >
-
-                    </select>
-                    <button class="cybr-btn" style="margin: 0 20px" type="submit" >
-                        Vote!
-                        <span aria-hidden class="cybr-btn__glitch"></span>
+        <div id="actions" class="d-none">
+            <ul>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="move">
+                        Move (1AP)
                     </button>
-                    <button class="cybr-btn"  type="button" id="show-poll-results">
-                        View current results
-                        <span aria-hidden class="cybr-btn__glitch"></span>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="shoot">
+                        Shoot (1AP)
                     </button>
-                </div>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="give-action">
+                        Give Action (1AP)
+                    </button>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="upgrade">
+                        Upgrade (3AP)
+                    </button>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="heal">
+                        Heal (3AP)
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <form class="user-actions">
+            <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                    id="btn-login" data-action="heal" disabled="true">
+                Log in
+            </button>
+            <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                    id="btn-logout" data-action="heal" disabled="true">
+                Log out
+            </button>
+        </form>
+    </div>
+</nav>
 
-            </form>
 
-            <div id="actions" class="d-none">
-                <ul>
-                    <li>
-                        <button class="cybr-btn" data-action="move">
-                            Move (1AP)
-                            <span aria-hidden class="cybr-btn__glitch"></span>
-                            <span aria-hidden class="cybr-btn__tag">(1AP)</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="cybr-btn" data-action="shoot">
-                            Shoot (1AP)
-                            <span aria-hidden class="cybr-btn__glitch"></span>
-                            <span aria-hidden class="cybr-btn__tag">(1AP)</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="cybr-btn" data-action="give-action">
-                            Give Action (1AP)
-                            <span aria-hidden class="cybr-btn__glitch"></span>
-                            <span aria-hidden class="cybr-btn__tag">(1AP)</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="cybr-btn" data-action="upgrade">
-                            Upgrade (3AP)
-                            <span aria-hidden class="cybr-btn__glitch"></span>
-                            <span aria-hidden class="cybr-btn__tag">(3AP)</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="cybr-btn" data-action="heal">
-                            Heal (3AP)
-                            <span aria-hidden class="cybr-btn__glitch"></span>
-                            <span aria-hidden class="cybr-btn__tag">(3AP)</span>
-                        </button>
-                    </li>
-                </ul>
+<main role="main">
+
+    <div class="drawer d-none" id="rules">
+        <h1 class="cyberpunk">
+            Survive to the end and win the cash!
+            <span class="close-modal-button">X</span>
+        </h1>
+
+        <div class="drawer__container">
+
+            <h4>RULES</h4>
+
+            <p>
+                All players start at a random location on the grid and have 3 hearts (💖) and 0 Action Points (👊).
+            </p>
+            <p>
+                Every 24 hours, everyone will receive 1 Action Point (AP).
+                The time the point is given may vary day to day.
+            </p>
+            <p>
+                At any time you like, you can do one of the following actions:
+            </p>
+
+            <ul>
+                <li>
+                    Move to an adjacent, unoccupied square (1 AP)<br>
+                    <img src="moving.png" alt="Moving Rules">
+
+                </li>
+                <li>
+                    Shoot someone who is within your range (1 AP). Shooting someone removes 1 heart from their
+                    health.<br>
+                    <img src="range.png" alt="Range Rules">
+
+                </li>
+                <li>Upgrade your range (3 AP)</li>
+                <li>Add an action to another player (1AP)</li>
+                <li>Add a heart to yourself or to another player(3 AP)</li>
+            </ul>
+
+            <p>
+
+
+            </p>
+
+            <p>
+                At the start of the game, everyone has a range of 2.
+                That is, they can shoot or trade with somehow within 2 squares of them.
+                Upgrading your shooting range increases this by 1 square each time.
+            </p>
+            <p>
+                If a player is reduced to 0 hearts, then he's dead.
+                Any action point the dead player had are transferred to the player who killed them.
+                Dead players remain on the board.
+            </p>
+            <p>
+                Players are able to send gifts of hearts or actions points
+                to any player currently within their range.
+            </p>
+            <p>
+                Dead players can have a heart sent to them.
+                This will revive that player who will have 1 heart and 0 AP.
+            </p>
+
+            <h4>THE JURY</h4>
+
+            <p>
+                Dead players form a jury. Each day they can vote for another alive player;
+                every 3 votes, that player gets immediately 1 AP.
+            </p>
+
+            <h4>ADDITIONAL NOTES</h4>
+
+            <p>
+                Once a day, at a random time, a heart will spawn on the field.
+                The first player to move into the square containing the heart
+                will revive an additional heart.
+            </p>
+            <p>
+                The game ends when a clear 1st, 2nd, and 3rd place can be determined.
+                Once there are 4 players left, they will see if they can agree on the placing.
+            </p>
+            <!--            <p>-->
+            <!--                Action points are secret! Probably a good idea to try and hide how many you have.-->
+            <!--            </p>-->
+            <p>
+                You can't win this game without making some friends and stabbing some backs. Probably.
+            </p>
+        </div>
+    </div>
+
+    <div class="drawer d-none" id="poll-results">
+        <h1 class="cyberpunk">
+            Today's jury results
+            <span class="close-modal-button">X</span>
+        </h1>
+
+        <div class="drawer__container">
+            <table class="table table-dark table-striped">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Player Name</th>
+                    <th>Votes Received</th>
+                </tr>
+                </thead>
+                <tbody id="poll-results-table">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-content">
+
+        <form id="poll" class="d-none">
+            <h4 style="margin-right: 50px">Sorry, you are dead now... 😞 at least until someone revives you!</h4>
+            <div class="poll-inner">
+                <label for="vote" style="margin-right: 30px">
+                    Now you are in the jury and can vote for an alive player!<br>
+                    3 votes from the jury and the player immediately receives an action point.<br>
+                    You can vote only once a day. A juror's vote is secret.
+                </label>
+                <select name="vote" id="vote">
+
+                </select>
+                <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500" style="margin: 0 20px" type="submit">
+                    Vote!
+                </button>
+                <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500" type="button" id="show-poll-results">
+                    View current results
+                </button>
             </div>
-            <div class="d-flex">
-                <div id="board-holder" class="d-none"></div>
-                <div id="right-side" class="d-none">
-                    <div id="logs">
-                        <h4>What happens</h4>
-                        <hr>
-                        <div id="logs-container"></div>
-                    </div>
-                    <div id="players">
-                        <h4>Online</h4>
-                        <hr>
-                        <div id="players-container"></div>
-                    </div>
-                </div>
 
+        </form>
+
+
+        <div class="d-flex">
+            <div id="board-holder" class="d-none"></div>
+            <div id="right-side" class="d-none">
+                <div id="logs">
+                    <h4>What happens</h4>
+                    <hr>
+                    <div id="logs-container"></div>
+                </div>
+                <div id="players">
+                    <h4>Online</h4>
+                    <hr>
+                    <div id="players-container"></div>
+                </div>
             </div>
 
         </div>
 
-    </main>
+    </div>
 
-    <div id="modal-overlay" class="d-none"></div>
+</main>
+
+<div id="modal-overlay" class="d-none"></div>
 
 
 <!--
@@ -267,6 +261,6 @@
 
     </body>
     -->
-        <script src="./board.js"></script>
-    </body>
+<script src="./board.js"></script>
+</body>
 </html>

@@ -1,20 +1,25 @@
 import {Player} from "./player";
 import db from "../db";
 import {Board, TanksHex} from "./board";
-import {GameState, IGame} from "../model/IGame";
 import {COLS, ROWS} from "../const";
-import {ITank} from "../model/ITank";
 import {Tank} from "./Tank";
 import axios from "axios";
 import {AxialCoordinates, Hex} from "honeycomb-grid";
 
-export class Game implements IGame {
+interface GameState {
+    board: Board;
+    heartsLocations: AxialCoordinates[];
+    actionsLocations: AxialCoordinates[];
+}
+
+export class Game  {
 
     id: number = 0;
     activePlayers: Player[] = [];
     private state: GameState = {
         board: new Board(this),
         heartsLocations: [],
+        actionsLocations: []
     };
 
     addActivePlayer(player: Player) {
@@ -41,12 +46,16 @@ export class Game implements IGame {
         }
 
         const dbBoard = res.rows[0].board;
-        console.log(`dbBoard`, dbBoard)
         this.state.board.load(dbBoard.grid);
 
         if (dbBoard.features.heartsLocations) {
             this.state.heartsLocations = dbBoard.features.heartsLocations
                 .map((heartPosition: number[]) => ({q: heartPosition[0], r: heartPosition[1]}))
+        }
+
+        if (dbBoard.features.actionsLocations) {
+            this.state.actionsLocations = dbBoard.features.actionsLocations
+                .map((actionPosition: number[]) => ({q: actionPosition[0], r: actionPosition[1]}))
         }
 
         this.id = res.rows[0].id;
@@ -73,8 +82,8 @@ export class Game implements IGame {
         return isAlive;
     }
 
-    getPlayerTank(player: Player): ITank | undefined {
-        let tank: ITank | undefined;
+    getPlayerTank(player: Player): Tank | undefined {
+        let tank: Tank | undefined;
         this.board.forEach((hex: TanksHex) => {
             if (hex?.tank?.id === player.id) {
                 tank = hex.tank;
@@ -98,16 +107,27 @@ export class Game implements IGame {
         await this.board.updateOnDb();
     }
 
-    clearHeart(q: number, r: number): void {
+    async dropAction(): Promise<void> {
+        this.state.actionsLocations.push(this.board.getEmptyRandom());
+        await this.board.updateOnDb()
+    }
 
-        const heartIndex = this.heartsLocations.findIndex((heartPos:AxialCoordinates) => {
+    clearHeart(q: number, r: number): void {
+        const heartIndex = this.heartsLocations.findIndex((heartPos: AxialCoordinates) => {
             return heartPos.q === q && heartPos.r === r
         })
-
         if (heartIndex > -1) {
             this.state.heartsLocations.splice(heartIndex, 1);
         }
+    }
 
+    clearAction(q: number, r: number): void {
+        const actionIndex = this.actionsLocations.findIndex((actionPos: AxialCoordinates) => {
+            return actionPos.q === q && actionPos.r === r
+        })
+        if (actionIndex > -1) {
+            this.state.actionsLocations.splice(actionIndex, 1);
+        }
     }
 
     async addAction(actor: Tank, action: string, dest?: AxialCoordinates, enemy?: Tank): Promise<void> {
@@ -221,11 +241,21 @@ export class Game implements IGame {
         })
     }
 
-    get heartsLocations() {
+    hasActionOn(x: number, y: number): boolean {
+        return !!this.actionsLocations.find((actionPos: AxialCoordinates) => {
+            return actionPos.q === x && actionPos.r === y;
+        })
+    }
+
+    get heartsLocations():AxialCoordinates[] {
         return this.state.heartsLocations;
     }
 
-    get board() {
+    get actionsLocations():AxialCoordinates[] {
+        return this.state.actionsLocations;
+    }
+
+    get board(): Board {
         return this.state.board;
     }
 

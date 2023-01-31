@@ -1,5 +1,3 @@
-import {IAction} from "./model/IAction";
-
 require('dotenv').config()
 import cors from 'cors';
 import express from 'express';
@@ -10,7 +8,7 @@ import {Tank} from "./app/Tank";
 import {MessageTypes} from "./app/messageTypes";
 import {authIoMiddleware, checkJwt, unauthorizeEndMiddleware} from "./auth";
 import {apis} from "./apis";
-import {Player} from "./app/player";
+import {Action, Player} from "./app/player";
 import {Game} from "./app/game";
 import db, {prepareDb} from "./db";
 import {schedule} from 'node-cron';
@@ -55,12 +53,13 @@ async function init() {
         try {
             await game.distributeActions();
             await game.dropHeart();
+            await game.dropAction();
             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
         } catch (err) {
             console.log(`err`, err)
             console.log('Failed to distribute actions')
         }
-    }, 5000)
+    }, 1000000)
 
 
     const app = express()
@@ -100,7 +99,7 @@ async function init() {
                 socket.emit(MessageTypes.PLAYER, tank.id)
                 socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, callback) => {
 
-                    const action:IAction = {
+                    const action:Action = {
                         created_at: new Date(),
                         action: actionString,
                         actor: tank,
@@ -114,7 +113,6 @@ async function init() {
                         callback(false);
                         console.log('OUT OF TIME')
                         return;
-
                     }
 
                     if (payload && payload.q !== undefined && payload.r !== undefined) {

@@ -1,11 +1,21 @@
 import {COLS, ROWS} from "../const";
 import {PlayerActions} from "./playerActions";
 import db from "../db";
-import {ITank, TankParams} from "../model/ITank";
-import {IGame} from "../model/IGame";
-import {IAction} from "../model/IAction";
 import {AxialCoordinates} from "honeycomb-grid";
+import {Game} from "./game";
+import {Action} from "./player";
 
+
+
+interface TankParams {
+    id: string;
+    actions: number;
+    position: AxialCoordinates;
+    life: number;
+    range: number;
+    name: string;
+    picture: string;
+}
 
 const DEFAULT_TANK_PARAMS: TankParams = {
     id: Math.random().toString(36).substring(2),
@@ -17,8 +27,8 @@ const DEFAULT_TANK_PARAMS: TankParams = {
     picture: ''
 }
 
-export class Tank implements ITank {
-    game: IGame;
+export class Tank {
+    game: Game;
     id: string;
     actions: number;
     position: AxialCoordinates;
@@ -27,7 +37,7 @@ export class Tank implements ITank {
     name: string;
     picture: string;
 
-    constructor(game: IGame, params: Partial<TankParams>) {
+    constructor(game: Game, params: Partial<TankParams>) {
         this.game = game;
         const opts: TankParams = Object.assign({}, DEFAULT_TANK_PARAMS, params)
         this.id = opts.id;
@@ -39,7 +49,7 @@ export class Tank implements ITank {
         this.picture = opts.picture;
     }
 
-    static async create(game: IGame, userId: string, name: string, picture: string): Promise<Tank> {
+    static async create(game: Game, userId: string, name: string, picture: string): Promise<Tank> {
 
         const tankPosition = game.board.getEmptyRandom();
         console.log(`new tankPosition`, tankPosition);
@@ -76,6 +86,11 @@ export class Tank implements ITank {
         if (this.game.hasHeartOn(q, r)) {
             this.life += 1;
             this.game.clearHeart(q, r)
+        }
+
+        if (this.game.hasActionOn(q, r)) {
+            this.actions += 1;
+            this.game.clearAction(q, r)
         }
 
         this.position.q = q;
@@ -132,7 +147,7 @@ export class Tank implements ITank {
         this.useAction(3);
     }
 
-    async vote(enemy:ITank):Promise<void> {
+    async vote(enemy:Tank):Promise<void> {
 
         await db.query('BEGIN');
         await db.query(`
@@ -176,7 +191,7 @@ export class Tank implements ITank {
         this.actions -= howMany;
     }
 
-    async applyAction(action: IAction): Promise<false|IAction> {
+    async applyAction(action: Action): Promise<false|Action> {
 
         if (action.action === PlayerActions.VOTE) {
             if (!this.game.isInJury(this.asPlayer())) {
@@ -218,15 +233,23 @@ export class Tank implements ITank {
         const boardCell = {q, r};
 
         if (action.action === PlayerActions.MOVE) {
+            if (!this.game.board.isPositionWalkable(q, r)) {
+                console.log(`not walkable`)
+                return false
+            }
             if (!this.game.board.isPositionValid(q, r)) {
+                console.log(`not valid`)
                 return false
             }
             if (this.game.board.isPositionOccupied(q, r)) {
+                console.log(`occupied`)
                 return false;
             }
             if (this.game.board.isInRange(this.position, boardCell, 1)) {
                 await this.move(q, r);
                 return action;
+            } else {
+                console.log('not in range')
             }
         }
 

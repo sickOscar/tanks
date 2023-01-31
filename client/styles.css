@@ -6,18 +6,25 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'Sketch Gothic School';
+    src: url('./assets/Sketch Gothic School.ttf');
+}
+
 * {
     box-sizing: border-box;
 }
 
 body {
     font-family: 'Cyber', sans-serif;
-    background-color: #fefe33;
+    background-color: #e8d5b7;
+    background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
 }
 
-#actions {
-    margin-bottom: 2rem;
+.navbar-brand {
+    font-family: 'Sketch Gothic School', sans-serif;
 }
+
 
 #actions ul {
     display: flex;
