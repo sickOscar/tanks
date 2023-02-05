@@ -49,16 +49,12 @@ export class Board {
         let x = 0;
         let y = 0;
         traversedGrid.forEach((hex: TanksHex) => {
-            // console.log(hex.q, hex.r, `-> `, y, x, `(`, map[y][x])
-
             hex.tile = map[y][x];
-
             x++;
             if (x >= COLS) {
                 x = 0;
                 y++;
             }
-
         })
 
 
@@ -81,6 +77,8 @@ export class Board {
     }
 
     isPositionOccupied(q: number,r: number): boolean {
+        console.log(`q, r`, q, r)
+        console.log(`this.board.getHex({q, r})`, this.board.getHex({q, r}))
         return !!this.board.getHex({q, r})?.tank;
     }
 

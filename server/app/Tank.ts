@@ -227,8 +227,8 @@ export class Tank {
         }
 
         const dest = action.destination as AxialCoordinates;
-        const q = Math.min(COLS - 1, Math.max(dest.q, 0));
-        const r = Math.min(ROWS - 1, Math.max(dest.r, 0));
+        const q = dest.q;
+        const r = dest.r;
 
         const boardCell = {q, r};
 

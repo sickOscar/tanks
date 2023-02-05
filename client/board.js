@@ -750,6 +750,12 @@ function drawPlayer(hex, isThisSession) {
 
 }
 
+function drawTooltip() {
+
+
+
+}
+
 function mouseClicked() {
 
     if (currentState === States.IDLE) {
