@@ -39,6 +39,18 @@ const pollResultsTable = document.querySelector('#poll-results-table')
 const modalOverlay = document.querySelector('#modal-overlay');
 const loginButton = document.querySelector('#btn-login');
 const logoutButton = document.querySelector('#btn-logout');
+const hover = {
+    hex: null,
+    for: 0
+}
+const POPUP_DELAY = 10;
+const TILES = [
+    {name: "Plains", description: "You can move here"},
+    {name: "Water", description: "You cannot move here"},
+    {name: "Desert", description: "You can move here"},
+    {name: "Forest", description: "You can move here"},
+    {name: "Mountain", description: "You cannot move here"},
+]
 
 pollForm.addEventListener('submit', event => {
     event.preventDefault();
@@ -265,7 +277,6 @@ function drawEvents() {
                 return `${pre} heals <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
             }
             return `${pre} heals himself${post}`
-
         }
 
 
@@ -433,6 +444,7 @@ function preload() {
         loadImage('./assets/sea.png'),
         loadImage('./assets/desert.png'),
         loadImage('./assets/forest.png'),
+        loadImage('./assets/mountain.png'),
     ]
 }
 
@@ -460,7 +472,8 @@ function draw() {
     }
 
     drawCursor();
-    drawPlayerHover();
+    // drawPlayerHover();
+    drawPopup();
 
 }
 
@@ -555,6 +568,7 @@ function drawCell(hex) {
 
     // drawCoordinates(hex);
 
+
 }
 
 function isInRange(cell1, cell2, range) {
@@ -562,7 +576,7 @@ function isInRange(cell1, cell2, range) {
 }
 
 function isWalkable(hex) {
-    return hex.tile !== 1;
+    return hex.tile !== 1 && hex.tile !== 4;
 }
 
 function drawAction(hex) {
@@ -750,9 +764,92 @@ function drawPlayer(hex, isThisSession) {
 
 }
 
-function drawTooltip() {
+function drawPopup() {
+    
+    const hex = localGrid.pointToHex(
+        {x:mouseX - X_OFFSET, y:mouseY - Y_OFFSET},
+        {allowOutside: false}
+    );
+    
+    if (!hex) {
+        return;
+    }
 
 
+    if (hover.hex && hover.hex.equals({q:hex.q, r:hex.r})) {
+        hover.for += 1;
+    } else {
+        hover.hex = hex;
+        hover.for = 0;
+    }
+
+    const smallSize = [200, 50];
+    const mediumSize = [200, 100];
+    const largeSize = [300, 150];
+
+
+    if (hover.for > POPUP_DELAY) {
+        
+        const rectSourceX = hex.corners[0].x + X_OFFSET + 10 ;
+        const rectSourceY = hex.corners[0].y + Y_OFFSET;
+        
+        let size = smallSize;
+
+        if (heartsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {
+            size = smallSize;
+
+            fill('black');
+            stroke('white');
+            rect(rectSourceX, rectSourceY, size[0], size[1]);
+
+            textAlign(LEFT);
+            noStroke();
+            fill('white');
+            textSize(18);
+            text('Health potion', rectSourceX + 15, rectSourceY  + 20);
+
+            textSize(12);
+            text('Move here to get one 💓', rectSourceX +  15, rectSourceY + 40);
+
+        } else if (actionsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {
+            size = smallSize;
+
+            fill('black');
+            stroke('white');
+            rect(rectSourceX, rectSourceY, size[0], size[1]);
+
+            textAlign(LEFT);
+            noStroke();
+            fill('white');
+            textSize(18);
+            text('Action potion', rectSourceX + 15, rectSourceY  + 20);
+
+            textSize(12);
+            text('Move here to get one 👊', rectSourceX +  15, rectSourceY + 40);
+
+        } else if (!hex.tank) {
+
+            // empty
+
+            size = smallSize;
+            
+            fill('black');
+            stroke('white');
+            rect(rectSourceX, rectSourceY, size[0], size[1]);
+
+            textAlign(LEFT);
+            noStroke();
+            fill('white');
+            textSize(18);
+            text(TILES[hex.tile].name, rectSourceX + 15, rectSourceY  + 20);
+
+            textSize(12);
+            text(TILES[hex.tile].description, rectSourceX +  15, rectSourceY + 40);
+        }
+
+
+
+    }
 
 }
 

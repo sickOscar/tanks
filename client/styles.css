@@ -21,6 +21,15 @@ body {
     background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
 }
 
+.navbar {
+
+}
+
+.header {
+    background-color: #000;
+    background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
+}
+
 .navbar-brand {
     font-family: 'Sketch Gothic School', sans-serif;
 }
