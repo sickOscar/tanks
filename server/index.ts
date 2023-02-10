@@ -70,7 +70,7 @@ async function init() {
         }
     });
     app.use(cors())
-    app.use(express.static(path.join(__dirname, '../client')));
+    app.use(express.static(path.join(__dirname, '../client/dist')));
     app.use('/', apis)
 
 

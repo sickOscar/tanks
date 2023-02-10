@@ -16,6 +16,15 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
+  client-builder:
+    build:
+      context: .
+      dockerfile: client-builder.Dockerfile
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
   server:
     build:
       context: .
@@ -29,4 +38,5 @@ services:
       DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
     depends_on:
       - db
+      - client-builder
 
