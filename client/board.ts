@@ -1,80 +1,54 @@
 import p5 from 'p5';
 import * as Honeycomb from 'honeycomb-grid';
+import {AxialCoordinates} from 'honeycomb-grid';
 import {TanksHex} from "../server/app/board";
-import {AxialCoordinates, Grid} from "honeycomb-grid";
 import {Tank} from "./models/Tank";
-import {BUILDINGS} from "./consts";
+import {
+    GameState,
+    HEX_HEIGHT,
+    HEX_SIDE,
+    HEX_TOP_TRIANGLE_HEIGHT,
+    HEX_WIDTH,
+    pictures,
+    States,
+    X_OFFSET,
+    Y_OFFSET
+} from "./consts";
+import {drawPopup} from "./game/popups";
+import {io} from "socket.io-client";
+import {createAuth0Client} from '@auth0/auth0-spa-js';
 
 const sketch =  new p5((p5) => {
 
-
-    let players = [];
-    const pictures:{[key:string]: any} = {};
-    let events = []
+    let events:any[] = []
     let configFetched = false;
-    let backgroundImage;
-    let activePlayerHover = null;
-    let sio;
-    let playerId:string|null = null;
+    let sio:any;
     let player:Tank;
-    let heartsLocations:[q:number, r:number][] = [];
-    let actionsLocations:[q:number, r:number][] = [];
-    let buildings:{type:string, position:AxialCoordinates}[] = [];
-    let localGrid:Grid<TanksHex>;
+
     let stage = 'RUN';
-    const States = {
-        IDLE: 'idle',
-        MOVE: 'move',
-        SHOOT: 'shoot',
-        GIVE_ACTION: 'give-action',
-        UPGRADE: 'upgrade',
-        HEAL: 'heal'
-    }
-    const X_OFFSET = 50;
-    const Y_OFFSET = 50;
-    const HEX_SIDE = 40;
-    const HEX_WIDTH = 2 * (Math.sqrt(3)/2) * HEX_SIDE;
-    const HEX_HEIGHT = HEX_SIDE * Math.sqrt(3);
-    const HEX_TOP_TRIANGLE_HEIGHT = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
-    let WIDTH = 200;
-    let HEIGHT = 200;
-    let maskGraphics;
+
+    let maskGraphics:any;
     let hoverHex;
     let currentState = States.IDLE;
-    const voteSelect = document.querySelector('select#vote');
-    const pollForm = document.querySelector('form#poll');
-    const showPollResultsButton = document.querySelector('button#show-poll-results')
-    const actionsContainer = document.querySelector('#actions');
-    const pollResultsContainer = document.querySelector('#poll-results')
-    const pollResultsTable = document.querySelector('#poll-results-table')
+    const voteSelect = document.querySelector('select#vote') as HTMLSelectElement;
+    const pollForm = document.querySelector('form#poll') as HTMLFormElement;
+    const showPollResultsButton = document.querySelector('button#show-poll-results') as HTMLButtonElement;
+    const actionsContainer = document.querySelector('#actions') as HTMLDivElement;
+    const pollResultsContainer = document.querySelector('#poll-results') as HTMLDivElement;
+    const pollResultsTable = document.querySelector('#poll-results-table') as HTMLTableElement;
     const modalOverlay = document.querySelector('#modal-overlay') as HTMLDivElement;
-    const loginButton = document.querySelector('#btn-login');
-    const logoutButton = document.querySelector('#btn-logout');
-    const hover = {
-        hex: null,
-        for: 0
-    }
-    const POPUP_DELAY = 10;
+    const loginButton = document.querySelector('#btn-login') as HTMLButtonElement;
+    const logoutButton = document.querySelector('#btn-logout') as HTMLButtonElement;
+
     let tiles:any[] = [];
-    const TILES = [
-        {name: "🌿 Plains", description: "Moving here will cost you 1 👊"},
-        {name: "🌊 Water", description: "You cannot move here"},
-        {name: "🏜️ Desert", description: "Moving here will cost you 1 👊\nBeing here when action gets distributed\nwill cost you 1 💓"},
-        {name: "🌲 Forest", description: "Moving here will cost you 1 👊\nYour range will be decreased by 1\nYour enemies' range to you is decreased by 1"},
-        {name: "⛰️ Mountain", description: "Moving here will cost you 2 👊\nYour range will be increased by 1"},
-        {name: "🐊 Swamp", description: "Moving here will cost you 1 👊\nWhen here you can Hunt 🏹🐊"},
-        {name: "❄️ Ice", description: "Moving here will cost you 2 👊"},
-    ]
-
-
 
     const walkableTiles = [0, 2, 3, 4, 5, 6];
-    let oasisImage = null;
-    let iceFortressImage = null;
+    let oasisImage:any = null;
+    let iceFortressImage:any = null;
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
-        sio.emit('playerevent', 'vote', voteSelect.value, response => {
+        sio.emit('playerevent', 'vote', voteSelect.value, (response:any) => {
             if (!response) {
                 alert(`Well, no. You already voted today. The blockchain doesn't lie`)
             } else {
@@ -84,7 +58,7 @@ const sketch =  new p5((p5) => {
     })
 
     document.addEventListener('click', event => {
-        if (Array.from(event.target.classList).includes('close-modal-button')) {
+        if (Array.from(event.target!.classList).includes('close-modal-button')) {
             document.querySelectorAll('.drawer').forEach(el => {
                 el.classList.add('d-none');
             })
@@ -110,26 +84,20 @@ const sketch =  new p5((p5) => {
             .catch(console.error)
     })
 
-
-    function randomNumber(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-
-
-
-// AUTH
-
-
-    let auth0 = null;
+    // AUTH
+    let auth0:any;
     const fetchAuthConfig = () => fetch("/auth_config.json");
     const configureClient = async () => {
         const response = await fetchAuthConfig();
         const config = await response.json();
 
-        auth0 = await window.createAuth0Client({
+        auth0 = await createAuth0Client({
             domain: config.domain,
-            client_id: config.clientId,
-            audience: config.audience
+            clientId: config.clientId,
+            authorizationParams: {
+                audience: config.audience,
+                redirect_uri: window.location.origin
+            }
         });
     };
 
@@ -141,11 +109,11 @@ const sketch =  new p5((p5) => {
         logoutButton.style.display = !isAuthenticated ? 'none' : 'flex';
 
         if (isAuthenticated) {
-            document.querySelector('#board-holder').classList.remove(['d-none']);
-            document.querySelector('#right-side').classList.remove(['d-none'])
+            document.querySelector('#board-holder')!.classList.remove('d-none');
+            document.querySelector('#right-side')!.classList.remove('d-none')
         } else {
-            document.querySelector('#board-holder').classList.add(['d-none']);
-            document.querySelector('#right-side').classList.add(['d-none'])
+            document.querySelector('#board-holder')!.classList.add('d-none');
+            document.querySelector('#right-side')!.classList.add('d-none')
         }
 
     }
@@ -178,7 +146,7 @@ const sketch =  new p5((p5) => {
         }
     }
 
-    function resizeGrid(grid) {
+    function resizeGrid(grid:any) {
         grid.hexSettings.dimensions = {
             xRadius: HEX_SIDE,
             yRadius: HEX_SIDE
@@ -186,20 +154,20 @@ const sketch =  new p5((p5) => {
         return grid;
     }
 
-    function setupLocalGrid(grid) {
+    function setupLocalGrid(grid:any) {
         const resizedGrid = resizeGrid(grid);
 
         const TanksHex = class extends Honeycomb.defineHex(resizedGrid.hexSettings) {
-            tank = null;
-            tile = 0;
+            tank:Tank|null = null;
+            tile:number = 0;
 
-            constructor({q, r, tank, tile}) {
+            constructor({q, r, tank, tile}:{q:number, r:number, tank:Tank|null, tile:number}) {
                 super({q, r});
                 this.tank = tank;
                 this.tile = tile
             }
         }
-        localGrid = new Honeycomb.Grid<TanksHex>(TanksHex, resizedGrid.coordinates);
+        GameState.localGrid = new Honeycomb.Grid<TanksHex>(TanksHex, resizedGrid.coordinates);
     }
 
     async function initCanvas() {
@@ -208,10 +176,10 @@ const sketch =  new p5((p5) => {
         configFetched = true;
         setupLocalGrid(c.grid);
 
-        WIDTH = c.cols * HEX_WIDTH + X_OFFSET;
-        HEIGHT = c.rows * HEX_HEIGHT + Y_OFFSET;
+        GameState.WIDTH = c.cols * HEX_WIDTH + X_OFFSET;
+        GameState.HEIGHT = c.rows * HEX_HEIGHT + Y_OFFSET;
 
-        p5.resizeCanvas(WIDTH, HEIGHT);
+        p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
 
         // MAGIC: 69 is SUPER RANDOM
         // don't understand properly how to calculate the size of the mask
@@ -220,22 +188,18 @@ const sketch =  new p5((p5) => {
         const jwt = await auth0.getTokenSilently()
         connectSocket(jwt);
 
-        players = await getJson('/players')
+        GameState.players = await getJson('/players')
         events = await getJson('/events')
 
         drawEvents()
     }
 
     loginButton.addEventListener('click', () => {
-        auth0.loginWithRedip5.rect({
-            redirect_uri: window.location.origin
-        });
+        auth0.loginWithRedirect();
     })
 
     logoutButton.addEventListener('click', () => {
-        auth0.logout({
-            returnTo: window.location.origin
-        });
+        auth0.logout();
     })
 
     function drawEvents() {
@@ -244,11 +208,12 @@ const sketch =  new p5((p5) => {
 
         const markup = events.map(e => {
 
-            let p = players.find(p => p.id === e.actor);
+            let p = GameState.players.find(p => p.id === e.actor);
 
             if (!p && e.actor === 'jury') {
-                const enemy = players.find(p => p.id === e.enemy)
+                const enemy = GameState.players.find(p => p.id === e.enemy)!
                 p = {
+                    id: '',
                     picture: '',
                     name: 'jury'
                 }
@@ -282,17 +247,17 @@ const sketch =  new p5((p5) => {
             }
 
             if (e.action === States.SHOOT) {
-                const enemy = players.find(p => p.id === e.enemy)
+                const enemy = GameState.players.find(p => p.id === e.enemy)!
                 return `${pre} shoots <img src="${enemy.picture}" title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
             }
 
             if (e.action === States.GIVE_ACTION) {
-                const enemy = players.find(p => p.id === e.enemy)
+                const enemy = GameState.players.find(p => p.id === e.enemy)!
                 return `${pre} gives an action to <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
             }
 
             if (e.action === States.HEAL) {
-                const enemy = players.find(p => p.id === e.enemy)
+                const enemy = GameState.players.find(p => p.id === e.enemy)
                 if (enemy) {
                     return `${pre} heals <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
                 }
@@ -306,7 +271,7 @@ const sketch =  new p5((p5) => {
     }
 
 
-    function connectSocket(jwt) {
+    function connectSocket(jwt:string) {
         sio = io('', {
             auth: {
                 token: `Bearer ${jwt}`
@@ -344,13 +309,13 @@ const sketch =  new p5((p5) => {
                 return;
             }
 
-            const state = this.getAttribute('data-action')
+            const state = this.getAttribute('data-action')!;
             if (!Object.values(States).includes(state)) {
                 return
             }
 
             if (state === States.UPGRADE ) {
-                sio.emit('playerevent', States.UPGRADE, null, (isValid) => {
+                sio.emit('playerevent', States.UPGRADE, null, (isValid:boolean) => {
                     console.log('upgraded');
                 });
             } else {
@@ -365,12 +330,12 @@ const sketch =  new p5((p5) => {
     })
 
 
-    function addPlayerAction(action) {
+    function addPlayerAction(action:any) {
         events.unshift(action)
         drawEvents();
     }
 
-    function setBoard(serverMessage) {
+    function setBoard(serverMessage:string) {
 
         const parsedMessage = JSON.parse(serverMessage);
 
@@ -379,7 +344,7 @@ const sketch =  new p5((p5) => {
 
         const playersList:Tank[] = [];
 
-        localGrid.forEach(hex => {
+        GameState.localGrid!.forEach(hex => {
             if (hex.tank) {
                 playersList.push(hex.tank);
             }
@@ -390,7 +355,7 @@ const sketch =  new p5((p5) => {
                 }
             }
 
-            if (hex.tank && hex.tank.id === playerId) {
+            if (hex.tank && hex.tank.id === GameState.playerId) {
                 player = hex.tank;
             }
         })
@@ -412,24 +377,24 @@ const sketch =  new p5((p5) => {
         `)
             .join('')
 
-        heartsLocations = parsedMessage.features.heartsLocations;
-        actionsLocations = parsedMessage.features.actionsLocations;
-        buildings = parsedMessage.features.buildings;
+        GameState.heartsLocations = parsedMessage.features.heartsLocations;
+        GameState.actionsLocations = parsedMessage.features.actionsLocations;
+        GameState.buildings = parsedMessage.features.buildings;
 
         // debugger;
 
     }
 
-    function setPlayer(id) {
-        playerId = id;
+    function setPlayer(id:string) {
+        GameState.playerId = id;
     }
 
 
-    function setOnline(playersList) {
+    function setOnline(playersList:string) {
         try {
             const onlinePlayers = JSON.parse(playersList);
 
-            const listItems = onlinePlayers.map(p => `
+            const listItems = onlinePlayers.map((p:any) => `
             <li class="list-group-item">
                 <img src="${p.picture}"  class="img-thumbnail"> ${p.name}    
             </li>
@@ -486,10 +451,10 @@ const sketch =  new p5((p5) => {
 
     p5.draw = function() {
 
-        activePlayerHover = null;
+        GameState.activePlayerHover = null;
 
         p5.clear();
-        if (!configFetched || !localGrid) {
+        if (!configFetched || !GameState.localGrid) {
             return;
         }
 
@@ -500,7 +465,7 @@ const sketch =  new p5((p5) => {
 
         drawCursor();
         // drawPlayerHover();
-        drawPopup();
+        drawPopup(p5);
 
     }
 
@@ -526,28 +491,28 @@ const sketch =  new p5((p5) => {
     }
 
     function drawPlayerHover() {
-        if (!activePlayerHover) {
+        if (!GameState.activePlayerHover) {
             return;
         }
 
-        const hex = activePlayerHover;
+        const hex = GameState.activePlayerHover;
 
         p5.textSize(14);
         p5.noStroke();
         p5.fill('white');
         p5.textAlign(p5.CENTER);
-        p5.text(hex.tank.name, hex.corners[2].x + X_OFFSET, hex.corners[2].y + Y_OFFSET + 16)
+        p5.text(hex.tank!.name, hex.corners[2].x + X_OFFSET, hex.corners[2].y + Y_OFFSET + 16)
 
     }
 
     function drawBoard() {
         p5.noFill();
         p5.stroke('white');
-        localGrid.forEach(drawCell);
+        GameState.localGrid!.forEach(drawCell);
     }
 
 
-    function drawCoordinates(hex) {
+    function drawCoordinates(hex:TanksHex) {
         // p5.noStroke()
         // p5.fill('#fff');
         // p5.textSize(10);
@@ -567,8 +532,8 @@ const sketch =  new p5((p5) => {
         if (!hex.tank) {
 
 
-            if (heartsLocations) {
-                const hasHeart = heartsLocations.find(loc => {
+            if (GameState.heartsLocations) {
+                const hasHeart = GameState.heartsLocations.find(loc => {
                     return loc[0] === hex.q && loc[1] === hex.r
                 })
                 if (hasHeart) {
@@ -576,8 +541,8 @@ const sketch =  new p5((p5) => {
                 }
             }
 
-            if (actionsLocations) {
-                const hasAction = actionsLocations.find(loc => {
+            if (GameState.actionsLocations) {
+                const hasAction = GameState.actionsLocations.find(loc => {
                     return loc[0] === hex.q && loc[1] === hex.r
                 })
                 if (hasAction) {
@@ -585,8 +550,8 @@ const sketch =  new p5((p5) => {
                 }
             }
 
-            if (buildings) {
-                const hasBuilding = buildings.find(building => {
+            if (GameState.buildings) {
+                const hasBuilding = GameState.buildings.find(building => {
                     return building.position.q === hex.q && building.position.r === hex.r
                 })
                 if (hasBuilding) {
@@ -597,8 +562,8 @@ const sketch =  new p5((p5) => {
 
         } else {
 
-            if (hex.tank?.id === playerId) {
-                drawPlayer(hex, true);
+            if (hex.tank?.id === GameState.playerId) {
+                drawPlayer(hex);
             } else {
                 drawPlayer(hex)
             }
@@ -609,9 +574,8 @@ const sketch =  new p5((p5) => {
 
     }
 
-    function drawBuilding(hex, building) {
+    function drawBuilding(hex:TanksHex, building:any) {
         switch(building.type) {
-
 
             case 'OASIS':
                 p5.image(
@@ -639,11 +603,11 @@ const sketch =  new p5((p5) => {
 
     }
 
-    function isInRange(destinationCell, startingCell, range, shooting  = false) {
+    function isInRange(destinationCell:AxialCoordinates, startingCell:AxialCoordinates, range:number, shooting  = false) {
         let finalRange = range;
         if (shooting) {
-            const startingTile = localGrid.getHex({q: startingCell.q, r: startingCell.r})?.tile;
-            const destinationTile = localGrid.getHex({q: destinationCell.q, r: destinationCell.r})?.tile;
+            const startingTile = GameState.localGrid?.getHex({q: startingCell.q, r: startingCell.r})?.tile;
+            const destinationTile = GameState.localGrid?.getHex({q: destinationCell.q, r: destinationCell.r})?.tile;
             if (startingTile === 4) {
                 finalRange = range + 1;
             }
@@ -651,14 +615,14 @@ const sketch =  new p5((p5) => {
                 finalRange = range - 1;
             }
         }
-        return localGrid.distance(destinationCell, startingCell) <= finalRange
+        return GameState.localGrid!.distance(destinationCell, startingCell) <= finalRange
     }
 
-    function isWalkable(hex) {
+    function isWalkable(hex:TanksHex) {
         return walkableTiles.includes(hex.tile);
     }
 
-    function drawAction(hex) {
+    function drawAction(hex:TanksHex) {
 
         const corners = hex.corners;
 
@@ -704,7 +668,7 @@ const sketch =  new p5((p5) => {
 
         const highlightColor = 'rgba(255, 255, 255, 0.3)'
 
-        if (localGrid.pointToHex({x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET}) === hex) {
+        if (GameState.localGrid!.pointToHex({x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET}) === hex) {
             p5.fill(highlightColor);
         } else {
             // p5.fill('rgb(38,91,34)')
@@ -755,9 +719,13 @@ const sketch =  new p5((p5) => {
     function drawPlayer(hex:TanksHex) {
 
         const tank = hex.tank;
+        if (!tank) {
+            return;
+        }
+
         const [...corners] = hex.corners;
 
-        if (pictures[hex.tank.id]) {
+        if (pictures[tank.id]) {
 
             const origin = corners[4];
             const originOffset = p5.createVector(origin.x + X_OFFSET, origin.y + Y_OFFSET);
@@ -771,10 +739,10 @@ const sketch =  new p5((p5) => {
             maskGraphics.endShape(p5.CLOSE);
 
 
-            pictures[hex.tank.id].mask(maskGraphics);
+            pictures[tank.id].mask(maskGraphics);
 
             p5.image(
-                pictures[hex.tank.id],
+                pictures[tank.id],
                 corners[0].x - HEX_WIDTH + X_OFFSET,
                 corners[0].y - HEX_TOP_TRIANGLE_HEIGHT + Y_OFFSET,
                 HEX_WIDTH,
@@ -846,224 +814,18 @@ const sketch =  new p5((p5) => {
         });
         p5.endShape(p5.CLOSE);
 
-        if (localGrid.pointToHex({x:p5.mouseX - X_OFFSET, y:p5.mouseY - Y_OFFSET}).equals({q:hex.q, r:hex.r})) {
-            activePlayerHover = hex;
+        if (GameState.localGrid!.pointToHex({x:p5.mouseX - X_OFFSET, y:p5.mouseY - Y_OFFSET}).equals({q:hex.q, r:hex.r})) {
+            GameState.activePlayerHover = hex;
         }
 
     }
 
-    function drawPopup() {
 
-        const hex = localGrid.pointToHex(
-            {x:p5.mouseX - X_OFFSET, y:p5.mouseY - Y_OFFSET},
-            {allowOutside: false}
-        );
-
-        if (!hex) {
-            return;
-        }
-
-
-        if (hover.hex && hover.hex.equals({q:hex.q, r:hex.r})) {
-            hover.for += 1;
-        } else {
-            hover.hex = hex;
-            hover.for = 0;
-        }
-
-        const smallSize = [280, 80];
-        const mediumSize = [200, 120];
-        const largeSize = [300, 150];
-
-
-        if (hover.for > POPUP_DELAY) {
-
-            let rectSourceX = hex.corners[0].x + X_OFFSET + 10 ;
-            let rectSourceY = hex.corners[0].y + Y_OFFSET - HEX_TOP_TRIANGLE_HEIGHT;
-
-            let size = smallSize;
-
-            let popupXOffset = 15;
-
-            if (heartsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {
-                size = smallSize;
-
-                if (p5.mouseX > WIDTH / 2) {
-                    rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
-                }
-
-                p5.fill('black');
-                p5.stroke('white');
-                p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
-
-                p5.textAlign(p5.LEFT);
-                p5.noStroke();
-                p5.fill('white');
-                p5.textSize(18);
-                p5.text('Health potion', rectSourceX + popupXOffset, rectSourceY  + 20);
-
-                p5.textSize(12);
-                p5.text('Move here to get one 💓', rectSourceX +  popupXOffset, rectSourceY + 40);
-
-            } else if (actionsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {
-                size = smallSize;
-
-                if (p5.mouseX > WIDTH / 2) {
-                    rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
-                }
-
-                p5.fill('black');
-                p5.stroke('white');
-                p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
-
-                p5.textAlign(p5.LEFT);
-                p5.noStroke();
-                p5.fill('white');
-                p5.textSize(18);
-                p5.text('Action potion', rectSourceX + popupXOffset, rectSourceY  + 20);
-
-                p5.textSize(12);
-                p5.text('Move here to get one 👊', rectSourceX +  popupXOffset, rectSourceY + 40);
-
-            } else if (buildings.find(({position}) => position.q === hex.q && position.r === hex.r)) {
-
-                const building = buildings.find(({position}) => position.q === hex.q && position.r === hex.r);
-                size = largeSize;
-
-                if (p5.mouseX > WIDTH / 2) {
-                    rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
-                }
-
-                p5.fill('black');
-                p5.stroke('white');
-                p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
-
-                p5.textAlign(p5.LEFT);
-                p5.noStroke();
-                p5.fill('white');
-                p5.textSize(18);
-                p5.text(BUILDINGS[building.type].name, rectSourceX + popupXOffset, rectSourceY  + 20);
-
-                p5.textSize(12);
-                p5.text(BUILDINGS[building.type].description, rectSourceX +  popupXOffset, rectSourceY + 40);
-
-            } else if (!hex.tank) {
-
-                // empty
-
-                size = smallSize;
-
-                if (p5.mouseX > WIDTH / 2) {
-                    rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
-                }
-
-                p5.fill('black');
-                p5.stroke('white');
-                p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
-
-                p5.textAlign(p5.LEFT);
-                p5.noStroke();
-                p5.fill('white');
-                p5.textSize(18);
-                p5.text(TILES[hex.tile].name, rectSourceX + popupXOffset, rectSourceY  + 20);
-
-                p5.textSize(12);
-                p5.text(TILES[hex.tile].description, rectSourceX +  popupXOffset, rectSourceY + 40);
-            } else if (hex.tank) {
-
-                size = mediumSize;
-
-                if (p5.mouseX > WIDTH / 2) {
-                    rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
-                }
-
-                p5.fill('black');
-                p5.stroke('white');
-                p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
-
-                if (pictures[hex.tank.id]) {
-                    p5.image(
-                        pictures[hex.tank.id],
-                        rectSourceX + popupXOffset,
-                        rectSourceY + popupXOffset - 5,
-                        30,
-                        30
-                    );
-                }
-
-                p5.textAlign(p5.LEFT);
-                p5.noStroke();
-                p5.fill('white');
-                p5.textSize(18);
-                p5.textLeading(18);
-                p5.text(
-                    hex.tank.name.split(' ').join("\n"),
-                    rectSourceX + popupXOffset + 30 + 5,
-                    rectSourceY  + 20
-                );
-
-                p5.textSize(12);
-                p5.textLeading(15);
-                // p5.text(hex.tank.name, rectSourceX +  popupXOffset, rectSourceY + 40);
-
-                // life
-
-                if (hex.tank.life < 1) {
-                    p5.text(
-                        '☠',
-                        rectSourceX + popupXOffset,
-                        rectSourceY  + 60
-                    )
-                } else {
-                    p5.text(
-                        `💓 x ${hex.tank.life}`,
-                        rectSourceX + popupXOffset,
-                        rectSourceY  + 60
-                    )
-
-                    // actions
-                    p5.text(
-                        `👊 x ${hex.tank.actions}`,
-                        rectSourceX + popupXOffset,
-                        rectSourceY  + 75
-                    );
-
-                    // range
-
-                    let rangeModifier = '';
-                    let tile = localGrid.getHex({q: hex.q, r: hex.r}).tile;
-                    if (tile === 4) {
-                        rangeModifier = ' (+1 ⛰️)';
-                    }
-
-                    if (tile === 3) {
-                        rangeModifier = ' (-1 🌲)';
-                    }
-
-                    p5.text(
-                        `👁 x ${hex.tank.range} ${rangeModifier}`,
-                        rectSourceX + popupXOffset,
-                        rectSourceY  + 90
-                    );
-                }
-
-
-
-                // terrain
-                p5.text(`on ${TILES[hex.tile].name}`, rectSourceX + popupXOffset, rectSourceY  + 115);
-
-            }
-
-
-
-        }
-
-    }
 
     p5.mouseClicked = function() {
 
         if (currentState === States.IDLE) {
-            const hex = localGrid.pointToHex(
+            const hex = GameState.localGrid!.pointToHex(
                 { x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET },
                 { allowOutside: false }
             );
@@ -1072,12 +834,12 @@ const sketch =  new p5((p5) => {
             }
         }
 
-        const hex = localGrid.pointToHex(
+        const hex = GameState.localGrid!.pointToHex(
             { x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},
             { allowOutside: false }
         );
         if (hex) {
-            sio.emit('playerevent', currentState, {q: hex.q, r: hex.r}, (isValid) => {
+            sio.emit('playerevent', currentState, {q: hex.q, r: hex.r}, (isValid:boolean) => {
                 if (isValid) {
                     currentState = States.IDLE;
                 } else {
@@ -1085,13 +847,6 @@ const sketch =  new p5((p5) => {
                 }
             });
         }
-
-    }
-
-
-
-
-    function animate(cell, animation) {
 
     }
 
