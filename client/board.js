@@ -9,6 +9,7 @@ let playerId = null;
 let player = null;
 let heartsLocations = null;
 let actionsLocations = null;
+let buildings = null;
 let localGrid = null;
 let stage = 'RUN';
 const States = {
@@ -45,12 +46,29 @@ const hover = {
 }
 const POPUP_DELAY = 10;
 const TILES = [
-    {name: "Plains", description: "You can move here"},
-    {name: "Water", description: "You cannot move here"},
-    {name: "Desert", description: "You can move here"},
-    {name: "Forest", description: "You can move here"},
-    {name: "Mountain", description: "You cannot move here"},
+    {name: "🌿 Plains", description: "Moving here will cost you 1 👊"},
+    {name: "🌊 Water", description: "You cannot move here"},
+    {name: "🏜️ Desert", description: "Moving here will cost you 1 👊\nBeing here when action gets distributed\nwill cost you 1 💓"},
+    {name: "🌲 Forest", description: "Moving here will cost you 1 👊\nYour range will be decreased by 1\nYour enemies' range to you is decreased by 1"},
+    {name: "⛰️ Mountain", description: "Moving here will cost you 2 👊\nYour range will be increased by 1"},
+    {name: "🐊 Swamp", description: "Moving here will cost you 1 👊\nWhen here you can Hunt 🏹🐊"},
+    {name: "❄️ Ice", description: "Moving here will cost you 2 👊"},
 ]
+
+const BUILDINGS = {
+    'OASIS': {
+        name:  `Oasis`,
+        description: `If you are here when actions gets distributed,\n `
+    },
+    'ICE_FORTRESS': {
+        name: `Ice Fortress`,
+        description: `If you are here when actions gets distributed,\n `
+    },
+}
+
+const walkableTiles = [0, 2, 3, 4, 5, 6];
+let oasisImage = null;
+let iceFortress = null;
 
 pollForm.addEventListener('submit', event => {
     event.preventDefault();
@@ -396,6 +414,9 @@ function setBoard(serverMessage) {
 
     heartsLocations = parsedMessage.features.heartsLocations;
     actionsLocations = parsedMessage.features.actionsLocations;
+    buildings = parsedMessage.features.buildings;
+
+    // debugger;
 
 }
 
@@ -445,7 +466,13 @@ function preload() {
         loadImage('./assets/desert.png'),
         loadImage('./assets/forest.png'),
         loadImage('./assets/mountain.png'),
+        loadImage('./assets/swamp.png'),
+        loadImage('./assets/ice.png'),
     ]
+
+    oasisImage = loadImage('./assets/oasis.webp');
+    iceFortressImage = loadImage('./assets/ice_fortress.webp');
+
 }
 
 function setup() {
@@ -521,22 +548,24 @@ function drawBoard() {
 
 
 function drawCoordinates(hex) {
-    noStroke()
-    fill('#fff');
-    textSize(10);
-    textAlign(CENTER);
-    text(
-        `q: ${hex.q} r: ${hex.r}`,
-        hex.corners[0].x - (HEX_WIDTH / 2) + X_OFFSET,
-        hex.corners[0].y + Y_OFFSET
-    )
+    // noStroke()
+    // fill('#fff');
+    // textSize(10);
+    // textAlign(CENTER);
+    // text(
+    //     `q: ${hex.q} r: ${hex.r}`,
+    //     hex.corners[0].x - (HEX_WIDTH / 2) + X_OFFSET,
+    //     hex.corners[0].y + Y_OFFSET
+    // )
 }
 
 function drawCell(hex) {
     stroke('white')
 
+    drawEmptyCell(hex);
+
     if (!hex.tank) {
-        drawEmptyCell(hex);
+
 
         if (heartsLocations) {
             const hasHeart = heartsLocations.find(loc => {
@@ -556,6 +585,15 @@ function drawCell(hex) {
             }
         }
 
+        if (buildings) {
+            const hasBuilding = buildings.find(building => {
+                return building.position.q === hex.q && building.position.r === hex.r
+            })
+            if (hasBuilding) {
+                drawBuilding(hex, hasBuilding);
+            }
+        }
+
 
     } else {
 
@@ -566,17 +604,58 @@ function drawCell(hex) {
         }
     }
 
-    // drawCoordinates(hex);
+    drawCoordinates(hex);
 
 
 }
 
-function isInRange(cell1, cell2, range) {
-    return localGrid.distance(cell1, cell2) <= range
+function drawBuilding(hex, building) {
+    switch(building.type) {
+
+
+        case 'OASIS':
+            image(
+                oasisImage,
+                hex.corners[0].x - HEX_WIDTH + X_OFFSET,
+                hex.corners[0].y + Y_OFFSET - 10,
+                HEX_WIDTH,
+                HEX_HEIGHT
+            );
+            break;
+
+        case 'ICE_FORTRESS':
+            image(
+                iceFortressImage,
+                hex.corners[0].x - HEX_WIDTH + X_OFFSET,
+                hex.corners[0].y + Y_OFFSET - HEX_TOP_TRIANGLE_HEIGHT,
+                HEX_WIDTH,
+                HEX_HEIGHT + 12
+            );
+            break;
+
+        default:
+            break;
+    }
+
+}
+
+function isInRange(destinationCell, startingCell, range, shooting  = false) {
+    let finalRange = range;
+    if (shooting) {
+        const startingTile = localGrid.getHex({q: startingCell.q, r: startingCell.r})?.tile;
+        const destinationTile = localGrid.getHex({q: destinationCell.q, r: destinationCell.r})?.tile;
+        if (startingTile === 4) {
+            finalRange = range + 1;
+        }
+        if (startingTile === 3 || destinationTile === 3) {
+            finalRange = range - 1;
+        }
+    }
+    return localGrid.distance(destinationCell, startingCell) <= finalRange
 }
 
 function isWalkable(hex) {
-    return hex.tile !== 1 && hex.tile !== 4;
+    return walkableTiles.includes(hex.tile);
 }
 
 function drawAction(hex) {
@@ -641,19 +720,19 @@ function drawEmptyCell(hex) {
     }
 
     if (currentState === States.SHOOT) {
-        if(isInRange(hex, player.position, player.range)) {
+        if(isInRange(hex, player.position, player.range, true)) {
             fill(highlightColor)
         }
     }
 
     if (currentState === States.GIVE_ACTION) {
-        if(isInRange(hex, player.position, player.range)) {
+        if(isInRange(hex, player.position, player.range, true)) {
             fill(highlightColor)
         }
     }
 
     if (currentState === States.HEAL) {
-        if(isInRange(hex, player.position, player.range)) {
+        if(isInRange(hex, player.position, player.range, true)) {
             fill(highlightColor)
         }
     }
@@ -694,7 +773,6 @@ function drawPlayer(hex, isThisSession) {
 
         pictures[hex.tank.id].mask(maskGraphics);
 
-        // tint(255, 130)
         image(
             pictures[hex.tank.id],
             corners[0].x - HEX_WIDTH + X_OFFSET,
@@ -702,7 +780,6 @@ function drawPlayer(hex, isThisSession) {
             HEX_WIDTH,
             HEX_HEIGHT
         );
-        // tint(255, 255)
 
     }
 
@@ -723,30 +800,41 @@ function drawPlayer(hex, isThisSession) {
 
     } else {
 
-        textSize(12);
-        textAlign(LEFT);
-
-        // life
-
-        text(
-            `💓 x ${tank.life}`,
-            corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
-            corners[0].y + 15 + Y_OFFSET
-        )
-
-        // actions
-        text(
-            `👊 x ${tank.actions}`,
-            corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
-            corners[0].y + 30 + Y_OFFSET
-        );
-
-        // range
-        text(
-            `👁 x ${tank.range}`,
-            corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
-            corners[0].y + 45 + Y_OFFSET
-        );
+        // textSize(12);
+        // textAlign(LEFT);
+        //
+        // // life
+        //
+        // text(
+        //     `💓 x ${tank.life}`,
+        //     corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
+        //     corners[0].y + 15 + Y_OFFSET
+        // )
+        //
+        // // actions
+        // text(
+        //     `👊 x ${tank.actions}`,
+        //     corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
+        //     corners[0].y + 30 + Y_OFFSET
+        // );
+        //
+        // // range
+        //
+        // let rangeModifier = '';
+        // let tile = localGrid.getHex({q: hex.q, r: hex.r}).tile;
+        // if (tile === 4) {
+        //     rangeModifier = ' (+1 ⛰️)';
+        // }
+        //
+        // if (tile === 3) {
+        //     rangeModifier = ' (-1 🌲)';
+        // }
+        //
+        // text(
+        //     `👁 x ${tank.range} ${rangeModifier}`,
+        //     corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
+        //     corners[0].y + 45 + Y_OFFSET
+        // );
 
     }
 
@@ -783,21 +871,27 @@ function drawPopup() {
         hover.for = 0;
     }
 
-    const smallSize = [200, 50];
-    const mediumSize = [200, 100];
+    const smallSize = [280, 80];
+    const mediumSize = [200, 120];
     const largeSize = [300, 150];
 
 
     if (hover.for > POPUP_DELAY) {
         
-        const rectSourceX = hex.corners[0].x + X_OFFSET + 10 ;
-        const rectSourceY = hex.corners[0].y + Y_OFFSET;
-        
+        let rectSourceX = hex.corners[0].x + X_OFFSET + 10 ;
+        let rectSourceY = hex.corners[0].y + Y_OFFSET - HEX_TOP_TRIANGLE_HEIGHT;
+
         let size = smallSize;
+
+        let popupXOffset = 15;
 
         if (heartsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {
             size = smallSize;
 
+            if (mouseX > WIDTH / 2) {
+                rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
+            }
+
             fill('black');
             stroke('white');
             rect(rectSourceX, rectSourceY, size[0], size[1]);
@@ -806,14 +900,18 @@ function drawPopup() {
             noStroke();
             fill('white');
             textSize(18);
-            text('Health potion', rectSourceX + 15, rectSourceY  + 20);
+            text('Health potion', rectSourceX + popupXOffset, rectSourceY  + 20);
 
             textSize(12);
-            text('Move here to get one 💓', rectSourceX +  15, rectSourceY + 40);
+            text('Move here to get one 💓', rectSourceX +  popupXOffset, rectSourceY + 40);
 
         } else if (actionsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {
             size = smallSize;
 
+            if (mouseX > WIDTH / 2) {
+                rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
+            }
+
             fill('black');
             stroke('white');
             rect(rectSourceX, rectSourceY, size[0], size[1]);
@@ -822,16 +920,42 @@ function drawPopup() {
             noStroke();
             fill('white');
             textSize(18);
-            text('Action potion', rectSourceX + 15, rectSourceY  + 20);
+            text('Action potion', rectSourceX + popupXOffset, rectSourceY  + 20);
 
             textSize(12);
-            text('Move here to get one 👊', rectSourceX +  15, rectSourceY + 40);
+            text('Move here to get one 👊', rectSourceX +  popupXOffset, rectSourceY + 40);
+
+        } else if (buildings.find(({position}) => position.q === hex.q && position.r === hex.r)) {
+
+            const building = buildings.find(({position}) => position.q === hex.q && position.r === hex.r);
+            size = largeSize;
+
+            if (mouseX > WIDTH / 2) {
+                rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
+            }
+
+            fill('black');
+            stroke('white');
+            rect(rectSourceX, rectSourceY, size[0], size[1]);
+
+            textAlign(LEFT);
+            noStroke();
+            fill('white');
+            textSize(18);
+            text(BUILDINGS[building.type].name, rectSourceX + popupXOffset, rectSourceY  + 20);
+
+            textSize(12);
+            text(BUILDINGS[building.type].description, rectSourceX +  popupXOffset, rectSourceY + 40);
 
         } else if (!hex.tank) {
 
             // empty
 
             size = smallSize;
+
+            if (mouseX > WIDTH / 2) {
+                rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
+            }
             
             fill('black');
             stroke('white');
@@ -841,10 +965,93 @@ function drawPopup() {
             noStroke();
             fill('white');
             textSize(18);
-            text(TILES[hex.tile].name, rectSourceX + 15, rectSourceY  + 20);
+            text(TILES[hex.tile].name, rectSourceX + popupXOffset, rectSourceY  + 20);
 
             textSize(12);
-            text(TILES[hex.tile].description, rectSourceX +  15, rectSourceY + 40);
+            text(TILES[hex.tile].description, rectSourceX +  popupXOffset, rectSourceY + 40);
+        } else if (hex.tank) {
+
+            size = mediumSize;
+
+            if (mouseX > WIDTH / 2) {
+                rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
+            }
+
+            fill('black');
+            stroke('white');
+            rect(rectSourceX, rectSourceY, size[0], size[1]);
+
+            if (pictures[hex.tank.id]) {
+                image(
+                    pictures[hex.tank.id],
+                    rectSourceX + popupXOffset,
+                    rectSourceY + popupXOffset - 5,
+                    30,
+                    30
+                );
+            }
+
+            textAlign(LEFT);
+            noStroke();
+            fill('white');
+            textSize(18);
+            textLeading(18);
+            text(
+                hex.tank.name.split(' ').join("\n"),
+                rectSourceX + popupXOffset + 30 + 5,
+                rectSourceY  + 20
+            );
+
+            textSize(12);
+            textLeading(15);
+            // text(hex.tank.name, rectSourceX +  popupXOffset, rectSourceY + 40);
+
+            // life
+
+            if (hex.tank.life < 1) {
+                text(
+                    '☠',
+                    rectSourceX + popupXOffset,
+                    rectSourceY  + 60
+                )
+            } else {
+                text(
+                    `💓 x ${hex.tank.life}`,
+                    rectSourceX + popupXOffset,
+                    rectSourceY  + 60
+                )
+
+                // actions
+                text(
+                    `👊 x ${hex.tank.actions}`,
+                    rectSourceX + popupXOffset,
+                    rectSourceY  + 75
+                );
+
+                // range
+
+                let rangeModifier = '';
+                let tile = localGrid.getHex({q: hex.q, r: hex.r}).tile;
+                if (tile === 4) {
+                    rangeModifier = ' (+1 ⛰️)';
+                }
+
+                if (tile === 3) {
+                    rangeModifier = ' (-1 🌲)';
+                }
+
+                text(
+                    `👁 x ${hex.tank.range} ${rangeModifier}`,
+                    rectSourceX + popupXOffset,
+                    rectSourceY  + 90
+                );
+            }
+
+
+
+            // terrain
+            text(`on ${TILES[hex.tile].name}`, rectSourceX + popupXOffset, rectSourceY  + 115);
+
         }
 
 
