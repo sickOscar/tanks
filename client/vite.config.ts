@@ -5,7 +5,7 @@ import path from 'path'
 export default defineConfig({
     build: {
       sourcemap: true,
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 1500,
     },
     plugins: [
         viteStaticCopy({

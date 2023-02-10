@@ -1,5 +1,6 @@
 import {AxialCoordinates, Grid} from "honeycomb-grid";
 import {TanksHex} from "../server/app/board";
+import {Tank} from "./models/Tank";
 
 export interface IBuilding {
     name: string;
@@ -39,6 +40,8 @@ export const TILES = [
     {name: "❄️ Ice", description: "Moving here will cost you 2 👊"},
 ];
 
+export const walkableTiles = [0, 2, 3, 4, 5, 6];
+
 export const States = {
     IDLE: 'idle',
     MOVE: 'move',
@@ -62,7 +65,9 @@ interface IGameState {
     localGrid: Grid<TanksHex> | null,
     players: Player[],
     playerId: string | null,
-    activePlayerHover: null | TanksHex
+    activePlayerHover: null | TanksHex,
+    player:Tank|null,
+    currentState: string,
 }
 export const GameState:IGameState = {
     heartsLocations: [],
@@ -73,7 +78,23 @@ export const GameState:IGameState = {
     localGrid: null,
     players: [],
     playerId: null,
-    activePlayerHover: null
+    activePlayerHover: null,
+    player: null,
+    currentState: States.IDLE,
+}
+
+interface IGameGraphics {
+    maskGraphics: any,
+    tiles: any[],
+    oasisImage: any,
+    iceFortressImage: any,
+}
+
+export const GameGraphics:IGameGraphics = {
+    maskGraphics: null,
+    tiles: [],
+    oasisImage: null,
+    iceFortressImage: null,
 }
 
 // export let heartsLocations:[q:number, r:number][] = [];

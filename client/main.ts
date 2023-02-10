@@ -1,35 +1,23 @@
 import p5 from 'p5';
 import * as Honeycomb from 'honeycomb-grid';
-import {AxialCoordinates} from 'honeycomb-grid';
 import {TanksHex} from "../server/app/board";
 import {Tank} from "./models/Tank";
-import {
-    GameState,
-    HEX_HEIGHT,
-    HEX_SIDE,
-    HEX_TOP_TRIANGLE_HEIGHT,
-    HEX_WIDTH,
-    pictures,
-    States,
-    X_OFFSET,
-    Y_OFFSET
-} from "./consts";
-import {drawPopup} from "./game/popups";
+import {GameGraphics, GameState, HEX_HEIGHT, HEX_SIDE, HEX_WIDTH, pictures, States, X_OFFSET, Y_OFFSET} from "./consts";
+import {drawPopup} from "./game-ui/popups";
 import {io} from "socket.io-client";
 import {createAuth0Client} from '@auth0/auth0-spa-js';
+import {drawBoard} from "./game-ui/board";
 
-const sketch =  new p5((p5) => {
+new p5((p5) => {
 
     let events:any[] = []
     let configFetched = false;
     let sio:any;
-    let player:Tank;
 
     let stage = 'RUN';
-
-    let maskGraphics:any;
+    // AUTH
+    let auth0:any;
     let hoverHex;
-    let currentState = States.IDLE;
     const voteSelect = document.querySelector('select#vote') as HTMLSelectElement;
     const pollForm = document.querySelector('form#poll') as HTMLFormElement;
     const showPollResultsButton = document.querySelector('button#show-poll-results') as HTMLButtonElement;
@@ -40,11 +28,6 @@ const sketch =  new p5((p5) => {
     const loginButton = document.querySelector('#btn-login') as HTMLButtonElement;
     const logoutButton = document.querySelector('#btn-logout') as HTMLButtonElement;
 
-    let tiles:any[] = [];
-
-    const walkableTiles = [0, 2, 3, 4, 5, 6];
-    let oasisImage:any = null;
-    let iceFortressImage:any = null;
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
@@ -58,6 +41,7 @@ const sketch =  new p5((p5) => {
     })
 
     document.addEventListener('click', event => {
+        // @ts-ignore
         if (Array.from(event.target!.classList).includes('close-modal-button')) {
             document.querySelectorAll('.drawer').forEach(el => {
                 el.classList.add('d-none');
@@ -73,7 +57,7 @@ const sketch =  new p5((p5) => {
 
         getJson('poll')
             .then(response => {
-                pollResultsTable.innerHTML = response.map(row => `
+                pollResultsTable.innerHTML = response.map((row:any) => `
                 <tr>
                     <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
                     <td>${row.name}</td>
@@ -84,8 +68,7 @@ const sketch =  new p5((p5) => {
             .catch(console.error)
     })
 
-    // AUTH
-    let auth0:any;
+
     const fetchAuthConfig = () => fetch("/auth_config.json");
     const configureClient = async () => {
         const response = await fetchAuthConfig();
@@ -167,6 +150,8 @@ const sketch =  new p5((p5) => {
                 this.tile = tile
             }
         }
+        // non ho voglia di capire come tipizzare questo
+        // @ts-ignore
         GameState.localGrid = new Honeycomb.Grid<TanksHex>(TanksHex, resizedGrid.coordinates);
     }
 
@@ -183,7 +168,7 @@ const sketch =  new p5((p5) => {
 
         // MAGIC: 69 is SUPER RANDOM
         // don't understand properly how to calculate the size of the mask
-        maskGraphics = p5.createGraphics(69, 69);
+        GameGraphics.maskGraphics = p5.createGraphics(69, 69);
 
         const jwt = await auth0.getTokenSilently()
         connectSocket(jwt);
@@ -305,7 +290,7 @@ const sketch =  new p5((p5) => {
     actionButtons.forEach(el => {
         el.addEventListener('click', function () {
 
-            if (!player) {
+            if (!GameState.player) {
                 return;
             }
 
@@ -315,14 +300,14 @@ const sketch =  new p5((p5) => {
             }
 
             if (state === States.UPGRADE ) {
-                sio.emit('playerevent', States.UPGRADE, null, (isValid:boolean) => {
+                sio.emit('playerevent', States.UPGRADE, null, (_isValid:boolean) => {
                     console.log('upgraded');
                 });
             } else {
-                if (currentState === state) {
-                    currentState = States.IDLE
+                if (GameState.currentState === state) {
+                    GameState.currentState = States.IDLE
                 } else {
-                    currentState = state;
+                    GameState.currentState = state;
                 }
             }
 
@@ -356,16 +341,16 @@ const sketch =  new p5((p5) => {
             }
 
             if (hex.tank && hex.tank.id === GameState.playerId) {
-                player = hex.tank;
+                GameState.player = hex.tank;
             }
         })
 
-        if (player && player.life > 0) {
+        if (GameState.player && GameState.player.life > 0) {
             actionsContainer.classList.remove('d-none');
             pollForm.classList.add('d-none')
         }
 
-        if (player && player.life <= 0) {
+        if (GameState.player && GameState.player.life <= 0) {
             actionsContainer.classList.add('d-none');
             pollForm.classList.remove('d-none')
         }
@@ -396,15 +381,14 @@ const sketch =  new p5((p5) => {
 
             const listItems = onlinePlayers.map((p:any) => `
             <li class="list-group-item">
-                <img src="${p.picture}"  class="img-thumbnail"> ${p.name}    
+                <img alt="${p.name}" src="${p.picture}"  class="img-thumbnail"> ${p.name}    
             </li>
         `)
-            const markup = `
+            playersContainer.innerHTML = `
             <ul class="list-group">
                 ${listItems.join('')}
             </ul>
         `;
-            playersContainer.innerHTML = markup;
 
         } catch (err) {
             console.error(err)
@@ -424,8 +408,7 @@ const sketch =  new p5((p5) => {
     }
 
     p5.preload = function() {
-        // backgroundImage = p5.loadImage('tanks.jpg');
-        tiles = [
+        GameGraphics.tiles = [
             p5.loadImage('./assets/grass.png'),
             p5.loadImage('./assets/sea.png'),
             p5.loadImage('./assets/desert.png'),
@@ -435,8 +418,8 @@ const sketch =  new p5((p5) => {
             p5.loadImage('./assets/ice.png'),
         ]
 
-        oasisImage = p5.loadImage('./assets/oasis.webp');
-        iceFortressImage = p5.loadImage('./assets/ice_fortress.webp');
+        GameGraphics.oasisImage = p5.loadImage('./assets/oasis.webp');
+        GameGraphics.iceFortressImage = p5.loadImage('./assets/ice_fortress.webp');
 
     }
 
@@ -444,7 +427,7 @@ const sketch =  new p5((p5) => {
         const canvas = p5.createCanvas(100, 100);
         canvas.parent('board-holder')
 
-        maskGraphics = p5.createGraphics(100, 100);
+        GameGraphics.maskGraphics = p5.createGraphics(100, 100);
 
         p5.frameRate(10)
     }
@@ -460,7 +443,7 @@ const sketch =  new p5((p5) => {
 
         if (stage === 'RUN') {
             // p5.image(backgroundImage, 0, 0);
-            drawBoard();
+            drawBoard(p5);
         }
 
         drawCursor();
@@ -473,358 +456,26 @@ const sketch =  new p5((p5) => {
 
         p5.cursor('default')
 
-        if (currentState === States.SHOOT) {
+        if (GameState.currentState === States.SHOOT) {
             p5.cursor('pointer');
         }
 
-        if (currentState === States.MOVE) {
+        if (GameState.currentState === States.MOVE) {
             p5.cursor('pointer');
         }
 
-        if (currentState === States.GIVE_ACTION) {
+        if (GameState.currentState === States.GIVE_ACTION) {
             p5.cursor('pointer');
         }
 
-        if (currentState === States.HEAL) {
+        if (GameState.currentState === States.HEAL) {
             p5.cursor('pointer');
         }
     }
-
-    function drawPlayerHover() {
-        if (!GameState.activePlayerHover) {
-            return;
-        }
-
-        const hex = GameState.activePlayerHover;
-
-        p5.textSize(14);
-        p5.noStroke();
-        p5.fill('white');
-        p5.textAlign(p5.CENTER);
-        p5.text(hex.tank!.name, hex.corners[2].x + X_OFFSET, hex.corners[2].y + Y_OFFSET + 16)
-
-    }
-
-    function drawBoard() {
-        p5.noFill();
-        p5.stroke('white');
-        GameState.localGrid!.forEach(drawCell);
-    }
-
-
-    function drawCoordinates(hex:TanksHex) {
-        // p5.noStroke()
-        // p5.fill('#fff');
-        // p5.textSize(10);
-        // p5.textAlign(p5.CENTER);
-        // p5.text(
-        //     `q: ${hex.q} r: ${hex.r}`,
-        //     hex.corners[0].x - (HEX_WIDTH / 2) + X_OFFSET,
-        //     hex.corners[0].y + Y_OFFSET
-        // )
-    }
-
-    function drawCell(hex:TanksHex) {
-        p5.stroke('white')
-
-        drawEmptyCell(hex);
-
-        if (!hex.tank) {
-
-
-            if (GameState.heartsLocations) {
-                const hasHeart = GameState.heartsLocations.find(loc => {
-                    return loc[0] === hex.q && loc[1] === hex.r
-                })
-                if (hasHeart) {
-                    drawHeart(hex);
-                }
-            }
-
-            if (GameState.actionsLocations) {
-                const hasAction = GameState.actionsLocations.find(loc => {
-                    return loc[0] === hex.q && loc[1] === hex.r
-                })
-                if (hasAction) {
-                    drawAction(hex);
-                }
-            }
-
-            if (GameState.buildings) {
-                const hasBuilding = GameState.buildings.find(building => {
-                    return building.position.q === hex.q && building.position.r === hex.r
-                })
-                if (hasBuilding) {
-                    drawBuilding(hex, hasBuilding);
-                }
-            }
-
-
-        } else {
-
-            if (hex.tank?.id === GameState.playerId) {
-                drawPlayer(hex);
-            } else {
-                drawPlayer(hex)
-            }
-        }
-
-        drawCoordinates(hex);
-
-
-    }
-
-    function drawBuilding(hex:TanksHex, building:any) {
-        switch(building.type) {
-
-            case 'OASIS':
-                p5.image(
-                    oasisImage,
-                    hex.corners[0].x - HEX_WIDTH + X_OFFSET,
-                    hex.corners[0].y + Y_OFFSET - 10,
-                    HEX_WIDTH,
-                    HEX_HEIGHT
-                );
-                break;
-
-            case 'ICE_FORTRESS':
-                p5.image(
-                    iceFortressImage,
-                    hex.corners[0].x - HEX_WIDTH + X_OFFSET,
-                    hex.corners[0].y + Y_OFFSET - HEX_TOP_TRIANGLE_HEIGHT,
-                    HEX_WIDTH,
-                    HEX_HEIGHT + 12
-                );
-                break;
-
-            default:
-                break;
-        }
-
-    }
-
-    function isInRange(destinationCell:AxialCoordinates, startingCell:AxialCoordinates, range:number, shooting  = false) {
-        let finalRange = range;
-        if (shooting) {
-            const startingTile = GameState.localGrid?.getHex({q: startingCell.q, r: startingCell.r})?.tile;
-            const destinationTile = GameState.localGrid?.getHex({q: destinationCell.q, r: destinationCell.r})?.tile;
-            if (startingTile === 4) {
-                finalRange = range + 1;
-            }
-            if (startingTile === 3 || destinationTile === 3) {
-                finalRange = range - 1;
-            }
-        }
-        return GameState.localGrid!.distance(destinationCell, startingCell) <= finalRange
-    }
-
-    function isWalkable(hex:TanksHex) {
-        return walkableTiles.includes(hex.tile);
-    }
-
-    function drawAction(hex:TanksHex) {
-
-        const corners = hex.corners;
-
-        p5.fill('white');
-        p5.textSize(HEX_SIDE + 5 * Math.sin(p5.frameCount * 0.1));
-        p5.textAlign(p5.CENTER);
-        p5.text(
-            '👊',
-            corners[0].x - HEX_WIDTH / 2 + X_OFFSET,
-            corners[0].y + HEX_HEIGHT / 2 + Y_OFFSET
-        )
-    }
-
-    function drawHeart(hex:TanksHex) {
-
-        const corners = hex.corners;
-
-        p5.fill('red')
-        p5.textSize(HEX_SIDE + 5 * Math.sin(p5.frameCount * 0.1));
-        p5.textAlign(p5.CENTER);
-        p5.text(
-            '💖',
-            corners[0].x - HEX_WIDTH / 2 + X_OFFSET,
-            corners[0].y + HEX_HEIGHT / 2 + Y_OFFSET
-        )
-    }
-
-    function drawEmptyCell(hex:TanksHex) {
-        p5.noFill()
-        p5.strokeWeight(2);
-        p5.stroke('rgb(243,235,173)');
-        // p5.noStroke();
-
-        const [...corners] = hex.corners;
-
-        p5.image(
-            tiles[hex.tile],
-            corners[4].x + X_OFFSET,
-            corners[4].y + Y_OFFSET - HEX_TOP_TRIANGLE_HEIGHT,
-            HEX_WIDTH,
-            HEX_HEIGHT + 9, // +5 WHY???
-        )
-
-        const highlightColor = 'rgba(255, 255, 255, 0.3)'
-
-        if (GameState.localGrid!.pointToHex({x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET}) === hex) {
-            p5.fill(highlightColor);
-        } else {
-            // p5.fill('rgb(38,91,34)')
-        }
-
-        if (currentState === States.MOVE) {
-            if(
-                isInRange(hex, player.position, 1)
-                && isWalkable(hex)
-            ) {
-                p5.fill(highlightColor)
-            }
-        }
-
-        if (currentState === States.SHOOT) {
-            if(isInRange(hex, player.position, player.range, true)) {
-                p5.fill(highlightColor)
-            }
-        }
-
-        if (currentState === States.GIVE_ACTION) {
-            if(isInRange(hex, player.position, player.range, true)) {
-                p5.fill(highlightColor)
-            }
-        }
-
-        if (currentState === States.HEAL) {
-            if(isInRange(hex, player.position, player.range, true)) {
-                p5.fill(highlightColor)
-            }
-        }
-
-        p5.beginShape();
-        let first = true;
-        corners.forEach(({ x, y }) => {
-            p5.vertex(x + X_OFFSET, y + Y_OFFSET);
-            if (first) {
-                p5.circle(x + X_OFFSET, y + Y_OFFSET, 5)
-            }
-            first = false;
-        });
-        p5.endShape(p5.CLOSE);
-
-
-
-    }
-
-    function drawPlayer(hex:TanksHex) {
-
-        const tank = hex.tank;
-        if (!tank) {
-            return;
-        }
-
-        const [...corners] = hex.corners;
-
-        if (pictures[tank.id]) {
-
-            const origin = corners[4];
-            const originOffset = p5.createVector(origin.x + X_OFFSET, origin.y + Y_OFFSET);
-            originOffset.y = originOffset.y - HEX_TOP_TRIANGLE_HEIGHT;
-
-            maskGraphics.fill('rgba(0,0,0,1)');
-            maskGraphics.beginShape();
-            corners.forEach(({ x, y }) => {
-                maskGraphics.vertex(x + X_OFFSET - originOffset.x, y + Y_OFFSET - originOffset.y);
-            })
-            maskGraphics.endShape(p5.CLOSE);
-
-
-            pictures[tank.id].mask(maskGraphics);
-
-            p5.image(
-                pictures[tank.id],
-                corners[0].x - HEX_WIDTH + X_OFFSET,
-                corners[0].y - HEX_TOP_TRIANGLE_HEIGHT + Y_OFFSET,
-                HEX_WIDTH,
-                HEX_HEIGHT
-            );
-
-        }
-
-        p5.noStroke()
-        p5.fill('white')
-        p5.textStyle('bold');
-
-        if (tank.life === 0) {
-
-            p5.textSize(HEX_SIDE);
-            p5.textAlign(p5.CENTER);
-
-            p5.text(
-                '☠',
-                corners[0].x - HEX_WIDTH / 2 + X_OFFSET,
-                corners[0].y + HEX_HEIGHT / 2 + Y_OFFSET
-            )
-
-        } else {
-
-            // p5.textSize(12);
-            // p5.textAlign(p5.LEFT);
-            //
-            // // life
-            //
-            // p5.text(
-            //     `💓 x ${tank.life}`,
-            //     corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
-            //     corners[0].y + 15 + Y_OFFSET
-            // )
-            //
-            // // actions
-            // p5.text(
-            //     `👊 x ${tank.actions}`,
-            //     corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
-            //     corners[0].y + 30 + Y_OFFSET
-            // );
-            //
-            // // range
-            //
-            // let rangeModifier = '';
-            // let tile = localGrid.getHex({q: hex.q, r: hex.r}).tile;
-            // if (tile === 4) {
-            //     rangeModifier = ' (+1 ⛰️)';
-            // }
-            //
-            // if (tile === 3) {
-            //     rangeModifier = ' (-1 🌲)';
-            // }
-            //
-            // p5.text(
-            //     `👁 x ${tank.range} ${rangeModifier}`,
-            //     corners[0].x - HEX_WIDTH + 15 + X_OFFSET,
-            //     corners[0].y + 45 + Y_OFFSET
-            // );
-
-        }
-
-        p5.stroke('white');
-        p5.noFill();
-        p5.beginShape();
-        corners.forEach(({ x, y }) => {
-            p5.vertex(x + X_OFFSET, y + Y_OFFSET);
-        });
-        p5.endShape(p5.CLOSE);
-
-        if (GameState.localGrid!.pointToHex({x:p5.mouseX - X_OFFSET, y:p5.mouseY - Y_OFFSET}).equals({q:hex.q, r:hex.r})) {
-            GameState.activePlayerHover = hex;
-        }
-
-    }
-
-
 
     p5.mouseClicked = function() {
 
-        if (currentState === States.IDLE) {
+        if (GameState.currentState === States.IDLE) {
             const hex = GameState.localGrid!.pointToHex(
                 { x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET },
                 { allowOutside: false }
@@ -839,9 +490,9 @@ const sketch =  new p5((p5) => {
             { allowOutside: false }
         );
         if (hex) {
-            sio.emit('playerevent', currentState, {q: hex.q, r: hex.r}, (isValid:boolean) => {
+            sio.emit('playerevent', GameState.currentState, {q: hex.q, r: hex.r}, (isValid:boolean) => {
                 if (isValid) {
-                    currentState = States.IDLE;
+                    GameState.currentState = States.IDLE;
                 } else {
                     //  animate(cell, 'BLOW')
                 }
