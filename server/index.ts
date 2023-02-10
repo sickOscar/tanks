@@ -52,14 +52,14 @@ async function init() {
     setInterval(async () => {
         try {
             await game.distributeActions();
-            await game.dropHeart();
-            await game.dropAction();
+            // await game.dropHeart();
+            // await game.dropAction();
             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
         } catch (err) {
             console.log(`err`, err)
             console.log('Failed to distribute actions')
         }
-    }, 1000000)
+    }, 5000)
 
 
     const app = express()

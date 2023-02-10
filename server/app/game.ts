@@ -1,25 +1,39 @@
 import {Player} from "./player";
 import db from "../db";
-import {Board, TanksHex} from "./board";
-import {COLS, ROWS} from "../const";
+import {Board, TanksHex, TileType} from "./board";
 import {Tank} from "./Tank";
 import axios from "axios";
-import {AxialCoordinates, Hex} from "honeycomb-grid";
+import {AxialCoordinates} from "honeycomb-grid";
+
+interface Building {
+    type: string;
+    position: AxialCoordinates;
+}
 
 interface GameState {
     board: Board;
     heartsLocations: AxialCoordinates[];
     actionsLocations: AxialCoordinates[];
+    buildings: Building[];
 }
 
-export class Game  {
+export class Game {
 
     id: number = 0;
     activePlayers: Player[] = [];
     private state: GameState = {
         board: new Board(this),
         heartsLocations: [],
-        actionsLocations: []
+        actionsLocations: [],
+        buildings: [
+            {
+                type: 'OASIS',
+                position: {q: -1, r: 14}
+            }, {
+                type: 'ICE_FORTRESS',
+                position: {q: 3, r: 0}
+            }
+        ]
     };
 
     addActivePlayer(player: Player) {
@@ -56,6 +70,10 @@ export class Game  {
         if (dbBoard.features.actionsLocations) {
             this.state.actionsLocations = dbBoard.features.actionsLocations
                 .map((actionPosition: number[]) => ({q: actionPosition[0], r: actionPosition[1]}))
+        }
+
+        if (dbBoard.features.buildings) {
+            this.state.buildings = dbBoard.features.buildings;
         }
 
         this.id = res.rows[0].id;
@@ -95,9 +113,21 @@ export class Game  {
     async distributeActions(): Promise<void> {
         this.board.forEach((hex: TanksHex) => {
             const tank = hex.tank;
+
+            // if tank tile is desert, remove 1 life
+            if (hex.tile === TileType.DESERT) {
+
+                // if tank is in oasis, don't remove life
+                const oasis = this.state.buildings.find(building => building.type === 'OASIS' && building.position.q === hex.q && building.position.r === hex.r);
+                if (!oasis && tank && tank.life > 0) {
+                    tank.life -= 1;
+                }
+            }
+
             if (tank && tank.life > 0) {
                 tank.actions += 1;
             }
+
         })
         await this.board.updateOnDb();
     }
@@ -247,16 +277,26 @@ export class Game  {
         })
     }
 
-    get heartsLocations():AxialCoordinates[] {
+    hasBuildingOn(x: number, y: number): boolean {
+        return !!this.buildings.find((building: Building) => {
+            return building.position.q === x && building.position.r === y;
+        })
+    }
+
+    get heartsLocations(): AxialCoordinates[] {
         return this.state.heartsLocations;
     }
 
-    get actionsLocations():AxialCoordinates[] {
+    get actionsLocations(): AxialCoordinates[] {
         return this.state.actionsLocations;
     }
 
     get board(): Board {
         return this.state.board;
+    }
+
+    get buildings(): Building[] {
+        return this.state.buildings;
     }
 
     set board(board: Board) {

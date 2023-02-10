@@ -1,10 +1,9 @@
-import {COLS, ROWS} from "../const";
 import {PlayerActions} from "./playerActions";
 import db from "../db";
 import {AxialCoordinates} from "honeycomb-grid";
 import {Game} from "./game";
 import {Action} from "./player";
-
+import {TileType} from "./board";
 
 
 interface TankParams {
@@ -51,7 +50,7 @@ export class Tank {
 
     static async create(game: Game, userId: string, name: string, picture: string): Promise<Tank> {
 
-        const tankPosition = game.board.getEmptyRandom();
+        const tankPosition = game.board.getEmptyRandom([TileType.DESERT, TileType.MOUNTAIN, TileType.ICE]);
         console.log(`new tankPosition`, tankPosition);
         const tank = new Tank(game, {
             id: userId,
@@ -98,7 +97,13 @@ export class Tank {
 
         await this.game.addAction(this, 'move', {q, r})
 
-        this.useAction();
+        let actionsUsed = 1;
+        const tile = this.game.board.getTileAt(q, r);
+        if (tile === TileType.MOUNTAIN || tile === TileType.ICE) {
+            actionsUsed = 2;
+        }
+
+        this.useAction(actionsUsed);
     }
 
     async shoot(q: number, r: number): Promise<void> {
@@ -245,11 +250,20 @@ export class Tank {
                 console.log(`occupied`)
                 return false;
             }
+
+            const tile = this.game.board.getTileAt(q, r);
+            if (tile === TileType.MOUNTAIN || tile === TileType.ICE) {
+                if (this.actions < 2) {
+                    console.log(`not enough actions`)
+                    return false;
+                }
+            }
+            
             if (this.game.board.isInRange(this.position, boardCell, 1)) {
                 await this.move(q, r);
                 return action;
             } else {
-                console.log('not in range')
+                console.log('not in range --')
             }
         }
 
@@ -261,7 +275,8 @@ export class Tank {
             if (this.position.q === q && this.position.r === r) {
                 return false;
             }
-            if (this.game.board.isInRange(this.position, boardCell, this.range)) {
+
+            if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 const enemy = this.game.board.getAt(q, r) as Tank;
                 if (enemy.life > 0) {
                     await this.shoot(q, r);
@@ -278,7 +293,7 @@ export class Tank {
             if (this.position.q === q && this.position.r === r) {
                 return false;
             }
-            if (this.game.board.isInRange(this.position, boardCell, this.range)) {
+            if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 action.enemy = this.game.board.getAt(q, r) as Tank;
                 if (action.enemy.life > 0) {
                     await this.giveAction(q, r);
@@ -295,7 +310,7 @@ export class Tank {
             if (!this.game.board.isPositionOccupied(q, r)) {
                 return false;
             }
-            if (this.game.board.isInRange(this.position, boardCell, this.range)) {
+            if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 if (this.actions >= 3) {
                     await this.heal(q, r);
                     action.enemy = this.game.board.getAt(q, r)

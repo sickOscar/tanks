@@ -5,6 +5,25 @@ import db from "../db";
 import {AxialCoordinates, defineHex, Grid, rectangle} from "honeycomb-grid";
 import {Game} from "./game";
 
+export enum TileType {
+    PLAINS = 0,
+    WATER = 1,
+    DESERT = 2,
+    FOREST = 3,
+    MOUNTAIN = 4,
+    SWAMP = 5,
+    ICE = 6,
+}
+
+const WALKABLE_TILES:TileType[] = [
+    TileType.PLAINS,
+    TileType.FOREST,
+    TileType.SWAMP,
+    TileType.DESERT,
+    TileType.MOUNTAIN,
+    TileType.ICE
+];
+
 export class TanksHex extends defineHex() {
     tank: Tank | null = null;
     tile: number = 0;
@@ -27,23 +46,23 @@ export class Board {
         this.board = new Grid(TanksHex, rectangle({width: COLS, height: ROWS}));
 
         const map = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 3, 3, 0, 1, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 3, 3, 3, 0, 4, 0, 0, 0, 0, 0, 2, 2, 0, 2, 0, 1, 1],
-            [1, 0, 0, 3, 3, 3, 0, 4, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 1],
-            [1, 1, 0, 3, 3, 3, 0, 0, 0, 0, 0, 4, 4, 0, 0, 0, 0, 0, 3, 1],
-            [1, 1, 0, 0, 3, 3, 0, 0, 0, 0, 4, 4, 0, 0, 0, 0, 0, 3, 3, 1],
-            [1, 0, 0, 0, 3, 0, 0, 0, 0, 4, 4, 0, 0, 0, 1, 1, 0, 1, 3, 1],
-            [1, 0, 0, 4, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 4, 3, 3, 0, 4, 4, 0, 0, 0, 2, 0, 0, 2, 2, 1, 1, 1],
-            [1, 0, 0, 4, 3, 3, 3, 4, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 1, 1],
-            [1, 0, 0, 0, 0, 3, 3, 0, 3, 3, 0, 4, 0, 2, 2, 2, 0, 0, 1, 1],
-            [1, 1, 0, 0, 4, 3, 4, 3, 3, 0, 0, 0, 0, 0, 2, 2, 4, 0, 0, 1],
-            [1, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 2, 2, 4, 0, 0, 1],
-            [1, 0, 0, 0, 0, 3, 3, 1, 0, 0, 3, 3, 3, 0, 0, 0, 4, 0, 0, 1],
-            [1, 0, 0, 1, 1, 3, 3, 1, 1, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 1],
+            [1, 6, 6, 6, 6, 6, 0, 6, 6, 6, 6, 0, 0, 6, 6, 6, 6, 6, 6, 6],
+            [1, 0, 6, 6, 0, 0, 0, 0, 6, 6, 0, 0, 0, 0, 6, 6, 0, 0, 0, 1],
+            [1, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 6, 6, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 6, 3, 3, 0, 4, 0, 0, 0, 0, 0, 3, 3, 0, 3, 0, 1, 1],
+            [1, 0, 0, 3, 3, 3, 0, 4, 0, 0, 0, 0, 3, 3, 3, 3, 3, 0, 0, 1],
+            [1, 1, 0, 3, 3, 3, 0, 0, 0, 0, 3, 4, 4, 0, 0, 0, 0, 0, 3, 1],
+            [1, 1, 0, 0, 3, 3, 0, 0, 0, 3, 4, 4, 0, 0, 0, 0, 0, 3, 3, 1],
+            [1, 0, 0, 0, 3, 0, 0, 0, 3, 4, 4, 0, 0, 0, 1, 1, 0, 1, 3, 1],
+            [1, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 4, 0, 0, 0, 4, 4, 0, 0, 0, 5, 0, 0, 0, 0, 1, 1, 1],
+            [1, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 3, 0, 5, 3, 5, 5, 0, 1, 1],
+            [1, 0, 0, 0, 0, 2, 3, 0, 2, 2, 0, 4, 3, 5, 5, 5, 0, 0, 1, 1],
+            [1, 1, 0, 0, 4, 2, 4, 2, 2, 0, 0, 0, 5, 5, 5, 5, 4, 0, 0, 1],
+            [1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 5, 5, 5, 4, 0, 0, 1],
+            [1, 0, 0, 0, 0, 2, 2, 1, 0, 0, 3, 3, 3, 0, 0, 0, 4, 0, 0, 1],
+            [1, 0, 0, 1, 1, 3, 2, 1, 1, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         ]
 
@@ -68,6 +87,10 @@ export class Board {
         return this.board.getHex({q, r})?.tank;
     }
 
+    getTileAt(q:number, r:number):TileType|undefined {
+        return this.board.getHex({q, r})?.tile;
+    }
+
     forEach(cb:(hex:TanksHex) => void) {
         this.board.forEach(cb);
     }
@@ -88,7 +111,7 @@ export class Board {
         return !!this.board.getHex({q, r});
     }
 
-    getEmptyRandom(): AxialCoordinates {
+    getEmptyRandom(forbiddenTiles:TileType[] = []): AxialCoordinates {
 
         let minQ = 0;
         let minR = 0;
@@ -116,18 +139,23 @@ export class Board {
         const tankQ = Math.round(Math.random() * qDiff) + minQ;
         const tankR = Math.round(Math.random() * rDiff) + minR;
 
-
+        if (forbiddenTiles.includes(this.getTileAt(tankQ, tankR)!)) {
+            return this.getEmptyRandom(forbiddenTiles);
+        }
         if (!this.isPositionWalkable(tankQ, tankR)) {
-            return this.getEmptyRandom();
+            return this.getEmptyRandom(forbiddenTiles);
         }
         if (this.isPositionOccupied(tankQ, tankR)) {
-            return this.getEmptyRandom();
+            return this.getEmptyRandom(forbiddenTiles);
         }
         if (this.game.hasHeartOn(tankQ, tankR)) {
-            return this.getEmptyRandom()
+            return this.getEmptyRandom(forbiddenTiles)
         }
         if (this.game.hasActionOn(tankQ, tankR)) {
-            return this.getEmptyRandom()
+            return this.getEmptyRandom(forbiddenTiles)
+        }
+        if (this.game.hasBuildingOn(tankQ, tankR)) {
+            return this.getEmptyRandom(forbiddenTiles)
         }
 
         return {q: tankQ, r: tankR};
@@ -135,11 +163,26 @@ export class Board {
 
     isPositionWalkable(q: number, r: number): boolean {
         const hex = this.board.getHex({q, r});
-        return hex?.tile !== 1 && hex?.tile !== 4;
+        if (!hex) {
+            return false;
+        }
+        return WALKABLE_TILES.some((tile) => tile === hex.tile);
     }
 
-    isInRange(cell1:AxialCoordinates, cell2: AxialCoordinates, range: number) {
-        return this.board.distance(cell1, cell2) <= range;
+    isInRange(source:AxialCoordinates, destination: AxialCoordinates, range: number, isShooting = false) {
+        let finalRange = range;
+        if (isShooting) {
+            if (this.getTileAt(source.q, source.r) === TileType.MOUNTAIN) {
+                finalRange += 1;
+            }
+            if (
+                this.getTileAt(source.q, source.r) === TileType.FOREST
+                || this.getTileAt(destination.q, destination.r) === TileType.FOREST
+            ) {
+                finalRange -= 1;
+            }
+        }
+        return this.board.distance(source, destination) <= finalRange;
     }
 
 
@@ -160,8 +203,6 @@ export class Board {
         if (!destinationHex) {
             throw new Error('MOVE: Invalid destination')
         }
-
-        console.log(`moving`)
 
         destinationHex.tank = tank;
         startingHex.tank = null;
@@ -192,7 +233,8 @@ export class Board {
                 }),
                 actionsLocations: this.game.actionsLocations.map((actionPos:AxialCoordinates) => {
                     return [actionPos.q, actionPos.r]
-                })
+                }),
+                buildings: this.game.buildings
             },
             grid: {
                 ...clone,
