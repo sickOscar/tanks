@@ -28,7 +28,6 @@ export class TanksHex extends defineHex() {
     tank: Tank | null = null;
     tile: number = 0;
 
-
     constructor(...args: any) {
         super(...args);
         this.tank = args[0].tank;
@@ -242,6 +241,7 @@ export class Board {
                     if (coord.tank) {
                         const tank:any = Object.assign({}, coord.tank);
                         delete tank.game;
+                        tank.buffs = Array.from(tank.buffs);
                         return {
                             ...coord,
                             tank

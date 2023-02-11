@@ -153,6 +153,11 @@ new p5((p5) => {
             constructor({q, r, tank, tile}:{q:number, r:number, tank:Tank|null, tile:number}) {
                 super({q, r});
                 this.tank = tank;
+
+                if (this.tank && tank) {
+                    this.tank.buffs = new Set(tank.buffs);
+                }
+
                 this.tile = tile
             }
         }

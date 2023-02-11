@@ -59,7 +59,7 @@ async function init() {
             console.log(`err`, err)
             console.log('Failed to distribute actions')
         }
-    }, 500000)
+    }, 2000)
 
 
     const app = express()

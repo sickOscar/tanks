@@ -5,6 +5,9 @@ import {Game} from "./game";
 import {Action} from "./player";
 import {TileType} from "./board";
 
+export enum Buffs {
+    ICE_ARMOR
+}
 
 interface TankParams {
     id: string;
@@ -14,6 +17,7 @@ interface TankParams {
     range: number;
     name: string;
     picture: string;
+    buffs: Set<Buffs>
 }
 
 const DEFAULT_TANK_PARAMS: TankParams = {
@@ -23,7 +27,8 @@ const DEFAULT_TANK_PARAMS: TankParams = {
     life: 3,
     range: 2,
     name: '',
-    picture: ''
+    picture: '',
+    buffs: new Set<Buffs>()
 }
 
 export class Tank {
@@ -35,6 +40,7 @@ export class Tank {
     range: number;
     name: string;
     picture: string;
+    buffs: Set<Buffs>;
 
     constructor(game: Game, params: Partial<TankParams>) {
         this.game = game;
@@ -46,6 +52,7 @@ export class Tank {
         this.range = opts.range;
         this.name = opts.name;
         this.picture = opts.picture;
+        this.buffs = opts.buffs;
     }
 
     static async create(game: Game, userId: string, name: string, picture: string): Promise<Tank> {

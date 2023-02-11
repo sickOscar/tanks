@@ -1,7 +1,7 @@
 import {Player} from "./player";
 import db from "../db";
 import {Board, TanksHex, TileType} from "./board";
-import {Tank} from "./Tank";
+import {Buffs, Tank} from "./Tank";
 import axios from "axios";
 import {AxialCoordinates} from "honeycomb-grid";
 
@@ -136,7 +136,21 @@ export class Game {
                 }
             }
 
-            if (tank && tank.life > 0) {
+            if (!tank) {
+                return;
+            }
+
+            // check if tank is in ice fortress
+            const iceFortress = this.state.buildings.find(building => building.type === 'ICE_FORTRESS' && building.position.q === hex.q && building.position.r === hex.r);
+            if (iceFortress && tank.life > 0) {
+                console.log(`tank.buffs`, tank.buffs)
+                if (!tank.buffs || tank.buffs.constructor.name !== 'Set') {
+                    tank.buffs = new Set();
+                }
+                tank.buffs.add(Buffs.ICE_ARMOR);
+            }
+
+            if (tank.life > 0) {
                 tank.actions += actionsToGive;
             }
 

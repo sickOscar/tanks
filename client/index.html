@@ -9,13 +9,13 @@
 <body>
 
 <nav class="navbar navbar-expand-lg h-32 pt-0">
-    <div class="header container-fluid fixed">
+    <div class="header container-fluid fixed z-[9999]">
         <div class="d-flex align-items-center">
             <div class="navbar-brand text-8xl" href="#">
                 <h1>InterlogiDragons</h1>
             </div>
             <button class="font-bold" data-micromodal-trigger="rules-modal">
-                GAME RULES
+                REGOLE
             </button>
         </div>
         <div id="actions" class="d-none">
@@ -23,7 +23,7 @@
                 <li>
                     <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
                             data-action="move"
-                            title="Move"
+                            title="Muovi"
                     >
                         🏃‍♂️ (1 👊)
                     </button>
@@ -31,14 +31,14 @@
                 <li>
                     <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
                             data-action="shoot"
-                            title="Shoot"
+                            title="Attacca"
                     >
                         ⚔️ (1 👊)
                     </button>
                 </li>
                 <li>
                     <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
-                            data-action="give-action" title="Give Action">
+                            data-action="give-action" title="Regala azione">
                         🤝🏻 (1 👊)
                     </button>
                 </li>
@@ -50,7 +50,7 @@
                 </li>
                 <li>
                     <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
-                            data-action="heal" title="Heal">
+                            data-action="heal" title="Cura">
                         ❤️‍🩹 (3 👊)
                     </button>
                 </li>
@@ -76,23 +76,25 @@
     <div class="main-content">
 
         <form id="poll" class="d-none">
-            <h4 style="margin-right: 50px">Sorry, you are dead now... 😞 at least until someone revives you!</h4>
+            <h4 style="margin-right: 50px">Eroe, il tuo corpo giace esanime sul campo di battaglia 😞 almeno fino a che
+                qualcuno non decida di farti resucitare!</h4>
             <div class="poll-inner">
                 <label for="vote" style="margin-right: 30px">
-                    Now you are in the jury and can vote for an alive player!<br>
-                    3 votes from the jury and the player immediately receives an action point.<br>
-                    You can vote only once a day. A juror's vote is secret.
+                    Ma il tuo spirito è forte e la tua leggenda può ancora influenzare il regno!<br>
+                    Una volta al giorno puoi aiutare segretamente per un alto eroe che ritieni meritevole<br>
+                    3 aiuti in un giorno da parte degli spiriti dell'aldilà e quel giocatore riceverà un'azione
+                    aggiuntiva<br>
                 </label>
                 <select name="vote" id="vote">
 
                 </select>
                 <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
                         style="margin: 0 20px" type="submit">
-                    Vote!
+                    Aiuta!
                 </button>
                 <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
                         type="button" id="show-poll-results">
-                    View current results
+                    Vedi i risultati correnti
                 </button>
             </div>
 
@@ -103,7 +105,7 @@
             <div id="board-holder" class="d-none"></div>
             <div id="right-side" class="d-none">
                 <div id="logs">
-                    <h4>What happens</h4>
+                    <h4>Cosa è successo</h4>
                     <hr>
                     <div id="logs-container"></div>
                 </div>
@@ -125,7 +127,7 @@
         <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
             <header class="modal__header">
                 <h2 class="modal__title" id="jury-title">
-                    Today's jury results
+                    Gli spiriti hanno aiutato...
                 </h2>
                 <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
             </header>
@@ -134,8 +136,8 @@
                     <thead>
                     <tr>
                         <th></th>
-                        <th>Player Name</th>
-                        <th>Votes Received</th>
+                        <th>Nome dell'eroe</th>
+                        <th>Aiuti ricevuti</th>
                     </tr>
                     </thead>
                     <tbody id="poll-results-table">
@@ -156,90 +158,102 @@
         <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
             <header class="modal__header">
                 <h2 class="modal__title" id="rules-title">
-                    Beware heroes! It's time to prove your worth!
+                    Benvenuti eroi! E' tempo di provare il vostro valore!
                 </h2>
                 <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
             </header>
             <main class="modal__content" id="rules-content">
 
-                <h3>THE RULES</h3>
+                <h2>La tua quest</h2>
 
                 <p>
-                    All players start at a random location on the map and have 3 hearts (💖) and no Action Points (👊).
-                </p>
-                <p>
-                    Every 24 hours, everyone will receive 1 Action Point (👊).
-                    The time the point is given may vary day to day (at lunch time anyway).
-                </p>
-                <p>
-                    At any time you like, you can do one of the following actions:
+                    L'obiettivo del gioco è quello di rimanere l'ultimo eroe sopravvissuto del regno,
+                    sterminando la concorrenza dei patetici avversari di fronte a te.
                 </p>
 
-                <ul>
-                    <li>
-                        Move to an adjacent, unoccupied square (1 👊)<br>
-                        <img src="moving.png" alt="Moving Rules">
-
-                    </li>
-                    <li>
-                        Shoot someone who is within your range (1 👊). Shooting someone removes 1 heart from their
-                        health.<br>
-                        <img src="range.png" alt="Range Rules">
-
-                    </li>
-                    <li>Upgrade your range (3 👊)</li>
-                    <li>Add an action to another player (1 👊)</li>
-                    <li>Add a heart to yourself or to another player(3 👊)</li>
-                </ul>
+                <h2>Regolamento</h2>
 
                 <p>
+                    Tutti i giocatori partono da una posizione casuale sulla mappa e hanno 3 cuori (💖) e nessun Punto
+                    Azione (👊).
+                </p>
+                <p>
+                    Ogni 24 ore, tutti riceveranno 1 Punto Azione (👊).
+                    Il momento in cui viene assegnato il punto può variare di giorno in giorno (comunque all'ora di
+                    pranzo).
+                </p>
+                <p>
+                    In qualsiasi momento è possibile eseguire una delle seguenti azioni:
+                </p>
+
+                <h3>MOVERSI</h3>
+                <p>
+                    Muoversi in una casella adiacente non occupata (costo: 1 👊)
+                </p>
+
+                <h3>ATTACCARE</h3>
+                <p>
+                    Attaccare qualcuno che si trova nel tuo raggio d'azione (costo: 1 👊).
+                    Attaccare con successo qualcuno toglie 1 💖 dalla sua salute.<br>
+                </p>
+
+                <h3>ADDESTRARSI</h3>
+                <p>Aumentare la tua gittata di 1 (costo: 3 👊)</p>
+
+                <h3>AIUTARE</h3>
+                <p>
+                    Regalare un'azione ad un altro eroe (costo: 1 👊).
+                    L'altro eroe avrà immediatamente a disposizione l'azione così regalata.
+                </p>
+
+                <h3>CURARE</h3>
+                <p>
+                    Curare di 1 💖 te stesso o un altro eroe entro gittata (costo: 3 👊).
+                    E' possibile anche superare il limite iniziale di 3 💖.
+                    E' possibile in questo modo resuscitare un eroe morto, che tornerà in vita con 1 💖.
+                </p>
 
 
+                <p class="mt-5">
+                    All'inizio della partita, tutti hanno una gittata pari a 2.
+                </p>
+                <p>
+                    Un eroe muore quando raggiunge 0 💖.
+                    Tutti i punti azione che aveva vengono trasferiti all'eroe che lo ha ucciso.
+                    Gli eroi morti rimangono sulla mappa.
                 </p>
 
                 <p>
-                    At the start of the game, everyone has a range of 2.
-                    That is, they can shoot or trade with somehow within 2 squares of them.
-                    Upgrading your shooting range increases this by 1 square each time.
-                </p>
-                <p>
-                    If a player is reduced to 0 hearts, then he's dead.
-                    Any action point the dead player had are transferred to the player who killed them.
-                    Dead players remain on the board.
-                </p>
-                <p>
-                    Players are able to send gifts of hearts or actions points
-                    to any player currently within their range.
-                </p>
-                <p>
-                    Dead players can have a heart sent to them.
-                    This will revive that player who will have 1 heart and 0 AP.
+                    Una volta al giorno, in un momento casuale, verranno generate una pozione di cura e una pozione di
+                    forza (👊) sulla mappa.
+                    Il primo giocatore che raggiunge la casella contenente la pozione, ottiene immediatamente il
+                    corrispettivo bonus.;
                 </p>
 
-                <h3>THE JURY</h3>
+
+                <h2>Il Piano Astrale</h2>
 
                 <p>
-                    Dead players form a jury. Each day they can vote for another alive player;
-                    every 3 votes, that player gets immediately 1 👊.
+                    Gli eroi che hanno valorosamente perso la vita possono comunque influenzare gli eventi
+                    del regno dal piano astrale.
+                    Una volta al giorno, possono infatti decidere di dare il loro aiuto ad un eroe ancora in vita.
+                    Per ogni tre spiriti che decidono di aiutare un eroe, esso riceverà 1 👊 da poter spendere
+                    immediatamente.
                 </p>
 
-                <h3>ADDITIONAL NOTES</h3>
+                <h2>Note aggiuntive</h2>
 
                 <p>
-                    Once a day, at a random time, a heart and and action will spawn on the field.
-                    The first player to move into the square containing the heart
-                    will revive an additional heart. The first player to move into the square containing the action
-                    will receive an additional action point.
+                    Il gioco termina quando UN SOLO eroe sarà rimasto in vita sulla mappa, oppure
+                    quando gli ultimi 4 giocatori concorderanno il vincitore.
                 </p>
                 <p>
-                    The game ends when a clear 1st, 2nd, and 3rd place can be determined.
-                    Once there are 4 players left, they will see if they can agree on the placing.
+                    I canti e le leggende del regno parlano da tempo dell'arrivo di un drago e
+                    dell'imminente distruzione del regno, ma nessuno sa se e quando questo avverrà...
                 </p>
-                <!--            <p>-->
-                <!--                Action points are secret! Probably a good idea to try and hide how many you have.-->
-                <!--            </p>-->
                 <p>
-                    You can't win this game without making some friends and stabbing some backs. Probably.
+                    Il regno non potrà essere conquistato senza farsi degli amici e senza
+                    pugnalare qualcuno alle spalle. Probabilmente.
                 </p>
 
             </main>

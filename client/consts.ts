@@ -1,6 +1,6 @@
 import {AxialCoordinates, Grid} from "honeycomb-grid";
-import {TanksHex} from "../server/app/board";
 import {Tank} from "./models/Tank";
+import {TanksHex} from "../server/app/board";
 
 export interface IBuilding {
     name: string;
@@ -15,12 +15,23 @@ interface Player {
 
 export const BUILDINGS: { [key: string]: IBuilding } = {
     OASIS: {
-        name: `Oasis`,
-        description: `If you are here when actions gets distributed,\n `
+        name: `Oasi`,
+        description: `Se ti trovi qui quando le azioni vengono distribuite,\n
+guadagni permanentemente
+
+ARMATURA DI GHIACCIO: ogni volta che vieni colpito, 10% di possibilità
+che il colpo non vada a segno.
+`
     },
     ICE_FORTRESS: {
-        name: `Ice Fortress`,
-        description: `If you are here when actions gets distributed,\n `
+        name: `Fortezza di ghiaccio`,
+        description: `Se ti trovi qui quando le azioni vengono 
+distribuite, guadagni permanentemente
+
+🧊 ARMATURA DI GHIACCIO 
+Ogni volta che vieni colpito, 10% di possibilità
+che il colpo non vada a segno.
+`
     },
 }
 export const X_OFFSET = 50;
@@ -33,35 +44,38 @@ export const HEX_TOP_TRIANGLE_HEIGHT = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
 
 export const TILES = [
     {
-        name: "🌿 Plains",
-        description: `Moving here will cost you 1 👊`
+        name: "🌿 Pianura",
+        description: `Muoversi qui costa 1 👊`
     },
-    {name: "🌊 Water", description: "You cannot move here"},
+    {name: "🌊 Acqua", description: "Non sai nuotare"},
     {
-        name: "🏜️ Desert",
+        name: "🏜️ Deserto",
+        description: `Muoverti qui costa 1 👊
+Stare qui quando le azioni vengono
+distribuite costa 1 💓`
+    },
+    {
+        name: "🌲 Foresta",
         description: `Moving here will cost you 1 👊
-Being here when action gets distributed
-will cost you 1 💓`
+La tua gittata aumenta di 1
+La gittata dei nemici verso di te diminuisce 1`
     },
     {
-        name: "🌲 Forest",
-        description: `Moving here will cost you 1 👊
-Your range will be decreased by 1
-Your enemies' range to you is decreased by 1`
+        name: "⛰️ Montagna", description: `Muoverti qui costa 2 👊
+Mentre sei qui, la tua gittata aumenta di 1`
     },
     {
-        name: "⛰️ Mountain", description: `Moving here will cost you 2 👊
-Your range will be increased by 1`
+        name: "🐊 Palude",
+        description: `Muoverti qui costa 1 👊.
+10% di possibilità di avere 1 👊 extra
+10% di possibilità di non avere azioni`
     },
-    {
-        name: "🐊 Swamp",
-        description: `Moving here will cost you 1 👊
-You have a 10% chance of 1 extra action,
-but also a 10% chance of not getting actions    
-    `
-    },
-    {name: "❄️ Ice", description: "Moving here will cost you 2 👊"},
+    {name: "❄️ Ghiaccio", description: "Muoverti qui costa 2 👊"},
 ];
+
+export enum Buffs {
+    ICE_ARMOR
+}
 
 export const walkableTiles = [0, 2, 3, 4, 5, 6];
 

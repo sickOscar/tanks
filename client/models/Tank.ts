@@ -1,4 +1,5 @@
 import {AxialCoordinates} from "honeycomb-grid";
+import {Buffs} from "../consts";
 
 export interface Tank {
     id: string;
@@ -8,4 +9,5 @@ export interface Tank {
     range: number;
     name: string;
     picture: string;
+    buffs:Set<Buffs>
 }
