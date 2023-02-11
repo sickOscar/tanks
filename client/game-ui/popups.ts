@@ -62,13 +62,10 @@ export function drawPopup(p5: p5) {
         p5.stroke('white');
         p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
 
-        p5.textAlign(p5.LEFT);
-        p5.noStroke();
-        p5.fill('white');
-        p5.textSize(18);
+        popupTitleFont(p5);
         p5.text('Health potion', rectSourceX + popupXOffset, rectSourceY + 20);
 
-        p5.textSize(12);
+        popupTextFont(p5);
         p5.text('Move here to get one 💓', rectSourceX + popupXOffset, rectSourceY + 40);
 
     } else if (GameState.actionsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {

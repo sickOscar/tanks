@@ -113,6 +113,7 @@ export class Game {
     async distributeActions(): Promise<void> {
         this.board.forEach((hex: TanksHex) => {
             const tank = hex.tank;
+            let actionsToGive = 1;
 
             // if tank tile is desert, remove 1 life
             if (hex.tile === TileType.DESERT) {
@@ -124,8 +125,19 @@ export class Game {
                 }
             }
 
+            if (hex.tile === TileType.SWAMP) {
+                const randomChance = Math.random();
+
+                if (randomChance < 0.1) {
+                    actionsToGive -= 1;
+                }
+                if (randomChance > 0.1 && randomChance < 0.2) {
+                    actionsToGive += 1;
+                }
+            }
+
             if (tank && tank.life > 0) {
-                tank.actions += 1;
+                tank.actions += actionsToGive;
             }
 
         })

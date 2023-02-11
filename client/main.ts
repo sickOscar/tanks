@@ -11,11 +11,13 @@ import MicroModal from 'micromodal';
 
 MicroModal.init();
 
+
 new p5((p5) => {
 
     let events:any[] = []
     let configFetched = false;
     let sio:any;
+    let visibleActions = false;
 
     let stage = 'RUN';
     // AUTH
@@ -30,7 +32,8 @@ new p5((p5) => {
     const modalOverlay = document.querySelector('#modal-overlay') as HTMLDivElement;
     const loginButton = document.querySelector('#btn-login') as HTMLButtonElement;
     const logoutButton = document.querySelector('#btn-logout') as HTMLButtonElement;
-
+    const actionButtons = document.querySelectorAll(`#actions  button`) as NodeListOf<HTMLButtonElement>;
+    const playersContainer = document.querySelector('#players-container') as HTMLDivElement;
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
@@ -278,8 +281,6 @@ new p5((p5) => {
     }
 
 
-    const actionButtons = document.querySelectorAll(`#actions  button`) as NodeListOf<HTMLButtonElement>;
-    const playersContainer = document.querySelector('#players-container') as HTMLDivElement;
 
 
     actionButtons.forEach(el => {
@@ -342,10 +343,12 @@ new p5((p5) => {
 
         if (GameState.player && GameState.player.life > 0) {
             actionsContainer.classList.remove('d-none');
+            visibleActions = true;
             pollForm.classList.add('d-none')
         }
 
         if (GameState.player && GameState.player.life <= 0) {
+            visibleActions = false;
             actionsContainer.classList.add('d-none');
             pollForm.classList.remove('d-none')
         }
