@@ -7,6 +7,9 @@ import {drawPopup} from "./game-ui/popups";
 import {io} from "socket.io-client";
 import {createAuth0Client} from '@auth0/auth0-spa-js';
 import {drawBoard} from "./game-ui/board";
+import MicroModal from 'micromodal';
+
+MicroModal.init();
 
 new p5((p5) => {
 
@@ -278,14 +281,6 @@ new p5((p5) => {
     const actionButtons = document.querySelectorAll(`#actions  button`) as NodeListOf<HTMLButtonElement>;
     const playersContainer = document.querySelector('#players-container') as HTMLDivElement;
 
-    const toggleRulesButton = document.querySelector('#toggle-rules') as HTMLAnchorElement;
-    const rulesContainer = document.querySelector('#rules') as HTMLDivElement;
-
-    toggleRulesButton.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        rulesContainer.classList.remove('d-none');
-        modalOverlay.classList.remove('d-none');
-    })
 
     actionButtons.forEach(el => {
         el.addEventListener('click', function () {

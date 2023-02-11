@@ -1,6 +1,7 @@
 import {AxialCoordinates} from "honeycomb-grid";
 import {GameState, walkableTiles} from "./consts";
 import {TanksHex} from "../server/app/board";
+import p5 from "p5";
 
 export function isInRange(destinationCell:AxialCoordinates, startingCell:AxialCoordinates, range:number, shooting  = false) {
     let finalRange = range;
@@ -19,4 +20,25 @@ export function isInRange(destinationCell:AxialCoordinates, startingCell:AxialCo
 
 export function isWalkable(hex:TanksHex) {
     return walkableTiles.includes(hex.tile);
+}
+
+export function resetFont(p5:p5) {
+    p5.textSize(12);
+    p5.textLeading(16);
+    p5.fill('white');
+    p5.noStroke();
+    p5.textAlign(p5.LEFT);
+    p5.textStyle(p5.NORMAL);
+}
+
+export function popupTextFont(p5:p5) {
+    resetFont(p5);
+    p5.textStyle(p5.BOLD);
+}
+
+export function popupTitleFont(p5:p5) {
+    resetFont(p5);
+    p5.textLeading(20);
+    p5.textSize(18);
+    p5.textStyle(p5.BOLD);
 }

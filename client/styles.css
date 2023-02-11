@@ -1,12 +1,10 @@
+@import "modal.css";
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-    font-family: Cyber;
-    src: url("https://assets.codepen.io/605876/Blender-Pro-Bold.otf");
-    font-display: swap;
-}
 
 @font-face {
     font-family: 'Sketch Gothic School';
@@ -18,7 +16,7 @@
 }
 
 body {
-    font-family: 'Cyber', sans-serif;
+    font-family: 'Indie Flower', sans-serif;
     background-color: #e8d5b7;
     background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
 }
@@ -33,6 +31,10 @@ body {
 }
 
 .navbar-brand {
+    font-family: 'Sketch Gothic School', sans-serif;
+}
+
+h2 {
     font-family: 'Sketch Gothic School', sans-serif;
 }
 

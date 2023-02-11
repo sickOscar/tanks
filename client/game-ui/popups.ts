@@ -11,6 +11,7 @@ import {
     Y_OFFSET
 } from "../consts";
 import p5 from "p5";
+import {popupTextFont, popupTitleFont, resetFont} from "../utils";
 
 const POPUP_DELAY = 10;
 
@@ -81,13 +82,10 @@ export function drawPopup(p5: p5) {
         p5.stroke('white');
         p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
 
-        p5.textAlign(p5.LEFT);
-        p5.noStroke();
-        p5.fill('white');
-        p5.textSize(18);
+        popupTitleFont(p5);
         p5.text('Action potion', rectSourceX + popupXOffset, rectSourceY + 20);
 
-        p5.textSize(12);
+        popupTextFont(p5);
         p5.text('Move here to get one 👊', rectSourceX + popupXOffset, rectSourceY + 40);
 
     } else if (GameState.buildings.find(({position}) => position.q === hex.q && position.r === hex.r)) {
@@ -106,13 +104,10 @@ export function drawPopup(p5: p5) {
         p5.stroke('white');
         p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
 
-        p5.textAlign(p5.LEFT);
-        p5.noStroke();
-        p5.fill('white');
-        p5.textSize(18);
+        popupTitleFont(p5);
         p5.text(BUILDINGS[building.type].name, rectSourceX + popupXOffset, rectSourceY + 20);
 
-        p5.textSize(12);
+        popupTextFont(p5);
         p5.text(BUILDINGS[building.type].description, rectSourceX + popupXOffset, rectSourceY + 40);
 
     } else if (!hex.tank) {
@@ -129,14 +124,12 @@ export function drawPopup(p5: p5) {
         p5.stroke('white');
         p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
 
-        p5.textAlign(p5.LEFT);
-        p5.noStroke();
-        p5.fill('white');
-        p5.textSize(18);
+        popupTitleFont(p5);
         p5.text(TILES[hex.tile].name, rectSourceX + popupXOffset, rectSourceY + 20);
 
-        p5.textSize(12);
+        popupTextFont(p5);
         p5.text(TILES[hex.tile].description, rectSourceX + popupXOffset, rectSourceY + 40);
+
     } else if (hex.tank) {
 
         size = mediumSize;
@@ -159,22 +152,14 @@ export function drawPopup(p5: p5) {
             );
         }
 
-        p5.textAlign(p5.LEFT);
-        p5.noStroke();
-        p5.fill('white');
-        p5.textSize(18);
-        p5.textLeading(18);
+        popupTitleFont(p5);
         p5.text(
             hex.tank.name.split(' ').join("\n"),
             rectSourceX + popupXOffset + 30 + 5,
             rectSourceY + 20
         );
 
-        p5.textSize(12);
-        p5.textLeading(15);
-        // p5.text(hex.tank.name, rectSourceX +  popupXOffset, rectSourceY + 40);
-
-        // life
+        popupTextFont(p5);
 
         if (hex.tank.life < 1) {
             p5.text(
@@ -218,6 +203,8 @@ export function drawPopup(p5: p5) {
 
         // terrain
         p5.text(`on ${TILES[hex.tile].name}`, rectSourceX + popupXOffset, rectSourceY + 115);
+
+        resetFont(p5);
 
     }
 
