@@ -3,10 +3,12 @@
   "version": "2.0.0",
   "description": "It's gonna ruin friendships",
   "scripts": {
+    "build-client-static": "cd client && vite build",
     "build-client": "cd client && vite build --watch",
     "server": "ts-node-dev server",
     "start": "npm run server",
-    "dev": "npm run server"
+    "dev": "npm run server",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
@@ -41,6 +43,7 @@
     "@types/express": "^4.17.13",
     "@types/micromodal": "^0.3.3",
     "@types/node-cron": "^3.0.1",
-    "@types/p5": "^1.5.0"
+    "@types/p5": "^1.5.0",
+    "husky": "^8.0.3"
   }
 }
