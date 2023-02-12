@@ -8,4 +8,4 @@ VOLUME /app
 
 EXPOSE 3000
 
-CMD ["npm", "run", "server"]
+CMD ["npm", "run", "dev"]
