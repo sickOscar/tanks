@@ -5,7 +5,7 @@
   "scripts": {
     "build-client": "cd client && vite build --watch",
     "server": "ts-node-dev server",
-    "start": "cd client && vite build && cd .. && npm run server",
+    "start": "npm run server",
     "dev": "npm run server"
   },
   "keywords": [],

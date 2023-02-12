@@ -1,0 +1,299 @@
+<html>
+<head>
+    <title>InterlogiDragons</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+  <script type="module" crossorigin src="/assets/index-34b8e953.js"></script>
+  <link rel="stylesheet" href="/assets/index-72539560.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg h-32 pt-0">
+    <div class="header container-fluid fixed z-[9999]">
+        <div class="d-flex align-items-center">
+            <div class="navbar-brand text-8xl" href="#">
+                <h1>InterlogiDragons</h1>
+            </div>
+            <button class="font-bold" data-micromodal-trigger="rules-modal">
+                REGOLE
+            </button>
+        </div>
+        <div id="actions" class="d-none">
+            <ul>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="move"
+                            title="Muovi"
+                    >
+                        🏃‍♂️ (1 👊)
+                    </button>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="shoot"
+                            title="Attacca"
+                    >
+                        ⚔️ (1 👊)
+                    </button>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="give-action" title="Regala azione">
+                        🤝🏻 (1 👊)
+                    </button>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="upgrade" title="Upgrade">
+                        ⬆️ (3 👊)
+                    </button>
+                </li>
+                <li>
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                            data-action="heal" title="Cura">
+                        ❤️‍🩹 (3 👊)
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <form class="user-actions">
+            <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                    id="btn-login" data-action="heal" disabled="true">
+                Log in
+            </button>
+            <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                    id="btn-logout" data-action="heal" disabled="true">
+                Log out
+            </button>
+        </form>
+    </div>
+</nav>
+
+
+<main role="main">
+
+
+    <div class="main-content">
+
+        <form id="poll" class="d-none">
+            <h4 style="margin-right: 50px">Eroe, il tuo corpo giace esanime sul campo di battaglia 😞 almeno fino a che
+                qualcuno non decida di farti resucitare!</h4>
+            <div class="poll-inner">
+                <label for="vote" style="margin-right: 30px">
+                    Ma il tuo spirito è forte e la tua leggenda può ancora influenzare il regno!<br>
+                    Una volta al giorno puoi aiutare segretamente per un alto eroe che ritieni meritevole<br>
+                    3 aiuti in un giorno da parte degli spiriti dell'aldilà e quel giocatore riceverà un'azione
+                    aggiuntiva<br>
+                </label>
+                <select name="vote" id="vote">
+
+                </select>
+                <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                        style="margin: 0 20px" type="submit">
+                    Aiuta!
+                </button>
+                <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                        type="button" id="show-poll-results">
+                    Vedi i risultati correnti
+                </button>
+            </div>
+
+        </form>
+
+
+        <div class="d-flex">
+            <div id="board-holder" class="d-none"></div>
+            <div id="right-side" class="d-none">
+                <div id="logs">
+                    <h4>Cosa è successo</h4>
+                    <hr>
+                    <div id="logs-container"></div>
+                </div>
+                <div id="players">
+                    <h4>Online</h4>
+                    <hr>
+                    <div id="players-container"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<div class="modal micromodal-slide" id="jury-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="jury-title">
+                    Gli spiriti hanno aiutato...
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="jury-modal-content">
+                <table class="table table-dark table-striped">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nome dell'eroe</th>
+                        <th>Aiuti ricevuti</th>
+                    </tr>
+                    </thead>
+                    <tbody id="poll-results-table">
+
+                    </tbody>
+                </table>
+            </main>
+            <!--            <footer class="modal__footer">-->
+            <!--                <button class="modal__btn modal__btn-primary">Continue</button>-->
+            <!--                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>-->
+            <!--            </footer>-->
+        </div>
+    </div>
+</div>
+
+<div class="modal micromodal-slide" id="rules-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="rules-title">
+                    Benvenuti eroi! E' tempo di provare il vostro valore!
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="rules-content">
+
+                <h2>La tua quest</h2>
+
+                <p>
+                    L'obiettivo del gioco è quello di rimanere l'ultimo eroe sopravvissuto del regno,
+                    sterminando la concorrenza dei patetici avversari di fronte a te.
+                </p>
+
+                <h2>Regolamento</h2>
+
+                <p>
+                    Tutti i giocatori partono da una posizione casuale sulla mappa e hanno 3 cuori (💖) e nessun Punto
+                    Azione (👊).
+                </p>
+                <p>
+                    Ogni 24 ore, tutti riceveranno 1 Punto Azione (👊).
+                    Il momento in cui viene assegnato il punto può variare di giorno in giorno (comunque all'ora di
+                    pranzo).
+                </p>
+                <p>
+                    In qualsiasi momento è possibile eseguire una delle seguenti azioni:
+                </p>
+
+                <h3>MOVERSI</h3>
+                <p>
+                    Muoversi in una casella adiacente non occupata (costo: 1 👊)
+                </p>
+
+                <h3>ATTACCARE</h3>
+                <p>
+                    Attaccare qualcuno che si trova nel tuo raggio d'azione (costo: 1 👊).
+                    Attaccare con successo qualcuno toglie 1 💖 dalla sua salute.<br>
+                </p>
+
+                <h3>ADDESTRARSI</h3>
+                <p>Aumentare la tua gittata di 1 (costo: 3 👊)</p>
+
+                <h3>AIUTARE</h3>
+                <p>
+                    Regalare un'azione ad un altro eroe (costo: 1 👊).
+                    L'altro eroe avrà immediatamente a disposizione l'azione così regalata.
+                </p>
+
+                <h3>CURARE</h3>
+                <p>
+                    Curare di 1 💖 te stesso o un altro eroe entro gittata (costo: 3 👊).
+                    E' possibile anche superare il limite iniziale di 3 💖.
+                    E' possibile in questo modo resuscitare un eroe morto, che tornerà in vita con 1 💖.
+                </p>
+
+
+                <p class="mt-5">
+                    All'inizio della partita, tutti hanno una gittata pari a 2.
+                </p>
+                <p>
+                    Un eroe muore quando raggiunge 0 💖.
+                    Tutti i punti azione che aveva vengono trasferiti all'eroe che lo ha ucciso.
+                    Gli eroi morti rimangono sulla mappa.
+                </p>
+
+                <p>
+                    Una volta al giorno, in un momento casuale, verranno generate una pozione di cura e una pozione di
+                    forza (👊) sulla mappa.
+                    Il primo giocatore che raggiunge la casella contenente la pozione, ottiene immediatamente il
+                    corrispettivo bonus.;
+                </p>
+
+
+                <h2>Il Piano Astrale</h2>
+
+                <p>
+                    Gli eroi che hanno valorosamente perso la vita possono comunque influenzare gli eventi
+                    del regno dal piano astrale.
+                    Una volta al giorno, possono infatti decidere di dare il loro aiuto ad un eroe ancora in vita.
+                    Per ogni tre spiriti che decidono di aiutare un eroe, esso riceverà 1 👊 da poter spendere
+                    immediatamente.
+                </p>
+
+                <h2>Note aggiuntive</h2>
+
+                <p>
+                    Il gioco termina quando UN SOLO eroe sarà rimasto in vita sulla mappa, oppure
+                    quando gli ultimi 4 giocatori concorderanno il vincitore.
+                </p>
+                <p>
+                    I canti e le leggende del regno parlano da tempo dell'arrivo di un drago e
+                    dell'imminente distruzione del regno, ma nessuno sa se e quando questo avverrà...
+                </p>
+                <p>
+                    Il regno non potrà essere conquistato senza farsi degli amici e senza
+                    pugnalare qualcuno alle spalle. Probabilmente.
+                </p>
+
+            </main>
+            <!--            <footer class="modal__footer">-->
+            <!--                <button class="modal__btn modal__btn-primary">Continue</button>-->
+            <!--                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>-->
+            <!--            </footer>-->
+        </div>
+    </div>
+</div>
+
+<div id="modal-overlay" class="d-none"></div>
+
+
+<!--
+
+    <button id="btn-login" disabled="true">Log in</button>
+        <button id="btn-logout" disabled="true">Log out</button>
+
+    <div id="cell-info">
+
+    </div>
+
+    <div id="actions">
+        <button data-action="move">Move</button><br>
+        <button data-action="shoot">Shoot</button><br>
+        <button data-action="give-action">Give Action</button><br>
+        <button data-action="upgrade">Upgrade</button><br>
+    </div>
+
+    <div id="chat">
+        <form id="form" action="">
+            <input id="input" autocomplete="off" /><button>Send</button>
+        </form>
+    </div>
+
+    </body>
+    -->
+
+</body>
+</html>
