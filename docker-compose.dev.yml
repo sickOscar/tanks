@@ -17,6 +17,7 @@ services:
       - db-data:/var/lib/postgresql/data
 
   client-builder:
+    user: ${UID}:${GID}
     build:
       context: .
       dockerfile: client-builder.Dockerfile

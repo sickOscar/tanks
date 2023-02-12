@@ -19,8 +19,7 @@ export const BUILDINGS: { [key: string]: IBuilding } = {
         description: `Se ti trovi qui quando le azioni vengono distribuite,\n
 guadagni permanentemente
 
-ARMATURA DI GHIACCIO: ogni volta che vieni colpito, 10% di possibilità
-che il colpo non vada a segno.
+
 `
     },
     ICE_FORTRESS: {

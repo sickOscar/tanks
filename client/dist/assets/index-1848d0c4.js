@@ -738,8 +738,7 @@ void main(){
 
 guadagni permanentemente
 
-ARMATURA DI GHIACCIO: ogni volta che vieni colpito, 10% di possibilità
-che il colpo non vada a segno.
+
 `},ICE_FORTRESS:{name:"Fortezza di ghiaccio",description:`Se ti trovi qui quando le azioni vengono 
 distribuite, guadagni permanentemente
 
@@ -782,4 +781,4 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
                 ${X.join("")}
             </ul>
         `}catch(V){console.error(V)}}async function F(U){const V=await j.getTokenSilently();return fetch(U,{headers:{Authorization:`Bearer ${V}`}}).then(X=>X.json()).catch(console.error)}T.preload=function(){Wt.tiles=[T.loadImage("./assets/grass.png"),T.loadImage("./assets/sea.png"),T.loadImage("./assets/desert.png"),T.loadImage("./assets/forest.png"),T.loadImage("./assets/mountain.png"),T.loadImage("./assets/swamp.png"),T.loadImage("./assets/ice.png")],Wt.oasisImage=T.loadImage("./assets/oasis.webp"),Wt.iceFortressImage=T.loadImage("./assets/ice_fortress.webp")},T.setup=function(){T.createCanvas(100,100).parent("board-holder"),Wt.maskGraphics=T.createGraphics(100,100),T.frameRate(10)},T.draw=function(){Ze.activePlayerHover=null,T.clear(),!(!S||!Ze.localGrid)&&(ul(T),N(),Ji(T))};function N(){T.cursor("default"),Ze.currentState===Ct.SHOOT&&T.cursor("pointer"),Ze.currentState===Ct.MOVE&&T.cursor("pointer"),Ze.currentState===Ct.GIVE_ACTION&&T.cursor("pointer"),Ze.currentState===Ct.HEAL&&T.cursor("pointer")}T.mouseClicked=function(){if(Ze.currentState===Ct.IDLE&&Ze.localGrid.pointToHex({x:T.mouseX-Pt,y:T.mouseY-Nt},{allowOutside:!1}))return;const U=Ze.localGrid.pointToHex({x:T.mouseX-Pt,y:T.mouseY-Nt},{allowOutside:!1});U&&e.emit("playerevent",Ze.currentState,{q:U.q,r:U.r},V=>{V&&(Ze.currentState=Ct.IDLE)})}});
-//# sourceMappingURL=index-34b8e953.js.map
+//# sourceMappingURL=index-1848d0c4.js.map
