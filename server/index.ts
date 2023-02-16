@@ -1,3 +1,5 @@
+import {FailReason} from "./app/fail-reason";
+
 require('dotenv').config()
 import cors from 'cors';
 import express from 'express';
@@ -13,6 +15,7 @@ import {Game} from "./app/game";
 import db, {prepareDb} from "./db";
 import {schedule} from 'node-cron';
 import {PlayerActions} from "./app/playerActions";
+import {serializeActionResult} from "./app/action-result";
 const assert = require('assert');
 
 
@@ -110,7 +113,10 @@ async function init() {
 
                     const stopGameDate = process.env.STOP_GAME_DATE;
                     if (stopGameDate && new Date(stopGameDate) < new Date()) {
-                        callback(false);
+                        callback({
+                            exit: false,
+                            failReason: FailReason.OUT_OF_TIME
+                        });
                         console.log('OUT OF TIME')
                         return;
                     }
@@ -126,19 +132,19 @@ async function init() {
                     const actionApplied = await tank.applyAction(action);
 
                     console.log(`${tank.id} | ${action.action} | ${JSON.stringify(payload)} | ${!!actionApplied}`)
-                    callback(!!actionApplied);
+                    callback(serializeActionResult(actionApplied));
 
-                    if (actionApplied !== false) {
+                    if (actionApplied.exit) {
                         await game.board.updateOnDb();
                         socket.emit(MessageTypes.BOARD, game.board.serialize());
                         socket.broadcast.emit(MessageTypes.BOARD, game.board.serialize());
 
                         const event = {
-                            created_at: actionApplied.created_at,
-                            actor: actionApplied.actor.id,
-                            destination: actionApplied.destination ? [actionApplied.destination.q, actionApplied.destination.r] : undefined,
+                            created_at: actionApplied.action!.created_at,
+                            actor: actionApplied.action!.actor.id,
+                            destination: actionApplied.action!.destination ? [actionApplied.action!.destination.q, actionApplied.action!.destination.r] : undefined,
                             action: actionApplied.action,
-                            enemy: actionApplied.enemy ? actionApplied.enemy.id : null
+                            enemy: actionApplied.action!.enemy ? actionApplied.action!.enemy.id : null
                         }
 
                         socket.emit(MessageTypes.ACTION, event);

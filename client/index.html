@@ -8,20 +8,22 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg h-32 pt-0">
-    <div class="header container-fluid fixed z-[9999]">
+<nav class="navbar navbar-expand-lg h-12">
+    <div class="header container-fluid fixed z-[9999] pt-[8px] pb-[8px] mt-[13px]">
         <div class="d-flex align-items-center">
-            <div class="navbar-brand" href="#">
-                <h1>InterlogiDragons</h1>
+            <div class="" href="#">
+                <h1 class="title text-4xl pb-0">InterlogiDragons</h1>
             </div>
-            <button class="font-bold" data-micromodal-trigger="rules-modal">
-                REGOLE
+            <button class="font-bold ml-8"
+                    data-micromodal-trigger="rules-modal">
+                📜 REGOLE
             </button>
         </div>
-        <div id="actions" class="d-none">
+        <div id="actions" class="d-none d-flex align-center">
+            <p class="font-bold mr-6 text-xl">AZIONI</p>
             <ul>
                 <li>
-                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                    <button
                             data-action="move"
                             title="Muovi"
                     >
@@ -29,7 +31,7 @@
                     </button>
                 </li>
                 <li>
-                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                    <button
                             data-action="shoot"
                             title="Attacca"
                     >
@@ -37,19 +39,19 @@
                     </button>
                 </li>
                 <li>
-                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                    <button
                             data-action="give-action" title="Regala azione">
                         🤝🏻 (1 👊)
                     </button>
                 </li>
                 <li>
-                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                    <button
                             data-action="upgrade" title="Upgrade">
                         ⬆️ (3 👊)
                     </button>
                 </li>
                 <li>
-                    <button class="bg-yellow-400 hover:bg-yellow-500 text-brown font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                    <button
                             data-action="heal" title="Cura">
                         ❤️‍🩹 (3 👊)
                     </button>
@@ -57,11 +59,11 @@
             </ul>
         </div>
         <form class="user-actions">
-            <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+            <button
                     id="btn-login" data-action="heal" disabled="true">
                 Log in
             </button>
-            <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+            <button
                     id="btn-logout" data-action="heal" disabled="true">
                 Log out
             </button>
@@ -101,8 +103,8 @@
         </form>
 
 
-        <div class="d-flex">
-            <div id="board-holder" class="d-none"></div>
+        <div class="d-flex justify-center">
+            <div id="board-holder" class="d-none "></div>
             <div id="right-side" class="d-none">
                 <div id="logs">
                     <h4>Cosa è successo</h4>
@@ -256,6 +258,25 @@
                     pugnalare qualcuno alle spalle. Probabilmente.
                 </p>
 
+            </main>
+            <!--            <footer class="modal__footer">-->
+            <!--                <button class="modal__btn modal__btn-primary">Continue</button>-->
+            <!--                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>-->
+            <!--            </footer>-->
+        </div>
+    </div>
+</div>
+
+<div class="modal micromodal-slide" id="action-confirm" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="action-confirm-title">
+                    Attacco
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content">
             </main>
             <!--            <footer class="modal__footer">-->
             <!--                <button class="modal__btn modal__btn-primary">Continue</button>-->

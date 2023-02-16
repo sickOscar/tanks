@@ -55,7 +55,7 @@ distribuite costa 1 💓`
     },
     {
         name: "🌲 Foresta",
-        description: `Moving here will cost you 1 👊
+        description: `Muoverti qui costa 1 👊
 La tua gittata aumenta di 1
 La gittata dei nemici verso di te diminuisce 1`
     },
@@ -104,6 +104,7 @@ interface IGameState {
     activePlayerHover: null | TanksHex,
     player: Tank | null,
     currentState: string,
+    events: any[],
 }
 
 export const GameState: IGameState = {
@@ -118,6 +119,7 @@ export const GameState: IGameState = {
     activePlayerHover: null,
     player: null,
     currentState: States.IDLE,
+    events: []
 }
 
 interface IGameGraphics {

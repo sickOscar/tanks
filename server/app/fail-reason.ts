@@ -1,0 +1,11 @@
+export enum FailReason {
+    ICE_ARMOR,
+    NOT_IN_JURY,
+    ALREADY_VOTED,
+    NOT_ENEMY,
+    INVALID_ENEMY,
+    NOT_ENOUGH_ACTIONS,
+    INVALID_DESTINATION,
+    INVALID_ACTION,
+    OUT_OF_TIME
+}

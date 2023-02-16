@@ -12,10 +12,9 @@ import {
 } from "../consts";
 import p5 from "p5";
 import {popupTextFont, popupTitleFont, resetFont} from "../utils";
-import {root} from "postcss";
 import {AxialCoordinates} from "honeycomb-grid";
 
-const POPUP_DELAY = 10;
+const POPUP_DELAY = 2;
 
 function drawHealthPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], popupXOffset: number) {
     p5.fill('black');

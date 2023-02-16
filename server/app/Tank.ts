@@ -4,6 +4,10 @@ import {AxialCoordinates} from "honeycomb-grid";
 import {Game} from "./game";
 import {Action} from "./player";
 import {TileType} from "./board";
+import {FailReason} from "./fail-reason";
+import {ActionResult} from "./action-result";
+
+
 
 export enum Buffs {
     ICE_ARMOR
@@ -52,7 +56,7 @@ export class Tank {
         this.range = opts.range;
         this.name = opts.name;
         this.picture = opts.picture;
-        this.buffs = opts.buffs;
+        this.buffs = new Set(opts.buffs);
     }
 
     static async create(game: Game, userId: string, name: string, picture: string): Promise<Tank> {
@@ -133,6 +137,12 @@ export class Tank {
         this.useAction();
     }
 
+    async failShoot(q: number, r: number): Promise<void> {
+        const enemy: Tank = this.game.board.getAt(q, r) as Tank;
+        await this.game.addAction(this, 'fail-shoot', {q, r}, enemy)
+        this.useAction();
+    }
+
     async giveAction(q: number, r: number): Promise<void> {
         const enemy: Tank = this.game.board.getAt(q, r) as Tank;
         enemy.actions += 1;
@@ -203,39 +213,59 @@ export class Tank {
         this.actions -= howMany;
     }
 
-    async applyAction(action: Action): Promise<false|Action> {
+    async applyAction(action: Action): Promise<ActionResult> {
 
         if (action.action === PlayerActions.VOTE) {
             if (!this.game.isInJury(this.asPlayer())) {
-                console.log(`not in jury`)
-                return false
+                return {
+                    exit: false,
+                    failReason: FailReason.NOT_IN_JURY
+                }
             }
             if (!action.enemy) {
-                console.log('not enemy')
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.NOT_ENEMY
+                }
             }
             if (action.enemy && action.enemy.life <= 0) {
-                console.log('invalid enemy')
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_ENEMY
+                }
             }
             if (await this.hasVotedToday()) {
-                console.log('has voted today')
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.ALREADY_VOTED
+                }
             }
             await this.vote(action.enemy);
-            return action;
+            return {
+                exit: true,
+                action
+            };
         }
 
         if (this.actions <= 0 || this.life <= 0) {
-            return false;
+            return {
+                exit: false,
+                failReason: FailReason.NOT_ENOUGH_ACTIONS
+            }
         }
 
         if (action.action === PlayerActions.UPGRADE) {
             if (this.actions >= 3) {
                 await this.upgrade()
-                return action;
+                return {
+                    exit: true,
+                    action
+                }
             }
-            return false;
+            return {
+                exit: false,
+                failReason: FailReason.NOT_ENOUGH_ACTIONS
+            };
         }
 
         const dest = action.destination as AxialCoordinates;
@@ -246,29 +276,40 @@ export class Tank {
 
         if (action.action === PlayerActions.MOVE) {
             if (!this.game.board.isPositionWalkable(q, r)) {
-                console.log(`not walkable`)
-                return false
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_DESTINATION
+                }
             }
             if (!this.game.board.isPositionValid(q, r)) {
-                console.log(`not valid`)
-                return false
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_DESTINATION
+                }
             }
             if (this.game.board.isPositionOccupied(q, r)) {
-                console.log(`occupied`)
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_DESTINATION
+                }
             }
 
             const tile = this.game.board.getTileAt(q, r);
             if (tile === TileType.MOUNTAIN || tile === TileType.ICE) {
                 if (this.actions < 2) {
-                    console.log(`not enough actions`)
-                    return false;
+                    return {
+                        exit: false,
+                        failReason: FailReason.NOT_ENOUGH_ACTIONS
+                    }
                 }
             }
             
             if (this.game.board.isInRange(this.position, boardCell, 1)) {
                 await this.move(q, r);
-                return action;
+                return {
+                    exit: true,
+                    action
+                }
             } else {
                 console.log('not in range --')
             }
@@ -276,35 +317,67 @@ export class Tank {
 
         if (action.action === PlayerActions.SHOOT) {
             if (!this.game.board.isPositionOccupied(q, r) || !this.game.board.isPositionValid(q, r)) {
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_DESTINATION
+                }
             }
             // friendly fire
             if (this.position.q === q && this.position.r === r) {
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_ENEMY
+                }
             }
 
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 const enemy = this.game.board.getAt(q, r) as Tank;
                 if (enemy.life > 0) {
+
+                    console.log(`enemy.buffs`, enemy.buffs)
+
+                    if (enemy.buffs.has(Buffs.ICE_ARMOR)) {
+                        console.log(`ICE`)
+                        if (Math.random() < 1) {
+                            await this.failShoot(q, r);
+                            return {
+                                exit: true,
+                                action
+                            }
+                        }
+                    }
+
                     await this.shoot(q, r);
                     action.enemy = this.game.board.getAt(q, r);
-                    return action;
+                    return {
+                        exit: true,
+                        action
+                    }
                 }
             }
         }
 
         if (action.action === PlayerActions.GIVE_ACTION) {
             if (!this.game.board.isPositionOccupied(q, r) || !this.game.board.isPositionValid(q, r)) {
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_DESTINATION
+                }
             }
             if (this.position.q === q && this.position.r === r) {
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_ENEMY
+                }
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 action.enemy = this.game.board.getAt(q, r) as Tank;
                 if (action.enemy.life > 0) {
                     await this.giveAction(q, r);
-                    return action;
+                    return {
+                        exit: true,
+                        action
+                    }
                 }
 
             }
@@ -312,23 +385,35 @@ export class Tank {
 
         if (action.action === PlayerActions.HEAL) {
             if (!this.game.board.isPositionValid(q, r)) {
-                return false
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_DESTINATION
+                }
             }
             if (!this.game.board.isPositionOccupied(q, r)) {
-                return false;
+                return {
+                    exit: false,
+                    failReason: FailReason.INVALID_DESTINATION
+                }
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 if (this.actions >= 3) {
                     await this.heal(q, r);
                     action.enemy = this.game.board.getAt(q, r)
-                    return action
+                    return {
+                        exit: true,
+                        action
+                    }
                 }
             }
         }
 
 
 
-        return false;
+        return {
+            exit: false,
+            failReason: FailReason.INVALID_ACTION
+        }
     }
 
 }

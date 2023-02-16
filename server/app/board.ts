@@ -96,7 +96,12 @@ export class Board {
 
     load(dbGrid:any) {
         const coords = dbGrid.coordinates.map(({q, r, tank, tile}:any) => {
-            return {q, r, tank: tank ? new Tank(this.game, tank) : null, tile}
+            return {
+                q,
+                r,
+                tank: tank ? new Tank(this.game, tank) : null,
+                tile
+            }
         })
 
         this.board = new Grid(TanksHex, coords);

@@ -1,5 +1,4 @@
-# Dragons 
-## It's gonna ruin friendships
+# Dragons
 
 Be ready adventurer, this is not for the faint of heart. 
 

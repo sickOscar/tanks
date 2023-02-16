@@ -8,13 +8,16 @@ import {io} from "socket.io-client";
 import {createAuth0Client} from '@auth0/auth0-spa-js';
 import {drawBoard} from "./game-ui/board";
 import MicroModal from 'micromodal';
+import {ActionResult} from "../server/app/action-result";
+import { drawCursor } from './game-ui/mouse';
+import {drawEvents, setOnline} from "./game-ui/html-elements";
 
 MicroModal.init();
 
 
 new p5((p5) => {
 
-    let events:any[] = []
+
     let configFetched = false;
     let sio:any;
     let visibleActions = false;
@@ -22,7 +25,7 @@ new p5((p5) => {
     let stage = 'RUN';
     // AUTH
     let auth0:any;
-    let hoverHex;
+
     const voteSelect = document.querySelector('select#vote') as HTMLSelectElement;
     const pollForm = document.querySelector('form#poll') as HTMLFormElement;
     const showPollResultsButton = document.querySelector('button#show-poll-results') as HTMLButtonElement;
@@ -33,7 +36,7 @@ new p5((p5) => {
     const loginButton = document.querySelector('#btn-login') as HTMLButtonElement;
     const logoutButton = document.querySelector('#btn-logout') as HTMLButtonElement;
     const actionButtons = document.querySelectorAll(`#actions  button`) as NodeListOf<HTMLButtonElement>;
-    const playersContainer = document.querySelector('#players-container') as HTMLDivElement;
+    const boardContainer = document.querySelector('#board-holder') as HTMLDivElement;
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
@@ -44,16 +47,6 @@ new p5((p5) => {
                 alert('Thank you!')
             }
         })
-    })
-
-    document.addEventListener('click', event => {
-        // @ts-ignore
-        if (Array.from(event.target!.classList).includes('close-modal-button')) {
-            document.querySelectorAll('.drawer').forEach(el => {
-                el.classList.add('d-none');
-            })
-            modalOverlay.classList.add('d-none');
-        }
     })
 
     showPollResultsButton.addEventListener('click', event => {
@@ -98,11 +91,9 @@ new p5((p5) => {
         logoutButton.style.display = !isAuthenticated ? 'none' : 'flex';
 
         if (isAuthenticated) {
-            document.querySelector('#board-holder')!.classList.remove('d-none');
-            document.querySelector('#right-side')!.classList.remove('d-none')
+            boardContainer.classList.remove('d-none');
         } else {
-            document.querySelector('#board-holder')!.classList.add('d-none');
-            document.querySelector('#right-side')!.classList.add('d-none')
+            boardContainer.classList.add('d-none');
         }
 
     }
@@ -185,7 +176,7 @@ new p5((p5) => {
         connectSocket(jwt);
 
         GameState.players = await getJson('/players')
-        events = await getJson('/events')
+        GameState.events = await getJson('/events')
 
         drawEvents()
     }
@@ -198,74 +189,6 @@ new p5((p5) => {
         auth0.logout();
     })
 
-    function drawEvents() {
-
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
-        const markup = events.map(e => {
-
-            let p = GameState.players.find(p => p.id === e.actor);
-
-            if (!p && e.actor === 'jury') {
-                const enemy = GameState.players.find(p => p.id === e.enemy)!
-                p = {
-                    id: '',
-                    picture: '',
-                    name: 'jury'
-                }
-                const pre = `<div class="event">
-                    <span class="event-date">${new Date(e.created_at).toLocaleString()}</span>
-                    <p>`;
-
-                const post = `</p></div>
-            `
-                return`${pre}the jury added action to <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
-            }
-
-            if (!p) {
-                return '';
-            }
-
-            const pre = `<div class="event">
-                    <span class="event-date">${new Date(e.created_at).toLocaleString()}</span>
-                    <p>
-                        <img src="${p.picture}" title="${p.name}" class="img-thumbnail" alt="${p.name}"> `;
-
-            const post = `</p></div>
-            `
-
-            if (e.action === States.MOVE) {
-                return `${pre} moved to [${letters[e.destination[0]]}:${e.destination[1]}] ${post}`
-            }
-
-            if (e.action === States.UPGRADE) {
-                return `${pre} upgraded his range${post}`
-            }
-
-            if (e.action === States.SHOOT) {
-                const enemy = GameState.players.find(p => p.id === e.enemy)!
-                return `${pre} shoots <img src="${enemy.picture}" title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
-            }
-
-            if (e.action === States.GIVE_ACTION) {
-                const enemy = GameState.players.find(p => p.id === e.enemy)!
-                return `${pre} gives an action to <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
-            }
-
-            if (e.action === States.HEAL) {
-                const enemy = GameState.players.find(p => p.id === e.enemy)
-                if (enemy) {
-                    return `${pre} heals <img src="${enemy.picture}"  title="${enemy.name}" class="img-thumbnail" alt="${enemy.name}">${post}`
-                }
-                return `${pre} heals himself${post}`
-            }
-
-
-        })
-        const logsContainer = document.querySelector('#logs-container') as HTMLDivElement;
-        logsContainer.innerHTML = markup.join('');
-    }
-
 
     function connectSocket(jwt:string) {
         sio = io('', {
@@ -276,7 +199,7 @@ new p5((p5) => {
 
         sio.on('player', setPlayer)
         // sio.on('message', newMessage);
-        sio.on('board', setBoard)
+        sio.on('board', updateBoard);
         sio.on('playerslist', setOnline);
         sio.on('action', addPlayerAction)
 
@@ -284,9 +207,6 @@ new p5((p5) => {
             console.error(error)
         })
     }
-
-
-
 
     actionButtons.forEach(el => {
         el.addEventListener('click', function () {
@@ -317,15 +237,15 @@ new p5((p5) => {
 
 
     function addPlayerAction(action:any) {
-        events.unshift(action)
+        GameState.events.unshift(action)
         drawEvents();
     }
 
-    function setBoard(serverMessage:string) {
+    function updateBoard(serverMessage:string) {
 
         const parsedMessage = JSON.parse(serverMessage);
 
-        console.log(`parsedMessage`, parsedMessage)
+        // console.log(`parsedMessage`, parsedMessage)
         setupLocalGrid(parsedMessage.grid);
 
         const playersList:Tank[] = [];
@@ -358,16 +278,16 @@ new p5((p5) => {
             pollForm.classList.remove('d-none')
         }
 
+        GameState.heartsLocations = parsedMessage.features.heartsLocations;
+        GameState.actionsLocations = parsedMessage.features.actionsLocations;
+        GameState.buildings = parsedMessage.features.buildings;
+
         voteSelect.innerHTML = playersList
             .filter(p => p.life > 0)
             .map(p => `
             <option value=${p.id}>${p.name}</option>
         `)
             .join('')
-
-        GameState.heartsLocations = parsedMessage.features.heartsLocations;
-        GameState.actionsLocations = parsedMessage.features.actionsLocations;
-        GameState.buildings = parsedMessage.features.buildings;
 
         // debugger;
 
@@ -377,27 +297,6 @@ new p5((p5) => {
         GameState.playerId = id;
     }
 
-
-    function setOnline(playersList:string) {
-        try {
-            const onlinePlayers = JSON.parse(playersList);
-
-            const listItems = onlinePlayers.map((p:any) => `
-            <li class="list-group-item">
-                <img alt="${p.name}" src="${p.picture}"  class="img-thumbnail"> ${p.name}    
-            </li>
-        `)
-            playersContainer.innerHTML = `
-            <ul class="list-group">
-                ${listItems.join('')}
-            </ul>
-        `;
-
-        } catch (err) {
-            console.error(err)
-        }
-
-    }
 
     async function getJson(url:string):Promise<any> {
         const token = await auth0.getTokenSilently();
@@ -445,36 +344,15 @@ new p5((p5) => {
         }
 
         if (stage === 'RUN') {
-            // p5.image(backgroundImage, 0, 0);
             drawBoard(p5);
         }
 
-        drawCursor();
-        // drawPlayerHover();
+        drawCursor(p5);
         drawPopup(p5);
 
     }
 
-    function drawCursor() {
 
-        p5.cursor('default')
-
-        if (GameState.currentState === States.SHOOT) {
-            p5.cursor('pointer');
-        }
-
-        if (GameState.currentState === States.MOVE) {
-            p5.cursor('pointer');
-        }
-
-        if (GameState.currentState === States.GIVE_ACTION) {
-            p5.cursor('pointer');
-        }
-
-        if (GameState.currentState === States.HEAL) {
-            p5.cursor('pointer');
-        }
-    }
 
     p5.mouseClicked = function() {
 
@@ -493,10 +371,16 @@ new p5((p5) => {
             { allowOutside: false }
         );
         if (hex) {
-            sio.emit('playerevent', GameState.currentState, {q: hex.q, r: hex.r}, (isValid:boolean) => {
-                if (isValid) {
+
+            MicroModal.show('action-confirm');
+
+
+            sio.emit('playerevent', GameState.currentState, {q: hex.q, r: hex.r}, (actionResult:ActionResult) => {
+                console.log(`actionResult`, actionResult)
+                if (actionResult.exit) {
                     GameState.currentState = States.IDLE;
                 } else {
+                    console.log(actionResult.failReason)
                     //  animate(cell, 'BLOW')
                 }
             });
