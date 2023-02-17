@@ -7,10 +7,11 @@ import {TileType} from "./board";
 import {FailReason} from "./fail-reason";
 import {ActionResult} from "./action-result";
 
-const ICE_ARMOR_CHANCE = 1;
+const ICE_ARMOR_CHANCE = 0.2;
 
 export enum Buffs {
-    ICE_ARMOR
+    ICE_ARMOR,
+    EXPLORER_BOOTS
 }
 
 interface TankParams {
@@ -123,6 +124,9 @@ export class Tank {
         if (enemy.life === 0) {
             console.log(`${enemy.id} was killed by ${this.id}`);
             this.actions += enemy.actions;
+
+            // ANCHE I BUFFS VANNO PASSATI ???????????
+
             await enemy.die();
             this.game.sendMessageToChat(`
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫

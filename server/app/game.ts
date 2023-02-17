@@ -113,21 +113,26 @@ export class Game {
     async distributeActions(): Promise<void> {
         this.board.forEach((hex: TanksHex) => {
             const tank = hex.tank;
+
+            if (!tank) {
+                return;
+            }
+
             let actionsToGive = 1;
 
-            // if tank tile is desert, remove 1 life
-            if (hex.tile === TileType.DESERT) {
+            const hasBoots = tank.buffs && tank.buffs.has(Buffs.EXPLORER_BOOTS);
 
+            // if tank tile is desert, remove 1 life
+            if (hex.tile === TileType.DESERT && !hasBoots) {
                 // if tank is in oasis, don't remove life
                 const oasis = this.state.buildings.find(building => building.type === 'OASIS' && building.position.q === hex.q && building.position.r === hex.r);
-                if (!oasis && tank && tank.life > 0) {
+                if (!oasis && tank.life > 0) {
                     tank.life -= 1;
                 }
             }
 
             if (hex.tile === TileType.SWAMP) {
                 const randomChance = Math.random();
-
                 if (randomChance < 0.1) {
                     actionsToGive -= 1;
                 }
@@ -136,18 +141,22 @@ export class Game {
                 }
             }
 
-            if (!tank) {
-                return;
-            }
-
             // check if tank is in ice fortress
             const iceFortress = this.state.buildings.find(building => building.type === 'ICE_FORTRESS' && building.position.q === hex.q && building.position.r === hex.r);
             if (iceFortress && tank.life > 0) {
-                console.log(`tank.buffs`, tank.buffs)
                 if (!tank.buffs || tank.buffs.constructor.name !== 'Set') {
                     tank.buffs = new Set();
                 }
                 tank.buffs.add(Buffs.ICE_ARMOR);
+            }
+
+            // check if tank is in oasis
+            const oasis = this.state.buildings.find(building => building.type === 'OASIS' && building.position.q === hex.q && building.position.r === hex.r);
+            if (oasis && tank.life > 0) {
+                if (!tank.buffs || tank.buffs.constructor.name !== 'Set') {
+                    tank.buffs = new Set();
+                }
+                tank.buffs.add(Buffs.EXPLORER_BOOTS);
             }
 
             if (tank.life > 0) {

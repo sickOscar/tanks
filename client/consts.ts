@@ -76,7 +76,8 @@ Mentre sei qui, la tua gittata aumenta di 1`
 ];
 
 export enum Buffs {
-    ICE_ARMOR
+    ICE_ARMOR,
+    EXPLORER_BOOTS
 }
 
 export const walkableTiles = [0, 2, 3, 4, 5, 6];

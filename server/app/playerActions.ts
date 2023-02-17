@@ -5,6 +5,5 @@ export enum PlayerActions {
     UPGRADE = 'upgrade',
     HEAL = 'heal',
     VOTE = 'vote',
-
     FAIL_SHOOT = 'fail-shoot',
 }

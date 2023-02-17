@@ -135,7 +135,14 @@ function drawPlayerPopupContent(hex: any, p5: p5, rectSourceX: number, popupXOff
     if (hex.tank.buffs.has(Buffs.ICE_ARMOR)) {
         p5.text(
             '🧊',
-            rectSourceX + 150,
+            rectSourceX + 140,
+            rectSourceY + 90
+        )
+    }
+    if (hex.tank.buffs.has(Buffs.EXPLORER_BOOTS)) {
+        p5.text(
+            '🥾',
+            rectSourceX + 165,
             rectSourceY + 90
         )
     }
