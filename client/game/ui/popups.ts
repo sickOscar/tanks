@@ -236,6 +236,14 @@ export function drawPopup(p5: p5) {
         size = smallSize;
         drawTilePopupContet(p5, rectSourceX, rectSourceY + largeSize[1] + popupMargin, size, hex, popupXOffset)
 
+        // if there is a tank on the tile, show its stats
+        if (hex.tank) {
+            size = mediumSize;
+
+            rectSourceX = adjustPopupDirection(p5, rectSourceX, hex, size);
+            drawPlayerPopupContent(hex, p5, rectSourceX, popupXOffset, rectSourceY - mediumSize[1] - 5, size);
+        }
+
 
     } else if (!hex.tank) {
 
