@@ -7,16 +7,10 @@ export function setOnline(playersList: string) {
     try {
         const onlinePlayers = JSON.parse(playersList);
 
-        const listItems = onlinePlayers.map((p: any) => `
-            <li class="list-group-item">
-                <img alt="${p.name}" src="${p.picture}"  class="img-thumbnail"> ${p.name}    
-            </li>
+        const listItems = onlinePlayers.map((p: any, i:number) => i < 4 && `
+            <img alt="${p.name}" src="${p.picture}" title="${p.name}" class="img-thumbnail">
         `)
-        playersContainer.innerHTML = `
-            <ul class="list-group">
-                ${listItems.join('')}
-            </ul>
-        `;
+        playersContainer.innerHTML = listItems.join('');
 
     } catch (err) {
         console.error(err)

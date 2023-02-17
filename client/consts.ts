@@ -1,6 +1,7 @@
 import {AxialCoordinates, Grid} from "honeycomb-grid";
 import {Tank} from "./models/Tank";
 import {TanksHex} from "../server/app/board";
+import {COLS, ROWS} from "../server/const";
 
 export interface IBuilding {
     name: string;
@@ -36,13 +37,19 @@ che il colpo non vada a segno.
 `
     },
 }
-export const X_OFFSET = 50;
-export const Y_OFFSET = 50;
 
-export const HEX_SIDE = 40;
+export const OFFSET = {
+    X: 50,
+    Y: 100
+}
+
+export const HEX_SIDE = 45;
 export const HEX_WIDTH = 2 * (Math.sqrt(3) / 2) * HEX_SIDE;
 export const HEX_HEIGHT = HEX_SIDE * Math.sqrt(3);
 export const HEX_TOP_TRIANGLE_HEIGHT = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
+
+export const BOARD_HEIGHT = HEX_HEIGHT * COLS - HEX_TOP_TRIANGLE_HEIGHT * COLS;
+export const BOARD_WIDTH = HEX_WIDTH * ROWS;
 
 export const TILES = [
     {
@@ -59,12 +66,12 @@ distribuite costa 1 💓`
     {
         name: "🌲 Foresta",
         description: `Muoverti qui costa 1 👊
-La tua gittata diminuisce di 1
-La gittata dei nemici verso di te diminuisce 1`
+La tua gittata 👁 diminuisce di 1
+La gittata 👁 dei nemici verso di te diminuisce 1`
     },
     {
         name: "⛰️ Montagna", description: `Muoverti qui costa 2 👊
-Mentre sei qui, la tua gittata aumenta di 1`
+Mentre sei qui, la tua gittata 👁 aumenta di 1`
     },
     {
         name: "🐊 Palude",
@@ -148,3 +155,8 @@ export const GameGraphics: IGameGraphics = {
 
 
 export const pictures: { [key: string]: any } = {};
+
+export const UI_WIDTH = 400;
+export const MAIN_BORDER_HEIGHT = 40;
+
+export const SCROLL_AREA_WIDTH = 100;

@@ -7,14 +7,13 @@ import {
     hover,
     pictures,
     TILES,
-    X_OFFSET,
-    Y_OFFSET
+    OFFSET
 } from "../../consts";
 import p5 from "p5";
 import {popupTextFont, popupTitleFont, resetFont} from "../../utils";
 import {AxialCoordinates} from "honeycomb-grid";
 
-const POPUP_DELAY = 2;
+const POPUP_DELAY = 10;
 
 function drawHealthPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], popupXOffset: number) {
     p5.fill('black');
@@ -152,7 +151,7 @@ function drawPlayerPopupContent(hex: any, p5: p5, rectSourceX: number, popupXOff
 
 function adjustPopupDirection(p5: p5, rectSourceX: number, hex: any, size: number[]) {
     if (p5.mouseX > GameState.WIDTH / 2) {
-        rectSourceX = hex.corners[0].x + X_OFFSET - HEX_WIDTH - 10 - size[0];
+        rectSourceX = hex.corners[0].x + OFFSET.X - HEX_WIDTH - 10 - size[0];
     }
     return rectSourceX;
 }
@@ -164,7 +163,7 @@ export function drawPopup(p5: p5) {
     }
 
     const hex = GameState.localGrid!.pointToHex(
-        {x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},
+        {x: p5.mouseX - OFFSET.X, y: p5.mouseY - OFFSET.Y},
         {allowOutside: false}
     );
 
@@ -190,8 +189,8 @@ export function drawPopup(p5: p5) {
     }
 
 
-    let rectSourceX = hex.corners[0].x + X_OFFSET + 10;
-    let rectSourceY = hex.corners[0].y + Y_OFFSET - HEX_TOP_TRIANGLE_HEIGHT;
+    let rectSourceX = hex.corners[0].x + OFFSET.X + 10;
+    let rectSourceY = hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT;
 
     let size = smallSize;
 

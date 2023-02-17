@@ -22,48 +22,66 @@ body {
     background-position-y: -10px;
 }
 
-.navbar {
-
+.image-border {
+    border-image-source: url('/assets/border.webp');
+    border-image-slice: 25;
+    border-image-repeat: round;
+    border-style: inset;
+    border-width: 20px;
 }
 
-.header {
-    background-color: #000;
-    background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
-    background-position-y: -10px;
+#right-side {
+    width: 350px;
 }
 
 .title {
     font-family: 'Sketch Gothic School', sans-serif;
 }
 
-h2 {
+h1, h2 {
     font-family: 'Sketch Gothic School', sans-serif;
 }
 
-#actions ul {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    list-style: none;
+.player-picture {
+    width: 100px;
+    height: 100px;
+    margin-right: 15px;
+}
+
+.paper-background {
+    background-image: url('/assets/paper.png');
+    background-size: cover;
+    height: 69px;
+    min-width: 134px;
+    padding-top: 14px;
+    padding-left: 20px;
 }
 
 #actions button {
-    font-weight: 700;
-    font-family: Arial, sans-serif;
-    padding: 3px 10px;
-    border-top: 1px solid #c9c183;
-    border-bottom: 3px solid #c9c183;
-    margin: 0 4px;
+    display: block;
+    height: 50px;
+    width: 50%;
+    background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
 }
 
-#right-side {
-    min-width: 200px;
-    margin: 30px 10px;
-    flex: 1;
+.counters-background:after {
+    position: relative;
+    display: block;
+    clear: both;
+    top: -45px;
+    opacity: 30%;
 }
 
-#board-holder {
-    overflow-x: auto;
+#player-actions.counters-background:after {
+    content: '👊';
+}
+
+#player-health.counters-background:after {
+    content: '💓';
+}
+
+#player-sight.counters-background:after {
+    content: '👁';
 }
 
 .user-actions button {
@@ -141,7 +159,6 @@ table {
 
 .main-content {
     width: 100%;
-    height: 100%;
 }
 
 .nav-link, .nav-link:active, .nav-link:hover {

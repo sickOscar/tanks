@@ -2,13 +2,23 @@ import p5 from 'p5';
 import * as Honeycomb from 'honeycomb-grid';
 import {TanksHex} from "../server/app/board";
 import {Tank} from "./models/Tank";
-import {GameGraphics, GameState, HEX_HEIGHT, HEX_SIDE, HEX_WIDTH, pictures, States, X_OFFSET, Y_OFFSET} from "./consts";
+import {
+    GameGraphics,
+    GameState,
+    HEX_HEIGHT,
+    HEX_SIDE,
+    HEX_WIDTH, MAIN_BORDER_HEIGHT,
+    pictures,
+    States,
+    UI_WIDTH,
+    OFFSET
+} from "./consts";
 import {drawPopup} from "./game/ui/popups";
 import {io} from "socket.io-client";
 import {createAuth0Client} from '@auth0/auth0-spa-js';
 import {drawBoard} from "./game/ui/board";
 import MicroModal from 'micromodal';
-import {drawCursor} from './game/ui/mouse';
+import {drawCursor, handleViewport} from './game/ui/mouse';
 import {drawEvents, setOnline} from "./game/ui/html-elements";
 import {execAction, validateAction} from "./game/message-sender";
 
@@ -37,6 +47,15 @@ new p5((p5) => {
     const logoutButton = document.querySelector('#btn-logout') as HTMLButtonElement;
     const actionButtons = document.querySelectorAll(`#actions  button`) as NodeListOf<HTMLButtonElement>;
     const boardContainer = document.querySelector('#board-holder') as HTMLDivElement;
+    const intro = document.querySelector('#intro') as HTMLDivElement;
+    const rightSide = document.querySelector('#right-side') as HTMLDivElement;
+    const guestBox = document.querySelector('#guest-box') as HTMLDivElement;
+    const playerImage = document.querySelector('#player-image') as HTMLImageElement;
+    const playerBox = document.querySelector('#player-box') as HTMLDivElement;
+    const playerName = document.querySelector('#player-name') as HTMLDivElement;
+    const playerHealth = document.querySelector('#player-health') as HTMLDivElement;
+    const playerActions = document.querySelector('#player-actions') as HTMLDivElement;
+    const playerSight = document.querySelector('#player-sight') as HTMLDivElement;
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
@@ -51,8 +70,8 @@ new p5((p5) => {
 
     showPollResultsButton.addEventListener('click', event => {
         event.preventDefault();
-        pollResultsContainer.classList.remove('d-none');
-        modalOverlay.classList.remove('d-none');
+        pollResultsContainer.classList.remove('hidden');
+        modalOverlay.classList.remove('hidden');
 
         getJson('poll')
             .then(response => {
@@ -86,14 +105,16 @@ new p5((p5) => {
     async function updateLoginUi() {
         const isAuthenticated = await auth0.isAuthenticated();
         loginButton.disabled = isAuthenticated;
-        loginButton.style.display = isAuthenticated ? 'none' : 'flex';
         logoutButton.disabled = !isAuthenticated;
-        logoutButton.style.display = !isAuthenticated ? 'none' : 'flex';
 
         if (isAuthenticated) {
-            boardContainer.classList.remove('d-none');
+            boardContainer.classList.remove('hidden');
+            rightSide.classList.remove('hidden');
+            intro.classList.add('hidden');
         } else {
-            boardContainer.classList.add('d-none');
+            boardContainer.classList.add('hidden');
+            rightSide.classList.add('hidden');
+            intro.classList.remove('hidden');
         }
 
     }
@@ -124,6 +145,13 @@ new p5((p5) => {
 
             await initCanvas()
         }
+    }
+
+    window.onresize = () => {
+        GameState.WIDTH = window.innerWidth - UI_WIDTH;
+        GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
+
+        p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
     }
 
     function resizeGrid(grid: any) {
@@ -163,8 +191,11 @@ new p5((p5) => {
         configFetched = true;
         setupLocalGrid(c.grid);
 
-        GameState.WIDTH = c.cols * HEX_WIDTH + X_OFFSET;
-        GameState.HEIGHT = c.rows * HEX_HEIGHT + Y_OFFSET;
+        // GameState.WIDTH = c.cols * HEX_WIDTH + OFFSET.X;
+        // GameState.HEIGHT = c.rows * HEX_HEIGHT + OFFSET.Y;
+
+        GameState.WIDTH = window.innerWidth - UI_WIDTH;
+        GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
 
         p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
 
@@ -265,17 +296,33 @@ new p5((p5) => {
             }
         })
 
+        if (GameState.player) {
+            guestBox.classList.add('hidden');
+            playerBox.classList.remove('hidden');
+
+            playerImage.src = GameState.player.picture;
+            playerName.textContent = GameState.player.name;
+            playerHealth.textContent = GameState.player.life.toString();
+            playerActions.textContent = GameState.player.actions.toString();
+            playerSight.textContent = GameState.player.range.toString();
+
+        } else {
+            guestBox.classList.remove('hidden');
+            playerBox.classList.add('hidden');
+        }
+
         if (GameState.player && GameState.player.life > 0) {
-            actionsContainer.classList.remove('d-none');
+            actionsContainer.classList.remove('hidden');
             visibleActions = true;
-            pollForm.classList.add('d-none')
+            pollForm.classList.add('hidden')
         }
 
         if (GameState.player && GameState.player.life <= 0) {
             visibleActions = false;
-            actionsContainer.classList.add('d-none');
-            pollForm.classList.remove('d-none')
+            actionsContainer.classList.add('hidden');
+            pollForm.classList.remove('hidden')
         }
+
 
         GameState.heartsLocations = parsedMessage.features.heartsLocations;
         GameState.actionsLocations = parsedMessage.features.actionsLocations;
@@ -330,10 +377,12 @@ new p5((p5) => {
 
         GameGraphics.maskGraphics = p5.createGraphics(100, 100);
 
-        p5.frameRate(10)
+        // p5.frameRate(2)
     }
 
     p5.draw = function () {
+
+        handleViewport(p5);
 
         GameState.activePlayerHover = null;
 
@@ -360,7 +409,7 @@ new p5((p5) => {
 
         if (GameState.currentState === States.IDLE) {
             const hex = GameState.localGrid!.pointToHex(
-                {x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},
+                {x: p5.mouseX - OFFSET.X, y: p5.mouseY - OFFSET.Y},
                 {allowOutside: false}
             );
             if (hex) {
@@ -369,7 +418,7 @@ new p5((p5) => {
         }
 
         const hex = GameState.localGrid!.pointToHex(
-            {x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},
+            {x: p5.mouseX - OFFSET.X, y: p5.mouseY - OFFSET.Y},
             {allowOutside: false}
         );
         if (hex) {
