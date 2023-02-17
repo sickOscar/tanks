@@ -272,47 +272,40 @@
         <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
             <header class="modal__header">
                 <h2 class="modal__title" id="action-confirm-title">
-                    Attacco
+                    Combattimento
                 </h2>
                 <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
             </header>
             <main class="modal__content">
+
+
             </main>
-            <!--            <footer class="modal__footer">-->
-            <!--                <button class="modal__btn modal__btn-primary">Continue</button>-->
-            <!--                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>-->
-            <!--            </footer>-->
         </div>
     </div>
+
+
+
 </div>
 
 <div id="modal-overlay" class="d-none"></div>
 
-
-<!--
-
-    <button id="btn-login" disabled="true">Log in</button>
-        <button id="btn-logout" disabled="true">Log out</button>
-
-    <div id="cell-info">
-
+<template id="shoot-content">
+    <div class="d-flex justify-center">
+        <img class="modal-picture you mx-4" src="" alt="you">
+        <div class="VS text-5xl leading-loose">⚔️</div>
+        <img class="modal-picture target mx-4" src="" alt="enemy">
     </div>
-
-    <div id="actions">
-        <button data-action="move">Move</button><br>
-        <button data-action="shoot">Shoot</button><br>
-        <button data-action="give-action">Give Action</button><br>
-        <button data-action="upgrade">Upgrade</button><br>
+    <div class="d-flex justify-center mt-4">
+        <button class="attack-button">
+            Attacca!
+        </button>
+        <div class="attack-result">
+            <h3 class="text-center"></h3>
+            <p class="text-center"></p>
+        </div>
     </div>
+</template>
 
-    <div id="chat">
-        <form id="form" action="">
-            <input id="input" autocomplete="off" /><button>Send</button>
-        </form>
-    </div>
-
-    </body>
-    -->
 <script src="main.ts" type="module"></script>
 </body>
 </html>

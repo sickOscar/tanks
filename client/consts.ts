@@ -16,10 +16,13 @@ interface Player {
 export const BUILDINGS: { [key: string]: IBuilding } = {
     OASIS: {
         name: `Oasi`,
-        description: `Se ti trovi qui quando le azioni vengono distribuite,\n
-guadagni permanentemente
+        description: `Se ti trovi qui quando le azioni vengono
+distribuite, guadagni permanentemente
 
-
+🥾 STIVALI DELL'ESPLORATORE
+Non subisci 💓 da terreno ostile e spendi 
+sempre solo 1 👊 per muoverti in qualsiasi
+tipo di terreno.
 `
     },
     ICE_FORTRESS: {
@@ -28,7 +31,7 @@ guadagni permanentemente
 distribuite, guadagni permanentemente
 
 🧊 ARMATURA DI GHIACCIO 
-Ogni volta che vieni colpito, 10% di possibilità
+Ogni volta che vieni colpito, 20% di possibilità
 che il colpo non vada a segno.
 `
     },
@@ -105,6 +108,7 @@ interface IGameState {
     player: Tank | null,
     currentState: string,
     events: any[],
+    hasFocus: boolean,
 }
 
 export const GameState: IGameState = {
@@ -119,7 +123,8 @@ export const GameState: IGameState = {
     activePlayerHover: null,
     player: null,
     currentState: States.IDLE,
-    events: []
+    events: [],
+    hasFocus: true,
 }
 
 interface IGameGraphics {

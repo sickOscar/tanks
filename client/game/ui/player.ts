@@ -1,4 +1,4 @@
-import {TanksHex} from "../../server/app/board";
+import {TanksHex} from "../../../server/app/board";
 import {
     GameGraphics,
     GameState,
@@ -9,11 +9,11 @@ import {
     pictures,
     X_OFFSET,
     Y_OFFSET
-} from "../consts";
+} from "../../consts";
 import p5 from "p5";
 import {Point} from "honeycomb-grid";
-import {Tank} from "../models/Tank";
-import {resetFont} from "../utils";
+import {Tank} from "../../models/Tank";
+import {resetFont} from "../../utils";
 
 function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5) {
     if (!pictures[tank.id]) {

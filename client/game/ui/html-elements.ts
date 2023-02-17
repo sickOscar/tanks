@@ -1,4 +1,4 @@
-import {GameState, States} from "../consts";
+import {GameState, States} from "../../consts";
 
 export function setOnline(playersList: string) {
 

@@ -18,6 +18,7 @@ import {PlayerActions} from "./app/playerActions";
 import {serializeActionResult} from "./app/action-result";
 const assert = require('assert');
 
+type EventType = 'VALIDATE' | 'EXECUTE';
 
 async function init() {
 
@@ -100,7 +101,7 @@ async function init() {
             if (game.isAlive(player)) {
                 tank = game.getPlayerTank(player) as Tank;
                 socket.emit(MessageTypes.PLAYER, tank.id)
-                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, callback) => {
+                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, type:EventType, callback) => {
 
                     const action:Action = {
                         created_at: new Date(),
@@ -109,7 +110,7 @@ async function init() {
                         destination: undefined
                     }
 
-                    console.log(`${tank.id} | ${action.action} | ${JSON.stringify(payload)}`);
+                    console.log(`${type}: ${tank.id} | ${tank.name} | ${action.action} | ${JSON.stringify(payload)}`);
 
                     const stopGameDate = process.env.STOP_GAME_DATE;
                     if (stopGameDate && new Date(stopGameDate) < new Date()) {
@@ -124,14 +125,14 @@ async function init() {
                     if (payload && payload.q !== undefined && payload.r !== undefined) {
                         action.destination = {q: payload.q, r: payload.r}
                     }
-                    
+
                     if (actionString === PlayerActions.VOTE) {
                         action.enemy = game.getPlayerTank({id:payload} as Player)
                     }
-                    
-                    const actionApplied = await tank.applyAction(action);
 
-                    console.log(`${tank.id} | ${action.action} | ${JSON.stringify(payload)} | ${!!actionApplied}`)
+                    const actionApplied = await tank.applyAction(action, type === 'VALIDATE');
+
+                    console.log(`${type}: ${tank.id} | ${tank.name} | ${action.action} | ${JSON.stringify(payload)} | ${actionApplied.exit}`)
                     callback(serializeActionResult(actionApplied));
 
                     if (actionApplied.exit) {
@@ -167,7 +168,6 @@ async function init() {
 
         }
 
-
         socket.emit(MessageTypes.MESSAGE, `Welcome ${socket.user.name}!`);
         socket.emit(MessageTypes.BOARD, game.board.serialize());
         socket.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPeopleOnline()))
@@ -177,7 +177,6 @@ async function init() {
         socket.broadcast.emit(MessageTypes.PLAYERSLIST, JSON.stringify(game.getPeopleOnline()))
 
     })
-
 
     app.get('/events', checkJwt, async (req, res) => {
         res.json(await game.getActions());

@@ -7,11 +7,11 @@ import {
     States,
     X_OFFSET,
     Y_OFFSET
-} from "../consts";
-import {TanksHex} from "../../server/app/board";
+} from "../../consts";
+import {TanksHex} from "../../../server/app/board";
 import {drawPlayer} from "./player";
 import p5 from "p5";
-import {isInRange, isWalkable} from "../utils";
+import {isInRange, isWalkable} from "../../utils";
 
 export function drawBoard(p5:p5) {
     p5.noFill();

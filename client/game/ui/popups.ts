@@ -9,9 +9,9 @@ import {
     TILES,
     X_OFFSET,
     Y_OFFSET
-} from "../consts";
+} from "../../consts";
 import p5 from "p5";
-import {popupTextFont, popupTitleFont, resetFont} from "../utils";
+import {popupTextFont, popupTitleFont, resetFont} from "../../utils";
 import {AxialCoordinates} from "honeycomb-grid";
 
 const POPUP_DELAY = 2;
@@ -151,6 +151,10 @@ function adjustPopupDirection(p5: p5, rectSourceX: number, hex: any, size: numbe
 }
 
 export function drawPopup(p5: p5) {
+
+    if (!GameState.hasFocus) {
+        return;
+    }
 
     const hex = GameState.localGrid!.pointToHex(
         {x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},

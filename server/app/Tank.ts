@@ -7,7 +7,7 @@ import {TileType} from "./board";
 import {FailReason} from "./fail-reason";
 import {ActionResult} from "./action-result";
 
-
+const ICE_ARMOR_CHANCE = 1;
 
 export enum Buffs {
     ICE_ARMOR
@@ -213,7 +213,7 @@ export class Tank {
         this.actions -= howMany;
     }
 
-    async applyAction(action: Action): Promise<ActionResult> {
+    async applyAction(action: Action, dryRun = false): Promise<ActionResult> {
 
         if (action.action === PlayerActions.VOTE) {
             if (!this.game.isInJury(this.asPlayer())) {
@@ -256,7 +256,7 @@ export class Tank {
 
         if (action.action === PlayerActions.UPGRADE) {
             if (this.actions >= 3) {
-                await this.upgrade()
+                !dryRun && await this.upgrade();
                 return {
                     exit: true,
                     action
@@ -305,7 +305,7 @@ export class Tank {
             }
             
             if (this.game.board.isInRange(this.position, boardCell, 1)) {
-                await this.move(q, r);
+                !dryRun && await this.move(q, r);
                 return {
                     exit: true,
                     action
@@ -338,16 +338,23 @@ export class Tank {
 
                     if (enemy.buffs.has(Buffs.ICE_ARMOR)) {
                         console.log(`ICE`)
-                        if (Math.random() < 1) {
-                            await this.failShoot(q, r);
-                            return {
-                                exit: true,
-                                action
+                        if (Math.random() < ICE_ARMOR_CHANCE) {
+                            if (dryRun) {
+                                return {
+                                    exit: true,
+                                    action
+                                }
+                            } else  {
+                                await this.failShoot(q, r);
+                                return {
+                                    exit: false,
+                                    failReason: FailReason.ICE_ARMOR
+                                }
                             }
                         }
                     }
 
-                    await this.shoot(q, r);
+                    !dryRun && await this.shoot(q, r);
                     action.enemy = this.game.board.getAt(q, r);
                     return {
                         exit: true,
@@ -373,7 +380,7 @@ export class Tank {
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 action.enemy = this.game.board.getAt(q, r) as Tank;
                 if (action.enemy.life > 0) {
-                    await this.giveAction(q, r);
+                    !dryRun && await this.giveAction(q, r);
                     return {
                         exit: true,
                         action
@@ -398,7 +405,7 @@ export class Tank {
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
                 if (this.actions >= 3) {
-                    await this.heal(q, r);
+                    !dryRun && await this.heal(q, r);
                     action.enemy = this.game.board.getAt(q, r)
                     return {
                         exit: true,
@@ -407,8 +414,6 @@ export class Tank {
                 }
             }
         }
-
-
 
         return {
             exit: false,

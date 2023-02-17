@@ -3,14 +3,14 @@ import * as Honeycomb from 'honeycomb-grid';
 import {TanksHex} from "../server/app/board";
 import {Tank} from "./models/Tank";
 import {GameGraphics, GameState, HEX_HEIGHT, HEX_SIDE, HEX_WIDTH, pictures, States, X_OFFSET, Y_OFFSET} from "./consts";
-import {drawPopup} from "./game-ui/popups";
+import {drawPopup} from "./game/ui/popups";
 import {io} from "socket.io-client";
 import {createAuth0Client} from '@auth0/auth0-spa-js';
-import {drawBoard} from "./game-ui/board";
+import {drawBoard} from "./game/ui/board";
 import MicroModal from 'micromodal';
-import {ActionResult} from "../server/app/action-result";
-import { drawCursor } from './game-ui/mouse';
-import {drawEvents, setOnline} from "./game-ui/html-elements";
+import {drawCursor} from './game/ui/mouse';
+import {drawEvents, setOnline} from "./game/ui/html-elements";
+import {execAction, validateAction} from "./game/message-sender";
 
 MicroModal.init();
 
@@ -19,12 +19,12 @@ new p5((p5) => {
 
 
     let configFetched = false;
-    let sio:any;
+    let sio: any;
     let visibleActions = false;
 
     let stage = 'RUN';
     // AUTH
-    let auth0:any;
+    let auth0: any;
 
     const voteSelect = document.querySelector('select#vote') as HTMLSelectElement;
     const pollForm = document.querySelector('form#poll') as HTMLFormElement;
@@ -40,7 +40,7 @@ new p5((p5) => {
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
-        sio.emit('playerevent', 'vote', voteSelect.value, (response:any) => {
+        sio.emit('playerevent', 'vote', voteSelect.value, (response: any) => {
             if (!response) {
                 alert(`Well, no. You already voted today. The blockchain doesn't lie`)
             } else {
@@ -56,7 +56,7 @@ new p5((p5) => {
 
         getJson('poll')
             .then(response => {
-                pollResultsTable.innerHTML = response.map((row:any) => `
+                pollResultsTable.innerHTML = response.map((row: any) => `
                 <tr>
                     <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
                     <td>${row.name}</td>
@@ -126,7 +126,7 @@ new p5((p5) => {
         }
     }
 
-    function resizeGrid(grid:any) {
+    function resizeGrid(grid: any) {
         grid.hexSettings.dimensions = {
             xRadius: HEX_SIDE,
             yRadius: HEX_SIDE
@@ -134,14 +134,14 @@ new p5((p5) => {
         return grid;
     }
 
-    function setupLocalGrid(grid:any) {
+    function setupLocalGrid(grid: any) {
         const resizedGrid = resizeGrid(grid);
 
         const TanksHex = class extends Honeycomb.defineHex(resizedGrid.hexSettings) {
-            tank:Tank|null = null;
-            tile:number = 0;
+            tank: Tank | null = null;
+            tile: number = 0;
 
-            constructor({q, r, tank, tile}:{q:number, r:number, tank:Tank|null, tile:number}) {
+            constructor({q, r, tank, tile}: { q: number, r: number, tank: Tank | null, tile: number }) {
                 super({q, r});
                 this.tank = tank;
 
@@ -190,7 +190,7 @@ new p5((p5) => {
     })
 
 
-    function connectSocket(jwt:string) {
+    function connectSocket(jwt: string) {
         sio = io('', {
             auth: {
                 token: `Bearer ${jwt}`
@@ -203,7 +203,7 @@ new p5((p5) => {
         sio.on('playerslist', setOnline);
         sio.on('action', addPlayerAction)
 
-        sio.on('connect_error', (error:any) => {
+        sio.on('connect_error', (error: any) => {
             console.error(error)
         })
     }
@@ -220,10 +220,9 @@ new p5((p5) => {
                 return
             }
 
-            if (state === States.UPGRADE ) {
-                sio.emit('playerevent', States.UPGRADE, null, (_isValid:boolean) => {
-                    console.log('upgraded');
-                });
+            if (state === States.UPGRADE) {
+                execAction(sio, null, States.UPGRADE)
+                    .catch(console.log);
             } else {
                 if (GameState.currentState === state) {
                     GameState.currentState = States.IDLE
@@ -236,19 +235,19 @@ new p5((p5) => {
     })
 
 
-    function addPlayerAction(action:any) {
+    function addPlayerAction(action: any) {
         GameState.events.unshift(action)
         drawEvents();
     }
 
-    function updateBoard(serverMessage:string) {
+    function updateBoard(serverMessage: string) {
 
         const parsedMessage = JSON.parse(serverMessage);
 
         // console.log(`parsedMessage`, parsedMessage)
         setupLocalGrid(parsedMessage.grid);
 
-        const playersList:Tank[] = [];
+        const playersList: Tank[] = [];
 
         GameState.localGrid!.forEach(hex => {
             if (hex.tank) {
@@ -293,12 +292,12 @@ new p5((p5) => {
 
     }
 
-    function setPlayer(id:string) {
+    function setPlayer(id: string) {
         GameState.playerId = id;
     }
 
 
-    async function getJson(url:string):Promise<any> {
+    async function getJson(url: string): Promise<any> {
         const token = await auth0.getTokenSilently();
         return fetch(url, {
             headers: {
@@ -309,7 +308,7 @@ new p5((p5) => {
             .catch(console.error);
     }
 
-    p5.preload = function() {
+    p5.preload = function () {
         GameGraphics.tiles = [
             p5.loadImage('./assets/grass.png'),
             p5.loadImage('./assets/sea.png'),
@@ -325,7 +324,7 @@ new p5((p5) => {
 
     }
 
-    p5.setup = function() {
+    p5.setup = function () {
         const canvas = p5.createCanvas(100, 100);
         canvas.parent('board-holder')
 
@@ -334,7 +333,7 @@ new p5((p5) => {
         p5.frameRate(10)
     }
 
-    p5.draw = function() {
+    p5.draw = function () {
 
         GameState.activePlayerHover = null;
 
@@ -353,13 +352,16 @@ new p5((p5) => {
     }
 
 
+    p5.mouseClicked = function () {
 
-    p5.mouseClicked = function() {
+        if (!GameState.hasFocus) {
+            return;
+        }
 
         if (GameState.currentState === States.IDLE) {
             const hex = GameState.localGrid!.pointToHex(
-                { x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET },
-                { allowOutside: false }
+                {x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},
+                {allowOutside: false}
             );
             if (hex) {
                 return;
@@ -367,27 +369,93 @@ new p5((p5) => {
         }
 
         const hex = GameState.localGrid!.pointToHex(
-            { x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},
-            { allowOutside: false }
+            {x: p5.mouseX - X_OFFSET, y: p5.mouseY - Y_OFFSET},
+            {allowOutside: false}
         );
         if (hex) {
 
-            MicroModal.show('action-confirm');
+            if (GameState.currentState !== States.SHOOT) {
+                execAction(sio, hex)
+                    .then(() => {
+                        GameState.currentState = States.IDLE;
+                    })
+                    .catch(console.log)
+                return;
+            }
 
+            validateAction(sio, hex)
+                .then((isValid: boolean) => {
 
-            sio.emit('playerevent', GameState.currentState, {q: hex.q, r: hex.r}, (actionResult:ActionResult) => {
-                console.log(`actionResult`, actionResult)
-                if (actionResult.exit) {
-                    GameState.currentState = States.IDLE;
-                } else {
-                    console.log(actionResult.failReason)
-                    //  animate(cell, 'BLOW')
-                }
-            });
+                    MicroModal.show('action-confirm', {
+                        onShow: () => {
+
+                            GameState.hasFocus = false;
+
+                            const modal = document.getElementById('action-confirm') as HTMLDivElement;
+                            const modalTitle = modal.querySelector('.modal__title') as HTMLHeadingElement;
+                            modalTitle.textContent = GameState.currentState;
+
+                            const actionTemplate = document.getElementById(`${GameState.currentState}-content`) as HTMLTemplateElement;
+                            const clone = actionTemplate.content.cloneNode(true) as HTMLElement;
+                            (clone.querySelector('.you') as HTMLImageElement).src = 'YOU';
+                            (clone.querySelector('.target') as HTMLImageElement).src = hex.tank!.picture;
+
+                            modal.querySelector('.modal__content')!.append(clone);
+                            const attackResultTitle = modal.querySelector('.attack-result h3') as HTMLHeadingElement;
+                            const attackResultText = modal.querySelector('.attack-result p') as HTMLParagraphElement;
+                            const attackButton = modal.querySelector('.attack-button') as HTMLButtonElement;
+
+                            modal.querySelector('.attack-button')!.addEventListener('click', () => {
+                                execAction(sio, hex)
+                                    .then((actionResult) => {
+
+                                        attackButton.style.display = 'none';
+
+                                        if (actionResult.exit === true) {
+                                            attackResultTitle.textContent = `L'hai colpito!`;
+                                        } else {
+                                            attackResultTitle.textContent = `OH NOOOO!`;
+                                            switch (actionResult.failReason) {
+                                                case 0:
+                                                    attackResultText.textContent = `La sua armatura di ghiaccio ha bloccato l'attacco!`;
+                                                    break;
+                                                case 5:
+                                                    attackResultText.textContent = `Non hai più azioni per attaccare!`;
+                                                    break;
+                                                case 6:
+                                                    attackResultText.textContent = `Dannazione, quel codardo se n'è già andato!`;
+                                                    break;
+                                                default:
+                                                    attackResultText.textContent = `L'attacco è andato a vuoto`;
+                                                    break;
+                                            }
+                                        }
+
+                                        GameState.currentState = States.IDLE;
+
+                                    })
+                                    .catch(console.log)
+
+                            })
+
+                        },
+                        // @ts-ignore
+                        onClose: (modal:HTMLElement, trigger:HTMLElement, event:MouseEvent) => {
+                            GameState.hasFocus = true;
+                            modal.querySelector('.modal__content')!.innerHTML = '';
+                        }
+                    });
+
+                })
+                .catch(() => {
+                    // DO NOTHING
+                })
         }
 
     }
 
 })
+
+
 
 
