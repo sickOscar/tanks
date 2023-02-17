@@ -59,7 +59,7 @@ distribuite costa 1 💓`
     {
         name: "🌲 Foresta",
         description: `Muoverti qui costa 1 👊
-La tua gittata aumenta di 1
+La tua gittata diminuisce di 1
 La gittata dei nemici verso di te diminuisce 1`
     },
     {
