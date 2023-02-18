@@ -342,7 +342,7 @@ export class Tank {
 
                     if (enemy.buffs.has(Buffs.ICE_ARMOR)) {
                         console.log(`ICE`)
-                        if (Math.random() < ICE_ARMOR_CHANCE) {
+                        if (Math.random() <= ICE_ARMOR_CHANCE) {
                             if (dryRun) {
                                 return {
                                     exit: true,
