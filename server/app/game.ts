@@ -17,6 +17,25 @@ interface GameState {
     buildings: Building[];
 }
 
+const DEFAULT_BUILDINGS: Building[] = [
+    {
+        type: 'OASIS',
+        position: {q: -1, r: 15}
+    },
+    {
+        type: 'ICE_FORTRESS',
+        position: {q: 3, r: 0}
+    },
+    {
+        type: 'CASTLE',
+        position: {q: 8, r:4}
+    },
+    {
+        type: 'ORCS_CAMP',
+        position: {q: 7, r: 14}
+    }
+]
+
 export class Game {
 
     id: number = 0;
@@ -25,15 +44,7 @@ export class Game {
         board: new Board(this),
         heartsLocations: [],
         actionsLocations: [],
-        buildings: [
-            {
-                type: 'OASIS',
-                position: {q: -1, r: 14}
-            }, {
-                type: 'ICE_FORTRESS',
-                position: {q: 3, r: 0}
-            }
-        ]
+        buildings: DEFAULT_BUILDINGS
     };
 
     addActivePlayer(player: Player) {
@@ -73,7 +84,45 @@ export class Game {
         }
 
         if (dbBoard.features.buildings) {
-            this.state.buildings = dbBoard.features.buildings;
+
+            // SYNC BUILDINGS
+
+            console.log(`dbBoard.features.buildings`, dbBoard.features.buildings);
+            // controlla che i building siano uguali a quelli di default
+
+            if (dbBoard.features.buildings.length !== DEFAULT_BUILDINGS.length) {
+
+                const removedBuildings = dbBoard.features.buildings
+                    .filter((building:Building) => {
+                        return !DEFAULT_BUILDINGS.find(dbBuilding => dbBuilding.type === building.type)
+                    });
+
+                const addedBuildings = DEFAULT_BUILDINGS
+                    .filter(building => {
+                        return !dbBoard.features.buildings.find((dbBuilding:Building) => dbBuilding.type === building.type)
+                    });
+
+                console.log(`newBuildings`, addedBuildings)
+                console.log(`removedBuildings`, removedBuildings)
+
+                if (removedBuildings.length > 0) {
+                    this.state.buildings = dbBoard.features.buildings
+                        .filter((building:Building) => {
+                            return !removedBuildings.find((dbBuilding:Building) => dbBuilding.type === building.type)
+                        });
+                }
+
+                if (addedBuildings.length > 0) {
+                    this.state.buildings = [...dbBoard.features.buildings, ...addedBuildings];
+                }
+
+            } else {
+
+                this.state.buildings = dbBoard.features.buildings;
+            }
+
+            console.log(`this.state.buildings`, this.state.buildings)
+            
         }
 
         this.id = res.rows[0].id;

@@ -1,4 +1,4 @@
-import {COLS, ROWS} from "../const";
+import {COLS, GAME_MAP, ROWS} from "../const";
 import {Tank} from "./Tank";
 import db from "../db";
 
@@ -35,6 +35,7 @@ export class TanksHex extends defineHex() {
     }
 }
 
+
 export class Board {
 
     private game:Game
@@ -44,34 +45,13 @@ export class Board {
         this.game = game;
         this.board = new Grid(TanksHex, rectangle({width: COLS, height: ROWS}));
 
-        const map = [
-            [1, 6, 6, 6, 6, 6, 0, 6, 6, 6, 6, 0, 0, 6, 6, 6, 6, 6, 6, 6],
-            [1, 0, 6, 6, 0, 0, 0, 0, 6, 6, 0, 0, 0, 0, 6, 6, 0, 0, 0, 1],
-            [1, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 6, 6, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 6, 3, 3, 0, 4, 0, 0, 0, 0, 0, 3, 3, 0, 3, 0, 1, 1],
-            [1, 0, 0, 3, 3, 3, 0, 4, 0, 0, 0, 0, 3, 3, 3, 3, 3, 0, 0, 1],
-            [1, 1, 0, 3, 3, 3, 0, 0, 0, 0, 3, 4, 4, 0, 0, 0, 0, 0, 3, 1],
-            [1, 1, 0, 0, 3, 3, 0, 0, 0, 3, 4, 4, 0, 0, 0, 0, 0, 3, 3, 1],
-            [1, 0, 0, 0, 3, 0, 0, 0, 3, 4, 4, 0, 0, 0, 1, 1, 0, 1, 3, 1],
-            [1, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 4, 0, 0, 0, 4, 4, 0, 0, 0, 5, 0, 0, 0, 0, 1, 1, 1],
-            [1, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 3, 0, 5, 3, 5, 5, 0, 1, 1],
-            [1, 0, 0, 0, 0, 2, 3, 0, 2, 2, 0, 4, 3, 5, 5, 5, 0, 0, 1, 1],
-            [1, 1, 0, 0, 4, 2, 4, 2, 2, 0, 0, 0, 5, 5, 5, 5, 4, 0, 0, 1],
-            [1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 5, 5, 5, 4, 0, 0, 1],
-            [1, 0, 0, 0, 0, 2, 2, 1, 0, 0, 3, 3, 3, 0, 0, 0, 4, 0, 0, 1],
-            [1, 0, 0, 1, 1, 3, 2, 1, 1, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ]
-
         const square = rectangle<TanksHex>({width: COLS, height: ROWS});
         const traversedGrid = this.board.traverse(square, {});
 
         let x = 0;
         let y = 0;
         traversedGrid.forEach((hex: TanksHex) => {
-            hex.tile = map[y][x];
+            hex.tile = GAME_MAP[y][x];
             x++;
             if (x >= COLS) {
                 x = 0;
@@ -105,6 +85,23 @@ export class Board {
         })
 
         this.board = new Grid(TanksHex, coords);
+
+        const square = rectangle<TanksHex>({width: COLS, height: ROWS});
+        const traversedGrid = this.board.traverse(square, {});
+
+        let x = 0;
+        let y = 0;
+        traversedGrid.forEach((hex: TanksHex) => {
+            if (hex.tile !== GAME_MAP[y][x]) {
+                hex.tile = GAME_MAP[y][x];
+            }
+            x++;
+            if (x >= COLS) {
+                x = 0;
+                y++;
+            }
+        })
+
     }
 
     isPositionOccupied(q: number,r: number): boolean {

@@ -36,6 +36,26 @@ Ogni volta che vieni colpito, 20% di possibilità
 che il colpo non vada a segno.
 `
     },
+    CASTLE: {
+        name: `Castello`,
+        description: `Il castello è il cuore del regno e la 
+sede del re. 
+
+❤️‍🩹 CURATORE
+Curarti qui costa solo 1 azione. 
+Non puoi superare 3 💓 in questo modo.
+`
+    },
+    ORCS_CAMP: {
+        name: `Accampamento degli orchi`,
+        description: `Se ti trovi qui quando le azioni vengono
+distribuite, guadagni permanentemente
+
+👹 ORC
+Ogni volta che vieni colpito, 20% di possibilità
+che il colpo non vada a segno.
+`
+    }
 }
 
 export const OFFSET = {
@@ -43,10 +63,13 @@ export const OFFSET = {
     Y: 100
 }
 
-export const HEX_SIDE = 45;
-export const HEX_WIDTH = 2 * (Math.sqrt(3) / 2) * HEX_SIDE;
-export const HEX_HEIGHT = HEX_SIDE * Math.sqrt(3);
-export const HEX_TOP_TRIANGLE_HEIGHT = (Math.sqrt(3) / 2 * HEX_SIDE) / 2
+export const HEX = {
+    SIDE: 45
+}
+
+export const HEX_WIDTH = 2 * (Math.sqrt(3) / 2) * HEX.SIDE;
+export const HEX_HEIGHT = HEX.SIDE * Math.sqrt(3);
+export const HEX_TOP_TRIANGLE_HEIGHT = (Math.sqrt(3) / 2 * HEX.SIDE) / 2
 
 export const BOARD_HEIGHT = HEX_HEIGHT * COLS - HEX_TOP_TRIANGLE_HEIGHT * COLS;
 export const BOARD_WIDTH = HEX_WIDTH * ROWS;
@@ -140,6 +163,8 @@ interface IGameGraphics {
     tiles: any[],
     oasisImage: any,
     iceFortressImage: any,
+    castleImage: any,
+    orcsCampImage: any,
 }
 
 export const GameGraphics: IGameGraphics = {
@@ -147,12 +172,9 @@ export const GameGraphics: IGameGraphics = {
     tiles: [],
     oasisImage: null,
     iceFortressImage: null,
+    castleImage: null,
+    orcsCampImage: null,
 }
-
-// export let heartsLocations:[q:number, r:number][] = [];
-// export let actionsLocations:[q:number, r:number][] = [];
-// export let buildings:{type:string, position:AxialCoordinates}[] = [];
-
 
 export const pictures: { [key: string]: any } = {};
 

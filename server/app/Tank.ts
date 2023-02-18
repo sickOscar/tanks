@@ -170,7 +170,14 @@ export class Tank {
             await this.game.addAction(this, 'heal', {q, r}, enemy)
         }
 
-        this.useAction(3);
+        const castleHere = this.game.buildings
+            .find(b => b.position.q === q && b.position.r === r && b.type === 'CASTLE')
+        let actionsToUse = 3;
+        if (castleHere) {
+            actionsToUse = 1;
+        }
+
+        this.useAction(actionsToUse);
     }
 
     async vote(enemy:Tank):Promise<void> {
@@ -408,7 +415,22 @@ export class Tank {
                 }
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
-                if (this.actions >= 3) {
+
+
+                // check if there is the CASTLE building in this tile
+                const castleHere = this.game.buildings
+                    .find(b => b.position.q === q && b.position.r === r && b.type === 'CASTLE')
+
+                if (castleHere) {
+                    if (this.actions >= 1) {
+                        !dryRun && await this.heal(q, r);
+                        action.enemy = this.game.board.getAt(q, r)
+                        return {
+                            exit: true,
+                            action
+                        }
+                    }
+                } else if (this.actions >= 3) {
                     !dryRun && await this.heal(q, r);
                     action.enemy = this.game.board.getAt(q, r)
                     return {

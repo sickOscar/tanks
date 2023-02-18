@@ -1,7 +1,7 @@
 import {
     GameGraphics,
     GameState,
-    HEX_HEIGHT, HEX_SIDE,
+    HEX_HEIGHT, HEX,
     HEX_TOP_TRIANGLE_HEIGHT,
     HEX_WIDTH,
     States,
@@ -12,7 +12,7 @@ import {drawPlayer} from "./player";
 import p5 from "p5";
 import {isInRange, isWalkable} from "../../utils";
 
-export function drawBoard(p5:p5) {
+export function drawBoard(p5: p5) {
     p5.noFill();
     p5.stroke('white');
     GameState.localGrid!.forEach((hex: TanksHex) => {
@@ -20,7 +20,7 @@ export function drawBoard(p5:p5) {
     });
 }
 
-function drawCell(p5:p5, hex:TanksHex) {
+function drawCell(p5: p5, hex: TanksHex) {
     p5.stroke('white')
 
     drawEmptyCell(p5, hex);
@@ -70,7 +70,7 @@ function drawCell(p5:p5, hex:TanksHex) {
 
 }
 
-function drawEmptyCell(p5:p5, hex:TanksHex) {
+function drawEmptyCell(p5: p5, hex: TanksHex) {
     p5.noFill()
     p5.strokeWeight(2);
     p5.stroke('rgb(243,235,173)');
@@ -96,7 +96,7 @@ function drawEmptyCell(p5:p5, hex:TanksHex) {
 
     if (GameState.player) {
         if (GameState.currentState === States.MOVE) {
-            if(
+            if (
                 isInRange(hex, GameState.player.position, 1)
                 && isWalkable(hex)
             ) {
@@ -105,29 +105,28 @@ function drawEmptyCell(p5:p5, hex:TanksHex) {
         }
 
         if (GameState.currentState === States.SHOOT) {
-            if(isInRange(hex, GameState.player.position, GameState.player.range, true)) {
+            if (isInRange(hex, GameState.player.position, GameState.player.range, true)) {
                 p5.fill(highlightColor)
             }
         }
 
         if (GameState.currentState === States.GIVE_ACTION) {
-            if(isInRange(hex, GameState.player.position, GameState.player.range, true)) {
+            if (isInRange(hex, GameState.player.position, GameState.player.range, true)) {
                 p5.fill(highlightColor)
             }
         }
 
         if (GameState.currentState === States.HEAL) {
-            if(isInRange(hex, GameState.player.position, GameState.player.range, true)) {
+            if (isInRange(hex, GameState.player.position, GameState.player.range, true)) {
                 p5.fill(highlightColor)
             }
         }
     }
 
 
-
     p5.beginShape();
     let first = true;
-    corners.forEach(({ x, y }) => {
+    corners.forEach(({x, y}) => {
         p5.vertex(x + OFFSET.X, y + OFFSET.Y);
         if (first) {
             p5.circle(x + OFFSET.X, y + OFFSET.Y, 5)
@@ -139,20 +138,20 @@ function drawEmptyCell(p5:p5, hex:TanksHex) {
 }
 
 
-function drawCoordinates(p5:p5, hex:TanksHex) {
-    // p5.noStroke()
-    // p5.fill('#fff');
-    // p5.textSize(10);
-    // p5.textAlign(p5.CENTER);
-    // p5.text(
-    //     `q: ${hex.q} r: ${hex.r}`,
-    //     hex.corners[0].x - (HEX_WIDTH / 2) + OFFSET.X,
-    //     hex.corners[0].y + OFFSET.Y
-    // )
+function drawCoordinates(p5: p5, hex: TanksHex) {
+    p5.noStroke()
+    p5.fill('#fff');
+    p5.textSize(10);
+    p5.textAlign(p5.CENTER);
+    p5.text(
+        `q: ${hex.q} r: ${hex.r}`,
+        hex.corners[0].x - (HEX_WIDTH / 2) + OFFSET.X,
+        hex.corners[0].y + OFFSET.Y
+    )
 }
 
-function drawBuilding(p5:p5, hex:TanksHex, building:any) {
-    switch(building.type) {
+function drawBuilding(p5: p5, hex: TanksHex, building: any) {
+    switch (building.type) {
 
         case 'OASIS':
             p5.image(
@@ -174,18 +173,37 @@ function drawBuilding(p5:p5, hex:TanksHex, building:any) {
             );
             break;
 
+        case 'CASTLE':
+            p5.image(
+                GameGraphics.castleImage,
+                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
+                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
+                HEX_WIDTH,
+                HEX_HEIGHT + 10
+            );
+            break;
+
+        case 'ORCS_CAMP':
+            p5.image(
+                GameGraphics.orcsCampImage,
+                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
+                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
+                HEX_WIDTH,
+                HEX_HEIGHT + 15
+            );
+
         default:
             break;
     }
 
 }
 
-function drawAction(p5:p5, hex:TanksHex) {
+function drawAction(p5: p5, hex: TanksHex) {
 
     const corners = hex.corners;
 
     p5.fill('white');
-    p5.textSize(HEX_SIDE + 5 * Math.sin(p5.frameCount * 0.1));
+    p5.textSize(HEX.SIDE + 5 * Math.sin(p5.frameCount * 0.1));
     p5.textAlign(p5.CENTER);
     p5.text(
         '👊',
@@ -194,12 +212,12 @@ function drawAction(p5:p5, hex:TanksHex) {
     )
 }
 
-function drawHeart(p5:p5, hex:TanksHex) {
+function drawHeart(p5: p5, hex: TanksHex) {
 
     const corners = hex.corners;
 
     p5.fill('red')
-    p5.textSize(HEX_SIDE + 5 * Math.sin(p5.frameCount * 0.1));
+    p5.textSize(HEX.SIDE + 5 * Math.sin(p5.frameCount * 0.1));
     p5.textAlign(p5.CENTER);
     p5.text(
         '💖',

@@ -3,7 +3,7 @@ import {
     GameGraphics,
     GameState,
     HEX_HEIGHT,
-    HEX_SIDE,
+    HEX,
     HEX_TOP_TRIANGLE_HEIGHT,
     HEX_WIDTH,
     pictures,
@@ -48,7 +48,7 @@ function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5) {
 }
 
 function drawSkull(p5: p5, corners: Point[]) {
-    p5.textSize(HEX_SIDE * 1.5);
+    p5.textSize(HEX.SIDE * 1.5);
     p5.textAlign(p5.CENTER);
     p5.noStroke()
     p5.fill('white')

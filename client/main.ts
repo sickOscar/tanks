@@ -6,7 +6,7 @@ import {
     GameGraphics,
     GameState,
     HEX_HEIGHT,
-    HEX_SIDE,
+    HEX,
     HEX_WIDTH, MAIN_BORDER_HEIGHT,
     pictures,
     States,
@@ -156,8 +156,8 @@ new p5((p5) => {
 
     function resizeGrid(grid: any) {
         grid.hexSettings.dimensions = {
-            xRadius: HEX_SIDE,
-            yRadius: HEX_SIDE
+            xRadius: HEX.SIDE,
+            yRadius: HEX.SIDE
         }
         return grid;
     }
@@ -368,7 +368,8 @@ new p5((p5) => {
 
         GameGraphics.oasisImage = p5.loadImage('./assets/oasis.webp');
         GameGraphics.iceFortressImage = p5.loadImage('./assets/ice_fortress.webp');
-
+        GameGraphics.castleImage = p5.loadImage('./assets/castle.png');
+        GameGraphics.orcsCampImage = p5.loadImage('./assets/orc_camp.png');
     }
 
     p5.setup = function () {
