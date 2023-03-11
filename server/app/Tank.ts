@@ -13,7 +13,7 @@ const ORC_SKIN_CHANCE = 0.2;
 export enum Buffs {
     ICE_ARMOR,
     EXPLORER_BOOTS,
-    ORK_SKIN
+    ORC_SKIN
 }
 
 interface TankParams {
@@ -93,6 +93,12 @@ export class Tank {
         this.actions = 0;
     }
 
+    forceMove(q:number, r:number): void {
+        this.game.board.moveTankFromTo(this.position, {q, r});
+        this.position.q = q;
+        this.position.r = r;
+    }
+
     async move(q: number, r: number): Promise<void> {
         this.game.board.moveTankFromTo(this.position, {q, r});
 
@@ -131,11 +137,17 @@ export class Tank {
             const buildingInTheSpot = this.game.buildings.find(b => b.position.q === q && b.position.r === r);
 
             if (buildingInTheSpot) {
-               // make a spiral traversal from the spot and take the first 6 elements
-               // take a random one of them
-               // keep on doing this until you find one free
-               // mve the dead player there
-
+                // make a spiral traversal from the spot and take the first 6 elements
+                // take a random one of them
+                // keep on doing this until you find one free
+                // mve the dead player there
+                const randomHexToMoveInto = this.game.board.getRandomAdjacent(q, r)
+                console.log(`randomHexToMoveInto`, randomHexToMoveInto)
+                if (randomHexToMoveInto) {
+                    console.log(`moving ${enemy.id} to ${randomHexToMoveInto.q}, ${randomHexToMoveInto.r}`)
+                    // enemy.position = {q: randomHexToMoveInto.q, r: randomHexToMoveInto.r};
+                    enemy.forceMove(randomHexToMoveInto.q, randomHexToMoveInto.r);
+                }
             }
 
             await enemy.die();
@@ -165,13 +177,13 @@ export class Tank {
         this.useAction();
     }
 
-    async upgrade():Promise<void> {
+    async upgrade(): Promise<void> {
         this.range += 1;
         await this.game.addAction(this, 'upgrade')
         this.useAction(3);
     }
 
-    async heal(q: number, r: number):Promise<void> {
+    async heal(q: number, r: number): Promise<void> {
         if (this.position.q === q && this.position.r === r) {
             this.life += 1;
             await this.game.addAction(this, 'heal')
@@ -191,7 +203,7 @@ export class Tank {
         this.useAction(actionsToUse);
     }
 
-    async vote(enemy:Tank):Promise<void> {
+    async vote(enemy: Tank): Promise<void> {
 
         await db.query('BEGIN');
         await db.query(`
@@ -205,17 +217,17 @@ export class Tank {
             GROUP BY vote_for
         `, [this.game.id, enemy.id])
 
-        if (parseInt(res.rows[0].count)%3 === 0) {
+        if (parseInt(res.rows[0].count) % 3 === 0) {
             enemy.actions += 1;
 
-            await this.game.addAction({id:'jury'} as Tank, 'give-action', undefined, enemy)
+            await this.game.addAction({id: 'jury'} as Tank, 'give-action', undefined, enemy)
         }
 
         await db.query('COMMIT');
 
     }
 
-    async hasVotedToday():Promise<boolean> {
+    async hasVotedToday(): Promise<boolean> {
         const res = await db.query(`
             SELECT * FROM votes 
             WHERE game = $1 AND voter = $2 AND voted_at = CURRENT_DATE 
@@ -223,7 +235,7 @@ export class Tank {
         return res.rows.length >= 1;
     }
 
-    asPlayer():any {
+    asPlayer(): any {
         return {
             id: this.id,
             picture: this.picture,
@@ -325,7 +337,19 @@ export class Tank {
                     }
                 }
             }
-            
+
+            // check if tank is on a rune of teleportation
+            // if it is and the destination is another run, teleport
+            const runeHere = this.game.buildings.find(building => building.type === 'TELEPORT' && building.position.q === this.position.q && building.position.r === this.position.r);
+            const runeThere = this.game.buildings.find(building => building.type === 'TELEPORT' && building.position.q === q && building.position.r === r);
+            if (runeHere && runeThere) {
+                !dryRun && await this.move(q, r);
+                return {
+                    exit: true,
+                    action
+                }
+            }
+
             if (this.game.board.isInRange(this.position, boardCell, 1)) {
                 !dryRun && await this.move(q, r);
                 return {
@@ -366,7 +390,7 @@ export class Tank {
                                     exit: true,
                                     action
                                 }
-                            } else  {
+                            } else {
                                 await this.failShoot(q, r);
                                 return {
                                     exit: false,
@@ -375,7 +399,7 @@ export class Tank {
                             }
                         }
                     }
-                    if (enemy.buffs.has(Buffs.ORK_SKIN)) {
+                    if (enemy.buffs.has(Buffs.ORC_SKIN)) {
                         console.log(`ORC_SKIN`)
                         if (Math.random() <= ORC_SKIN_CHANCE) {
                             if (dryRun) {
@@ -383,7 +407,7 @@ export class Tank {
                                     exit: true,
                                     action
                                 }
-                            } else  {
+                            } else {
                                 await this.failShoot(q, r);
                                 return {
                                     exit: false,

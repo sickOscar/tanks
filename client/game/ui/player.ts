@@ -14,7 +14,7 @@ import {Point} from "honeycomb-grid";
 import {Tank} from "../../models/Tank";
 import {resetFont} from "../../utils";
 
-function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5, hasBuilding:boolean) {
+function drawPlayerPicture(tank: Tank, hex: TanksHex, p5: p5, hasBuilding: boolean) {
     if (!pictures[tank.id]) {
         return
     }
@@ -25,12 +25,26 @@ function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5, hasBuilding:boolean
     const originOffset = p5.createVector(origin.x + OFFSET.X, origin.y + OFFSET.Y);
     originOffset.y = originOffset.y - HEX_TOP_TRIANGLE_HEIGHT;
 
-
-    GameGraphics.maskGraphics.fill('rgba(0,0,0,1)');
-    GameGraphics.maskGraphics.beginShape();
-    corners.forEach(({x, y}) => {
-        GameGraphics.maskGraphics.vertex(x + OFFSET.X - originOffset.x, y + OFFSET.Y - originOffset.y);
-    })
+    if (!hasBuilding) {
+        GameGraphics.maskGraphics.fill('rgba(0,0,0,1)');
+        GameGraphics.maskGraphics.beginShape();
+        corners.forEach(({x, y}) => {
+            GameGraphics.maskGraphics.vertex(
+                x + OFFSET.X - originOffset.x,
+                y + OFFSET.Y - originOffset.y
+            );
+        })
+    } else {
+        // do a circular mask
+        GameGraphics.maskGraphics.fill('rgba(0,0,0,1)');
+        GameGraphics.maskGraphics.beginShape();
+        GameGraphics.maskGraphics.ellipse(
+            originOffset.x - HEX_WIDTH / 2,
+            originOffset.y + HEX_HEIGHT / 2,
+            HEX_WIDTH,
+            HEX_HEIGHT
+        );
+    }
     GameGraphics.maskGraphics.endShape(p5.CLOSE);
 
 
@@ -38,15 +52,17 @@ function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5, hasBuilding:boolean
 
     const imageWidth = hasBuilding ? HEX_WIDTH / 2 : HEX_WIDTH;
     const imageHeight = hasBuilding ? HEX_HEIGHT / 2 : HEX_HEIGHT;
+    const dx = hasBuilding ?
+        corners[0].x - HEX_WIDTH / 2 + OFFSET.X - imageWidth / 2
+        : corners[0].x - HEX_WIDTH + OFFSET.X;
+    const dy = hasBuilding ?
+        corners[0].y + HEX_TOP_TRIANGLE_HEIGHT * 2 + OFFSET.Y - imageHeight / 2
+        : corners[0].y - HEX_TOP_TRIANGLE_HEIGHT + OFFSET.Y;
 
     p5.image(
         pictures[tank.id],
-        hasBuilding ?
-            corners[0].x - HEX_WIDTH / 2 + OFFSET.X - imageWidth / 2
-            : corners[0].x - HEX_WIDTH + OFFSET.X,
-        hasBuilding ?
-            corners[0].y + HEX_TOP_TRIANGLE_HEIGHT * 2 + OFFSET.Y - imageHeight / 2
-            : corners[0].y - HEX_TOP_TRIANGLE_HEIGHT + OFFSET.Y,
+        dx,
+        dy,
         imageWidth,
         imageHeight
     );
@@ -70,7 +86,7 @@ function drawSkull(p5: p5, corners: Point[]) {
     resetFont(p5);
 }
 
-export function drawPlayer(p5: p5, hex: TanksHex, hasBuilding:boolean) {
+export function drawPlayer(p5: p5, hex: TanksHex, hasBuilding: boolean) {
     if (!GameGraphics.maskGraphics) {
         return;
     }

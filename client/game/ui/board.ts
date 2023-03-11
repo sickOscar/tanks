@@ -196,6 +196,15 @@ function drawBuilding(p5: p5, hex: TanksHex, building: any) {
                 HEX_WIDTH,
                 HEX_HEIGHT + 15
             );
+            break;
+        case 'TELEPORT':
+            p5.image(
+                GameGraphics.teleportImage,
+                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
+                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
+                HEX_WIDTH,
+                HEX_HEIGHT + 10
+            );
 
         default:
             break;

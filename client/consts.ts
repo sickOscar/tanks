@@ -55,6 +55,11 @@ distribuite, guadagni permanentemente
 Ogni volta che vieni colpito, 20% di possibilità
 che il colpo non vada a segno.
 `
+    },
+    TELEPORT: {
+        name: `Runa del Teletrasporto`,
+        description: `Da questa casella, puoi muoverti in ogni
+altra Runa di Teletrasporto del regno`
     }
 }
 
@@ -166,6 +171,7 @@ interface IGameGraphics {
     iceFortressImage: any,
     castleImage: any,
     orcsCampImage: any,
+    teleportImage: any,
 }
 
 export const GameGraphics: IGameGraphics = {
@@ -175,6 +181,7 @@ export const GameGraphics: IGameGraphics = {
     iceFortressImage: null,
     castleImage: null,
     orcsCampImage: null,
+    teleportImage: null,
 }
 
 export const pictures: { [key: string]: any } = {};

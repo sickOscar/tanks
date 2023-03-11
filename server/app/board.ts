@@ -2,7 +2,7 @@ import {COLS, GAME_MAP, ROWS} from "../const";
 import {Tank} from "./Tank";
 import db from "../db";
 
-import {AxialCoordinates, defineHex, Grid, rectangle} from "honeycomb-grid";
+import {AxialCoordinates, defineHex, Grid, rectangle, spiral} from "honeycomb-grid";
 import {Game} from "./game";
 
 export enum TileType {
@@ -15,7 +15,7 @@ export enum TileType {
     ICE = 6,
 }
 
-const WALKABLE_TILES:TileType[] = [
+const WALKABLE_TILES: TileType[] = [
     TileType.PLAINS,
     TileType.FOREST,
     TileType.SWAMP,
@@ -38,10 +38,10 @@ export class TanksHex extends defineHex() {
 
 export class Board {
 
-    private game:Game
-    private board:Grid<TanksHex>;
+    private game: Game
+    private board: Grid<TanksHex>;
 
-    constructor(game:Game) {
+    constructor(game: Game) {
         this.game = game;
         this.board = new Grid(TanksHex, rectangle({width: COLS, height: ROWS}));
 
@@ -62,20 +62,20 @@ export class Board {
 
     }
 
-    getAt(q:number, r:number):Tank|undefined|null {
+    getAt(q: number, r: number): Tank | undefined | null {
         return this.board.getHex({q, r})?.tank;
     }
 
-    getTileAt(q:number, r:number):TileType|undefined {
+    getTileAt(q: number, r: number): TileType | undefined {
         return this.board.getHex({q, r})?.tile;
     }
 
-    forEach(cb:(hex:TanksHex) => void) {
+    forEach(cb: (hex: TanksHex) => void) {
         this.board.forEach(cb);
     }
 
-    load(dbGrid:any) {
-        const coords = dbGrid.coordinates.map(({q, r, tank, tile}:any) => {
+    load(dbGrid: any) {
+        const coords = dbGrid.coordinates.map(({q, r, tank, tile}: any) => {
             return {
                 q,
                 r,
@@ -104,7 +104,7 @@ export class Board {
 
     }
 
-    isPositionOccupied(q: number,r: number): boolean {
+    isPositionOccupied(q: number, r: number): boolean {
         return !!this.board.getHex({q, r})?.tank;
     }
 
@@ -112,7 +112,29 @@ export class Board {
         return !!this.board.getHex({q, r});
     }
 
-    getEmptyRandom(forbiddenTiles:TileType[] = []): AxialCoordinates {
+    getRandomAdjacent(q: number, r: number): AxialCoordinates {
+        const spiralTraversal = spiral<TanksHex>({
+            start: {q, r},
+            radius: 1,
+        });
+        const hexes = this.board.traverse(spiralTraversal, {})
+        const hexesToChooseFrom: TanksHex[] = [];
+        hexes.forEach((hex: TanksHex) => {
+            if (!hex.tank) {
+                hexesToChooseFrom.push(hex)
+            }
+        })
+        console.log(`hexesToChooseFrom`, hexesToChooseFrom)
+        if (hexesToChooseFrom.length === 0) {
+            return {q, r};
+        }
+        const randomHex = hexesToChooseFrom[
+            Math.floor(Math.random() * hexesToChooseFrom.length)
+            ];
+        return {q: randomHex.q, r: randomHex.r};
+    }
+
+    getEmptyRandom(forbiddenTiles: TileType[] = []): AxialCoordinates {
 
         let minQ = 0;
         let minR = 0;
@@ -170,7 +192,7 @@ export class Board {
         return WALKABLE_TILES.some((tile) => tile === hex.tile);
     }
 
-    isInRange(source:AxialCoordinates, destination: AxialCoordinates, range: number, isShooting = false) {
+    isInRange(source: AxialCoordinates, destination: AxialCoordinates, range: number, isShooting = false) {
         let finalRange = range;
         if (isShooting) {
             if (this.getTileAt(source.q, source.r) === TileType.MOUNTAIN) {
@@ -187,7 +209,7 @@ export class Board {
     }
 
 
-    moveTankFromTo(start:AxialCoordinates, dest:AxialCoordinates):void {
+    moveTankFromTo(start: AxialCoordinates, dest: AxialCoordinates): void {
 
         const startingHex = this.board.getHex(start);
         const destinationHex = this.board.getHex(dest);
@@ -210,11 +232,11 @@ export class Board {
 
     }
 
-    clearCell(q:number, r:number):void {
+    clearCell(q: number, r: number): void {
         this.board.getHex({q, r})!.tank = null;
     }
 
-    addTank(tank:Tank):void {
+    addTank(tank: Tank): void {
         console.log(`tank.position`, tank.position)
         console.log(`this.board`, this.board)
         const hex = this.board.getHex(tank.position);
@@ -225,23 +247,23 @@ export class Board {
         // this.board.getHex(tank.position)!.tank = tank;
     }
 
-    serialize():string {
+    serialize(): string {
         const clone = this.board.toJSON();
         return JSON.stringify({
             features: {
-                heartsLocations: this.game.heartsLocations.map((heartPos:AxialCoordinates) => {
+                heartsLocations: this.game.heartsLocations.map((heartPos: AxialCoordinates) => {
                     return [heartPos.q, heartPos.r]
                 }),
-                actionsLocations: this.game.actionsLocations.map((actionPos:AxialCoordinates) => {
+                actionsLocations: this.game.actionsLocations.map((actionPos: AxialCoordinates) => {
                     return [actionPos.q, actionPos.r]
                 }),
                 buildings: this.game.buildings
             },
             grid: {
                 ...clone,
-                coordinates: clone.coordinates.map((coord:AxialCoordinates & {tank?:Tank, tile?: number}) => {
+                coordinates: clone.coordinates.map((coord: AxialCoordinates & { tank?: Tank, tile?: number }) => {
                     if (coord.tank) {
-                        const tank:any = Object.assign({}, coord.tank);
+                        const tank: any = Object.assign({}, coord.tank);
                         delete tank.game;
                         tank.buffs = Array.from(tank.buffs);
                         return {
@@ -255,14 +277,17 @@ export class Board {
         });
     }
 
-    async updateOnDb():Promise<void> {
+    async updateOnDb(): Promise<void> {
         await db.query(`
-            UPDATE games SET board = $1 WHERE active = true AND id = $2
+            UPDATE games
+            SET board = $1
+            WHERE active = true
+              AND id = $2
         `, [this.serialize(), this.game.id])
     }
 
-    getPlayers():Tank[] {
-        const players:Tank[] = [];
+    getPlayers(): Tank[] {
+        const players: Tank[] = [];
         this.board.forEach((hex) => {
             if (hex.tank) {
                 players.push(hex.tank)

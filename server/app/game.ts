@@ -33,6 +33,26 @@ const DEFAULT_BUILDINGS: Building[] = [
     {
         type: 'ORCS_CAMP',
         position: {q: 7, r: 14}
+    },
+    {
+        type: 'TELEPORT',
+        position: {q: 0, r: 3}
+    },
+    {
+        type: 'TELEPORT',
+        position: {q: 17, r: 2}
+    },
+    {
+        type: 'TELEPORT',
+        position: {q: 4, r: 10}
+    },
+    {
+        type: 'TELEPORT',
+        position: {q: -6, r: 15}
+    },
+    {
+        type: 'TELEPORT',
+        position: {q: 11, r: 14}
     }
 ]
 
@@ -213,7 +233,7 @@ export class Game {
                 if (!tank.buffs || tank.buffs.constructor.name !== 'Set') {
                     tank.buffs = new Set();
                 }
-                tank.buffs.add(Buffs.ORK_SKIN);
+                tank.buffs.add(Buffs.ORC_SKIN);
             }
 
             if (tank.life > 0) {

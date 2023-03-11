@@ -212,8 +212,8 @@ new p5((p5) => {
         )
 
         // MAGIC: 69 is SUPER RANDOM
-        // don't understand properly how to calculate the size of the mask
-        GameGraphics.maskGraphics = p5.createGraphics(69, 69);
+        // I don't properly understand how to calculate the size of the mask
+        GameGraphics.maskGraphics = p5.createGraphics(75, 75);
 
         const jwt = await auth0.getTokenSilently()
         connectSocket(jwt);
@@ -382,13 +382,14 @@ new p5((p5) => {
         GameGraphics.iceFortressImage = p5.loadImage('./assets/ice_fortress.webp');
         GameGraphics.castleImage = p5.loadImage('./assets/castle.png');
         GameGraphics.orcsCampImage = p5.loadImage('./assets/orc_camp.png');
+        GameGraphics.teleportImage = p5.loadImage('./assets/teleport.png');
     }
 
     p5.setup = function () {
         const canvas = p5.createCanvas(100, 100);
         canvas.parent('board-holder')
 
-        GameGraphics.maskGraphics = p5.createGraphics(100, 100);
+        GameGraphics.maskGraphics = p5.createGraphics(75, 75);
 
         // p5.frameRate(2)
     }
@@ -414,8 +415,6 @@ new p5((p5) => {
     }
 
     p5.keyPressed = function() {
-
-        console.log(`p5.keyCode`, p5.keyCode)
 
         if (!GameState.player) {
             return;
@@ -503,11 +502,11 @@ new p5((p5) => {
 
                             const modal = document.getElementById('action-confirm') as HTMLDivElement;
                             const modalTitle = modal.querySelector('.modal__title') as HTMLHeadingElement;
-                            modalTitle.textContent = GameState.currentState;
+                            modalTitle.textContent = `Attacco`;
 
                             const actionTemplate = document.getElementById(`${GameState.currentState}-content`) as HTMLTemplateElement;
                             const clone = actionTemplate.content.cloneNode(true) as HTMLElement;
-                            (clone.querySelector('.you') as HTMLImageElement).src = 'YOU';
+                            (clone.querySelector('.you') as HTMLImageElement).src = GameState.player?.picture as string;
                             (clone.querySelector('.target') as HTMLImageElement).src = hex.tank!.picture;
 
                             modal.querySelector('.modal__content')!.append(clone);
