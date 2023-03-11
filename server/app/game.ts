@@ -28,7 +28,7 @@ const DEFAULT_BUILDINGS: Building[] = [
     },
     {
         type: 'CASTLE',
-        position: {q: 8, r:4}
+        position: {q: 8, r: 4}
     },
     {
         type: 'ORCS_CAMP',
@@ -93,13 +93,13 @@ export class Game {
             if (dbBoard.features.buildings.length !== DEFAULT_BUILDINGS.length) {
 
                 const removedBuildings = dbBoard.features.buildings
-                    .filter((building:Building) => {
+                    .filter((building: Building) => {
                         return !DEFAULT_BUILDINGS.find(dbBuilding => dbBuilding.type === building.type)
                     });
 
                 const addedBuildings = DEFAULT_BUILDINGS
                     .filter(building => {
-                        return !dbBoard.features.buildings.find((dbBuilding:Building) => dbBuilding.type === building.type)
+                        return !dbBoard.features.buildings.find((dbBuilding: Building) => dbBuilding.type === building.type)
                     });
 
                 console.log(`newBuildings`, addedBuildings)
@@ -107,8 +107,8 @@ export class Game {
 
                 if (removedBuildings.length > 0) {
                     this.state.buildings = dbBoard.features.buildings
-                        .filter((building:Building) => {
-                            return !removedBuildings.find((dbBuilding:Building) => dbBuilding.type === building.type)
+                        .filter((building: Building) => {
+                            return !removedBuildings.find((dbBuilding: Building) => dbBuilding.type === building.type)
                         });
                 }
 
@@ -122,7 +122,7 @@ export class Game {
             }
 
             console.log(`this.state.buildings`, this.state.buildings)
-            
+
         }
 
         this.id = res.rows[0].id;
@@ -182,10 +182,10 @@ export class Game {
 
             if (hex.tile === TileType.SWAMP) {
                 const randomChance = Math.random();
-                if (randomChance < 0.1) {
+                if (randomChance < 0.3) {
                     actionsToGive -= 1;
                 }
-                if (randomChance > 0.1 && randomChance < 0.2) {
+                if (randomChance >= 0.3 && randomChance <= 0.4) {
                     actionsToGive += 1;
                 }
             }
@@ -206,6 +206,14 @@ export class Game {
                     tank.buffs = new Set();
                 }
                 tank.buffs.add(Buffs.EXPLORER_BOOTS);
+            }
+
+            const orcCamp = this.state.buildings.find(building => building.type === 'ORCS_CAMP' && building.position.q === hex.q && building.position.r === hex.r);
+            if (orcCamp && tank.life > 0) {
+                if (!tank.buffs || tank.buffs.constructor.name !== 'Set') {
+                    tank.buffs = new Set();
+                }
+                tank.buffs.add(Buffs.ORK_SKIN);
             }
 
             if (tank.life > 0) {

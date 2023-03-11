@@ -57,15 +57,20 @@ function drawCell(p5: p5, hex: TanksHex) {
 
 
     } else {
+        let hasBuilding = undefined;
+        if (GameState.buildings) {
 
-        if (hex.tank?.id === GameState.playerId) {
-            drawPlayer(p5, hex);
-        } else {
-            drawPlayer(p5, hex)
+            hasBuilding = GameState.buildings.find(building => {
+                return building.position.q === hex.q && building.position.r === hex.r
+            })
+            if (hasBuilding) {
+                drawBuilding(p5, hex, hasBuilding);
+            }
         }
+        drawPlayer(p5, hex, !!hasBuilding);
     }
 
-    drawCoordinates(p5, hex);
+    // drawCoordinates(p5, hex);
 
 
 }

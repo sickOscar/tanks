@@ -51,7 +51,7 @@ Non puoi superare 3 💓 in questo modo.
         description: `Se ti trovi qui quando le azioni vengono
 distribuite, guadagni permanentemente
 
-👹 ORC
+👹 PELLE D'ORCO
 Ogni volta che vieni colpito, 20% di possibilità
 che il colpo non vada a segno.
 `
@@ -100,14 +100,15 @@ Mentre sei qui, la tua gittata 👁 aumenta di 1`
         name: "🐊 Palude",
         description: `Muoverti qui costa 1 👊.
 10% di possibilità di avere 1 👊 extra
-10% di possibilità di non avere azioni`
+30% di possibilità di non avere azioni`
     },
     {name: "❄️ Ghiaccio", description: "Muoverti qui costa 2 👊"},
 ];
 
 export enum Buffs {
     ICE_ARMOR,
-    EXPLORER_BOOTS
+    EXPLORER_BOOTS,
+    ORC_SKIN
 }
 
 export const walkableTiles = [0, 2, 3, 4, 5, 6];

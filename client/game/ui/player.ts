@@ -14,7 +14,7 @@ import {Point} from "honeycomb-grid";
 import {Tank} from "../../models/Tank";
 import {resetFont} from "../../utils";
 
-function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5) {
+function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5, hasBuilding:boolean) {
     if (!pictures[tank.id]) {
         return
     }
@@ -36,12 +36,19 @@ function drawPlayerPicture(tank: Tank, hex:TanksHex, p5: p5) {
 
     pictures[tank.id].mask(GameGraphics.maskGraphics);
 
+    const imageWidth = hasBuilding ? HEX_WIDTH / 2 : HEX_WIDTH;
+    const imageHeight = hasBuilding ? HEX_HEIGHT / 2 : HEX_HEIGHT;
+
     p5.image(
         pictures[tank.id],
-        corners[0].x - HEX_WIDTH + OFFSET.X,
-        corners[0].y - HEX_TOP_TRIANGLE_HEIGHT + OFFSET.Y,
-        HEX_WIDTH,
-        HEX_HEIGHT
+        hasBuilding ?
+            corners[0].x - HEX_WIDTH / 2 + OFFSET.X - imageWidth / 2
+            : corners[0].x - HEX_WIDTH + OFFSET.X,
+        hasBuilding ?
+            corners[0].y + HEX_TOP_TRIANGLE_HEIGHT * 2 + OFFSET.Y - imageHeight / 2
+            : corners[0].y - HEX_TOP_TRIANGLE_HEIGHT + OFFSET.Y,
+        imageWidth,
+        imageHeight
     );
 
 
@@ -63,8 +70,7 @@ function drawSkull(p5: p5, corners: Point[]) {
     resetFont(p5);
 }
 
-export function drawPlayer(p5: p5, hex: TanksHex) {
-
+export function drawPlayer(p5: p5, hex: TanksHex, hasBuilding:boolean) {
     if (!GameGraphics.maskGraphics) {
         return;
     }
@@ -74,7 +80,7 @@ export function drawPlayer(p5: p5, hex: TanksHex) {
         return;
     }
 
-    drawPlayerPicture(tank, hex, p5);
+    drawPlayerPicture(tank, hex, p5, hasBuilding);
 
     const [...corners] = hex.corners;
 

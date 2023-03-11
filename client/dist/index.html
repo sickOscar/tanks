@@ -2,8 +2,8 @@
 <head>
     <title>InterlogiDragons</title>
     
-  <script type="module" crossorigin src="/assets/index-1d496742.js"></script>
-  <link rel="stylesheet" href="/assets/index-840a2989.css">
+  <script type="module" crossorigin src="/assets/index-5ca5ddfa.js"></script>
+  <link rel="stylesheet" href="/assets/index-e413e7b1.css">
 </head>
 <body>
 
@@ -21,38 +21,14 @@
 </div>
 
 
-<main role="main" class="image-border">
+<main role="main" class="h-full image-border">
 
 
-    <div class="main-content">
-
-        <form id="poll" class="hidden">
-            <h4 style="margin-right: 50px">Eroe, il tuo corpo giace esanime sul campo di battaglia 😞 almeno fino a che
-                qualcuno non decida di farti resucitare!</h4>
-            <div class="poll-inner">
-                <label for="vote" style="margin-right: 30px">
-                    Ma il tuo spirito è forte e la tua leggenda può ancora influenzare il regno!<br>
-                    Una volta al giorno puoi aiutare segretamente per un alto eroe che ritieni meritevole<br>
-                    3 aiuti in un giorno da parte degli spiriti dell'aldilà e quel giocatore riceverà un'azione
-                    aggiuntiva<br>
-                </label>
-                <select name="vote" id="vote">
-
-                </select>
-                <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
-                        style="margin: 0 20px" type="submit">
-                    Aiuta!
-                </button>
-                <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
-                        type="button" id="show-poll-results">
-                    Vedi i risultati correnti
-                </button>
-            </div>
-
-        </form>
+    <div class="h-full main-content">
 
 
-        <div class="flex justify-center">
+
+        <div class="flex h-full">
 
             <div id="intro" class="hidden flex flex-col justify-center">
 
@@ -88,7 +64,7 @@
             </div>
 
 
-            <div id="board-holder" class="hidden "></div>
+            <div id="board-holder" class="hidden overflow-scroll h-full"></div>
             <div id="right-side" class="flex flex-col hidden image-border">
 
                 <div id="guest-box" class="grow hidden">
@@ -131,22 +107,46 @@
                 </div>
 
                 <div id="actions" class="hidden flex flex-wrap">
-                    <button data-action="move" title="Muovi">
+                    <button data-action="move" title="Muovi (M)">
                         🏃‍♂️ (1 👊)
                     </button>
-                    <button data-action="shoot" title="Attacca">
+                    <button data-action="shoot" title="Attacca (A)">
                         ⚔️ (1 👊)
                     </button>
-                    <button data-action="give-action" title="Regala azione">
+                    <button data-action="give-action" title="Regala azione (G)">
                         🤝🏻 (1 👊)
                     </button>
                     <button data-action="upgrade" title="Upgrade">
                         ⬆️ (3 👊)
                     </button>
-                    <button data-action="heal" title="Cura">
+                    <button data-action="heal" title="Cura (H)">
                         ❤️‍🩹 (3 👊)
                     </button>
                 </div>
+
+                <form id="poll" class="hidden">
+                    <h3 style="margin-right: 50px">Eroe, il tuo corpo giace esanime sul campo di battaglia 😞 </h3>
+                    <div class="poll-inner">
+                        <label for="vote" style="margin-right: 30px">
+                            Il tuo spirito è comunque forte e la tua leggenda può ancora influenzare il regno!<br>
+                            Una volta al giorno puoi aiutare segretamente un alto eroe che ritieni meritevole.<br>
+                            3 aiuti in un giorno da parte degli spiriti dell'aldilà e quel giocatore riceverà un'azione
+                            aggiuntiva<br>
+                        </label>
+                        <select name="vote" id="vote">
+
+                        </select>
+                        <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                                style="margin: 0 20px" type="submit">
+                            Aiuta!
+                        </button>
+                        <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
+                                type="button" id="show-poll-results">
+                            Vedi i risultati correnti
+                        </button>
+                    </div>
+
+                </form>
 
                 <div class="hidden" id="logs">
                     <h4>Cosa è successo</h4>

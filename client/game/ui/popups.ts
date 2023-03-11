@@ -145,7 +145,13 @@ function drawPlayerPopupContent(hex: any, p5: p5, rectSourceX: number, popupXOff
             rectSourceY + 90
         )
     }
-
+    if (hex.tank.buffs.has(Buffs.ORC_SKIN)) {
+        p5.text(
+            '👹',
+            rectSourceX + 165,
+            rectSourceY + 70
+        )
+    }
     resetFont(p5);
 }
 

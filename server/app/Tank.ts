@@ -8,10 +8,12 @@ import {FailReason} from "./fail-reason";
 import {ActionResult} from "./action-result";
 
 const ICE_ARMOR_CHANCE = 0.2;
+const ORC_SKIN_CHANCE = 0.2;
 
 export enum Buffs {
     ICE_ARMOR,
-    EXPLORER_BOOTS
+    EXPLORER_BOOTS,
+    ORK_SKIN
 }
 
 interface TankParams {
@@ -125,7 +127,16 @@ export class Tank {
             console.log(`${enemy.id} was killed by ${this.id}`);
             this.actions += enemy.actions;
 
-            // ANCHE I BUFFS VANNO PASSATI ???????????
+            // if he was on a building, find an adjacent square and move him there
+            const buildingInTheSpot = this.game.buildings.find(b => b.position.q === q && b.position.r === r);
+
+            if (buildingInTheSpot) {
+               // make a spiral traversal from the spot and take the first 6 elements
+               // take a random one of them
+               // keep on doing this until you find one free
+               // mve the dead player there
+
+            }
 
             await enemy.die();
             this.game.sendMessageToChat(`
@@ -364,7 +375,23 @@ export class Tank {
                             }
                         }
                     }
-
+                    if (enemy.buffs.has(Buffs.ORK_SKIN)) {
+                        console.log(`ORC_SKIN`)
+                        if (Math.random() <= ORC_SKIN_CHANCE) {
+                            if (dryRun) {
+                                return {
+                                    exit: true,
+                                    action
+                                }
+                            } else  {
+                                await this.failShoot(q, r);
+                                return {
+                                    exit: false,
+                                    failReason: FailReason.ORC_SKIN
+                                }
+                            }
+                        }
+                    }
                     !dryRun && await this.shoot(q, r);
                     action.enemy = this.game.board.getAt(q, r);
                     return {

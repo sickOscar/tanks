@@ -56,6 +56,7 @@ new p5((p5) => {
     const playerHealth = document.querySelector('#player-health') as HTMLDivElement;
     const playerActions = document.querySelector('#player-actions') as HTMLDivElement;
     const playerSight = document.querySelector('#player-sight') as HTMLDivElement;
+    const boardHolder = document.querySelector('#board-holder') as HTMLDivElement;
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
@@ -70,20 +71,27 @@ new p5((p5) => {
 
     showPollResultsButton.addEventListener('click', event => {
         event.preventDefault();
-        pollResultsContainer.classList.remove('hidden');
-        modalOverlay.classList.remove('hidden');
+        // pollResultsContainer.classList.remove('hidden');
+        // modalOverlay.classList.remove('hidden');
 
-        getJson('poll')
-            .then(response => {
-                pollResultsTable.innerHTML = response.map((row: any) => `
-                <tr>
-                    <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
-                    <td>${row.name}</td>
-                    <td>${row.count}</td>
-                </tr>
-            `).join('')
-            })
-            .catch(console.error)
+        MicroModal.show('jury-modal', {
+            onShow: () => {
+                console.log('show')
+                getJson('poll')
+                    .then(response => {
+                        pollResultsTable.innerHTML = response.map((row: any) => `
+<tr>
+    <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
+    <td>${row.name}</td>
+    <td>${row.count}</td>
+</tr>
+                `).join('')
+                        })
+                        .catch(console.error)
+                }
+        });
+
+
     })
 
 
@@ -151,7 +159,7 @@ new p5((p5) => {
         GameState.WIDTH = window.innerWidth - UI_WIDTH;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
 
-        p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
+        // p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
     }
 
     function resizeGrid(grid: any) {
@@ -197,7 +205,11 @@ new p5((p5) => {
         GameState.WIDTH = window.innerWidth - UI_WIDTH;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
 
-        p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
+        // p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
+        p5.resizeCanvas(
+            c.cols * HEX_WIDTH + OFFSET.X,
+            c.rows * HEX_HEIGHT + OFFSET.Y
+        )
 
         // MAGIC: 69 is SUPER RANDOM
         // don't understand properly how to calculate the size of the mask
@@ -383,7 +395,7 @@ new p5((p5) => {
 
     p5.draw = function () {
 
-        handleViewport(p5);
+        // handleViewport(p5);
 
         GameState.activePlayerHover = null;
 
@@ -401,8 +413,56 @@ new p5((p5) => {
 
     }
 
+    p5.keyPressed = function() {
+
+        console.log(`p5.keyCode`, p5.keyCode)
+
+        if (!GameState.player) {
+            return;
+        }
+
+        const state = (() => {
+            switch (p5.keyCode) {
+                case 77:
+                    return States.MOVE;
+                case 72:
+                    return States.HEAL;
+                case 65:
+                    return States.SHOOT;
+                case 71:
+                    return States.GIVE_ACTION;
+                default:
+                    return null;
+            }
+        })()
+
+        if (!state) {
+            return;
+        }
+
+        if (!Object.values(States).includes(state)) {
+            return
+        }
+
+        if (state === States.UPGRADE) {
+            execAction(sio, null, States.UPGRADE)
+                .catch(console.log);
+        } else {
+            if (GameState.currentState === state) {
+                GameState.currentState = States.IDLE
+            } else {
+                GameState.currentState = state;
+            }
+        }
+    }
 
     p5.mouseClicked = function () {
+
+        const boardHolderSize = boardHolder.getBoundingClientRect();
+        // check if the click is inside the boardHolder
+        if (p5.mouseX < boardHolderSize.left || p5.mouseX > boardHolderSize.right) {
+            return;
+        }
 
         if (!GameState.hasFocus) {
             return;
@@ -475,6 +535,9 @@ new p5((p5) => {
                                                 case 6:
                                                     attackResultText.textContent = `Dannazione, quel codardo se n'è già andato!`;
                                                     break;
+                                                case 9:
+                                                    attackResultText.textContent = `La sue pelle orchesca ha bloccato il tuo attacco!`;
+                                                    break;
                                                 default:
                                                     attackResultText.textContent = `L'attacco è andato a vuoto`;
                                                     break;
@@ -490,7 +553,7 @@ new p5((p5) => {
 
                         },
                         // @ts-ignore
-                        onClose: (modal:HTMLElement, trigger:HTMLElement, event:MouseEvent) => {
+                        onClose: (modal: HTMLElement, trigger: HTMLElement, event: MouseEvent) => {
                             GameState.hasFocus = true;
                             modal.querySelector('.modal__content')!.innerHTML = '';
                         }
