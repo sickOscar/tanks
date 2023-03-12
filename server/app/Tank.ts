@@ -5,7 +5,7 @@ import {Game} from "./game";
 import {Action} from "./player";
 import {TileType} from "./board";
 import {FailReason} from "./fail-reason";
-import {ActionResult} from "./action-result";
+import {ActionResult, SuccessMessage} from "./action-result";
 
 const ICE_ARMOR_CHANCE = 0.2;
 const ORC_SKIN_CHANCE = 0.2;
@@ -13,7 +13,8 @@ const ORC_SKIN_CHANCE = 0.2;
 export enum Buffs {
     ICE_ARMOR,
     EXPLORER_BOOTS,
-    ORC_SKIN
+    ORC_SKIN,
+    PIRATE
 }
 
 interface TankParams {
@@ -26,6 +27,7 @@ interface TankParams {
     picture: string;
     buffs: Set<Buffs>
 }
+
 
 const DEFAULT_TANK_PARAMS: TankParams = {
     id: Math.random().toString(36).substring(2),
@@ -129,6 +131,7 @@ export class Tank {
     async shoot(q: number, r: number): Promise<void> {
         const enemy: Tank = this.game.board.getAt(q, r) as Tank;
         enemy.life = Math.max(0, enemy.life - 1);
+
         if (enemy.life === 0) {
             console.log(`${enemy.id} was killed by ${this.id}`);
             this.actions += enemy.actions;
@@ -196,7 +199,7 @@ export class Tank {
         const castleHere = this.game.buildings
             .find(b => b.position.q === q && b.position.r === r && b.type === 'CASTLE')
         let actionsToUse = 3;
-        if (castleHere) {
+        if (castleHere && this.life < 3) {
             actionsToUse = 1;
         }
 
@@ -380,7 +383,17 @@ export class Tank {
                 const enemy = this.game.board.getAt(q, r) as Tank;
                 if (enemy.life > 0) {
 
-                    console.log(`enemy.buffs`, enemy.buffs)
+                    let successMessage:SuccessMessage | undefined = undefined;
+
+                    // PIRATE happens in any case, even with armor
+                    if (this.buffs.has(Buffs.PIRATE)) {
+                        if (enemy.actions > 0) {
+                            if (Math.random() <= 0.2) {
+                                !dryRun && (() => enemy.actions -= 1)();
+                                successMessage = SuccessMessage.PIRATE;
+                            }
+                        }
+                    }
 
                     if (enemy.buffs.has(Buffs.ICE_ARMOR)) {
                         console.log(`ICE`)
@@ -394,11 +407,13 @@ export class Tank {
                                 await this.failShoot(q, r);
                                 return {
                                     exit: false,
-                                    failReason: FailReason.ICE_ARMOR
+                                    failReason: FailReason.ICE_ARMOR,
+                                    successMessage
                                 }
                             }
                         }
                     }
+
                     if (enemy.buffs.has(Buffs.ORC_SKIN)) {
                         console.log(`ORC_SKIN`)
                         if (Math.random() <= ORC_SKIN_CHANCE) {
@@ -411,16 +426,21 @@ export class Tank {
                                 await this.failShoot(q, r);
                                 return {
                                     exit: false,
-                                    failReason: FailReason.ORC_SKIN
+                                    failReason: FailReason.ORC_SKIN,
+                                    successMessage
                                 }
                             }
                         }
                     }
+
                     !dryRun && await this.shoot(q, r);
                     action.enemy = this.game.board.getAt(q, r);
+                    console.log('DONE')
+                    console.log(`successMessage`, successMessage)
                     return {
                         exit: true,
-                        action
+                        action,
+                        successMessage
                     }
                 }
             }
@@ -472,7 +492,8 @@ export class Tank {
                 const castleHere = this.game.buildings
                     .find(b => b.position.q === q && b.position.r === r && b.type === 'CASTLE')
 
-                if (castleHere) {
+                console.log(`castleHere`, castleHere)
+                if (castleHere && this.life < 3) {
                     if (this.actions >= 1) {
                         !dryRun && await this.heal(q, r);
                         action.enemy = this.game.board.getAt(q, r)

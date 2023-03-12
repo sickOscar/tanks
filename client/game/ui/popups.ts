@@ -155,6 +155,13 @@ se curato`,
             rectSourceY + 70
         )
     }
+    if (hex.tank.buffs.has(Buffs.PIRATE)) {
+        p5.text(
+            '🏴‍☠️',
+            rectSourceX + 140,
+            rectSourceY + 70
+        )
+    }
     resetFont(p5);
 }
 

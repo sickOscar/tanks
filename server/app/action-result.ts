@@ -1,10 +1,15 @@
 import {Action} from "./player";
 import {FailReason} from "./fail-reason";
 
+export enum SuccessMessage {
+    PIRATE
+}
+
 export interface ActionResult {
     exit: boolean;
     action?: Action;
     failReason?: FailReason;
+    successMessage?: SuccessMessage;
 }
 
 export function serializeActionResult(actionResult: ActionResult): ActionResult {
@@ -12,7 +17,8 @@ export function serializeActionResult(actionResult: ActionResult): ActionResult 
     const serialized = {
         exit: actionResult.exit,
         action: actionResult.action,
-        failReason: actionResult.failReason
+        failReason: actionResult.failReason,
+        successMessage: actionResult.successMessage
     }
 
     if (serialized.action?.actor) {

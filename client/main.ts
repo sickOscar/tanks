@@ -21,6 +21,7 @@ import MicroModal from 'micromodal';
 import {drawCursor, handleViewport} from './game/ui/mouse';
 import {drawEvents, setOnline} from "./game/ui/html-elements";
 import {execAction, validateAction} from "./game/message-sender";
+import {ActionResult} from "../server/app/action-result";
 
 MicroModal.init();
 
@@ -326,6 +327,30 @@ new p5((p5) => {
         if (GameState.player && GameState.player.life > 0) {
             actionsContainer.classList.remove('hidden');
             visibleActions = true;
+
+            if (GameState.player.actions < 1) {
+                Array.from(actionButtons).forEach(el => {
+                    el.disabled = true;
+                });
+            }
+
+            if (GameState.player.actions > 0) {
+                Array.from(actionButtons).forEach(el => {
+                    el.disabled = false;
+                });
+            }
+
+            if (GameState.player.actions < 3) {
+                Array.from(actionButtons)
+                    .filter(el => {
+                        return el.getAttribute('data-action') === States.UPGRADE || el.getAttribute('data-action') === States.HEAL
+                    })
+                    .forEach(el => {
+                    el.disabled = true;
+                });
+            }
+
+
             pollForm.classList.add('hidden')
         }
 
@@ -384,6 +409,7 @@ new p5((p5) => {
         GameGraphics.castleImage = p5.loadImage('./assets/castle.png');
         GameGraphics.orcsCampImage = p5.loadImage('./assets/orc_camp.png');
         GameGraphics.teleportImage = p5.loadImage('./assets/teleport.png');
+        GameGraphics.piratesImage = p5.loadImage('./assets/pirates.png');
     }
 
     p5.setup = function () {
@@ -392,7 +418,7 @@ new p5((p5) => {
 
         GameGraphics.maskGraphics = p5.createGraphics(75, 75);
 
-        // p5.frameRate(2)
+        p5.frameRate(10)
     }
 
     p5.draw = function () {
@@ -417,6 +443,7 @@ new p5((p5) => {
 
     p5.keyPressed = function() {
 
+        console.log(p5.keyCode)
         if (!GameState.player) {
             return;
         }
@@ -431,6 +458,9 @@ new p5((p5) => {
                     return States.SHOOT;
                 case 71:
                     return States.GIVE_ACTION;
+                case 80:
+                    GameState.debug = !GameState.debug;
+                    return null;
                 default:
                     return null;
             }
@@ -517,31 +547,36 @@ new p5((p5) => {
 
                             modal.querySelector('.attack-button')!.addEventListener('click', () => {
                                 execAction(sio, hex)
-                                    .then((actionResult) => {
+                                    .then((actionResult:ActionResult) => {
 
                                         attackButton.style.display = 'none';
 
+                                        console.log(`actionResult`, actionResult)
                                         if (actionResult.exit === true) {
-                                            attackResultTitle.textContent = `L'hai colpito!`;
+                                            attackResultTitle.innerHTML = `L'hai colpito!`;
                                         } else {
-                                            attackResultTitle.textContent = `OH NOOOO!`;
+                                            attackResultTitle.innerHTML = `OH NOOOO!`;
                                             switch (actionResult.failReason) {
                                                 case 0:
-                                                    attackResultText.textContent = `La sua armatura di ghiaccio ha bloccato l'attacco!`;
+                                                    attackResultText.innerHTML = `La sua armatura di ghiaccio ha bloccato l'attacco!`;
                                                     break;
                                                 case 5:
-                                                    attackResultText.textContent = `Non hai più azioni per attaccare!`;
+                                                    attackResultText.innerHTML = `Non hai più azioni per attaccare!`;
                                                     break;
                                                 case 6:
-                                                    attackResultText.textContent = `Dannazione, quel codardo se n'è già andato!`;
+                                                    attackResultText.innerHTML = `Dannazione, quel codardo se n'è già andato!`;
                                                     break;
                                                 case 9:
-                                                    attackResultText.textContent = `La sue pelle orchesca ha bloccato il tuo attacco!`;
+                                                    attackResultText.innerHTML = `La sue pelle orchesca ha bloccato il tuo attacco!`;
                                                     break;
                                                 default:
-                                                    attackResultText.textContent = `L'attacco è andato a vuoto`;
+                                                    attackResultText.innerHTML = `L'attacco è andato a vuoto`;
                                                     break;
                                             }
+                                        }
+
+                                        if (actionResult.successMessage === 0) {
+                                           attackResultTitle.innerHTML += `<br/> Arggh! Uno dei tuoi trucchi da pirata l'ha anche indebolito`;
                                         }
 
                                         GameState.currentState = States.IDLE;

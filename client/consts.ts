@@ -60,6 +60,15 @@ che il colpo non vada a segno.
         name: `Runa del Teletrasporto`,
         description: `Da questa casella, puoi muoverti in ogni
 altra Runa di Teletrasporto del regno`
+    },
+    PIRATES: {
+        name: "Covo dei pirati",
+        description: `Se ti trovi qui quando le azioni vengono
+distribuite, guadagni permanentemente
+
+🏴‍☠️ PIRATA 
+Ogni volta che attacchi, 20% di possibilità di
+causare -1 👊 al tuo avversario`
     }
 }
 
@@ -119,7 +128,8 @@ distribuite costa 2 💓`
 export enum Buffs {
     ICE_ARMOR,
     EXPLORER_BOOTS,
-    ORC_SKIN
+    ORC_SKIN,
+    PIRATE
 }
 
 export const walkableTiles = [0, 2, 3, 4, 5, 6];
@@ -152,6 +162,7 @@ interface IGameState {
     currentState: string,
     events: any[],
     hasFocus: boolean,
+    debug: boolean
 }
 
 export const GameState: IGameState = {
@@ -168,6 +179,7 @@ export const GameState: IGameState = {
     currentState: States.IDLE,
     events: [],
     hasFocus: true,
+    debug: false
 }
 
 interface IGameGraphics {
@@ -178,6 +190,7 @@ interface IGameGraphics {
     castleImage: any,
     orcsCampImage: any,
     teleportImage: any,
+    piratesImage: any
 }
 
 export const GameGraphics: IGameGraphics = {
@@ -188,6 +201,7 @@ export const GameGraphics: IGameGraphics = {
     castleImage: null,
     orcsCampImage: null,
     teleportImage: null,
+    piratesImage: null
 }
 
 export const pictures: { [key: string]: any } = {};

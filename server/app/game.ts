@@ -53,6 +53,10 @@ const DEFAULT_BUILDINGS: Building[] = [
     {
         type: 'TELEPORT',
         position: {q: 10, r: 13}
+    },
+    {
+        type: 'PIRATES',
+        position: {q: 13, r: 8}
     }
 ]
 
@@ -241,6 +245,14 @@ export class Game {
                     tank.buffs = new Set();
                 }
                 tank.buffs.add(Buffs.ORC_SKIN);
+            }
+
+            const pirates = this.state.buildings.find(building => building.type === 'PIRATES' && building.position.q === hex.q && building.position.r === hex.r);
+            if (pirates && tank.life > 0) {
+                if (!tank.buffs || tank.buffs.constructor.name !== 'Set') {
+                    tank.buffs = new Set();
+                }
+                tank.buffs.add(Buffs.PIRATE);
             }
 
             if (tank.life > 0) {

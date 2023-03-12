@@ -2,8 +2,8 @@
 <head>
     <title>InterlogiDragons</title>
     
-  <script type="module" crossorigin src="/assets/index-8ba264a1.js"></script>
-  <link rel="stylesheet" href="/assets/index-f590da97.css">
+  <script type="module" crossorigin src="/assets/index-14792aa5.js"></script>
+  <link rel="stylesheet" href="/assets/index-c65b5e61.css">
 </head>
 <body>
 
@@ -25,7 +25,6 @@
 
 
     <div class="h-full main-content">
-
 
 
         <div class="flex h-full">
@@ -73,7 +72,7 @@
                     <img src="/assets/top_image-5a042d9b.png" alt="cover">
 
                     <p>
-                        Lo spirito del tempo e dello spazio è venuto a sapere che sei entrato
+                        Lo spirito del tempo e dello spazio è venuto a sapere della tua presenza
                         e, se sei stato invitato a partecipare al massacro,
                         presto ti farà comparire sulla mappa!<br>
                         (magari pinga lo spirito su Chat...)
@@ -88,7 +87,7 @@
                 <div id="player-box" class="flex hidden">
 
                     <div class="player-picture">
-                        <img id="player-image" src="/assets/top_image-5a042d9b.png" alt="Oscar Chinellato">
+                        <img id="player-image" src="/assets/top_image-5a042d9b.png">
                     </div>
 
                     <div class="flex flex-col">
@@ -112,19 +111,19 @@
                     <h2 class="clear text-4xl">Azioni</h2>
                     <div class="flex flex-wrap">
                         <button data-action="move" title="Muovi (M)">
-                            🏃‍♂️ Muovi (1 👊)
+                            <span>🏃‍♂️</span>  MUOVI
                         </button>
                         <button data-action="shoot" title="Attacca (A)">
-                            ⚔️ Attacca (1 👊)
+                            <span>⚔️</span> ATTACCA
                         </button>
                         <button data-action="give-action" title="Regala azione (G)">
-                            🤝🏻 Dai azione (1 👊)
+                            <span>🤝🏻 </span>REGALA AZIONE
                         </button>
                         <button data-action="upgrade" title="Upgrade">
-                            ⬆️ Upgrade (3 👊)
+                            <span>⬆️ </span>UPGRADE
                         </button>
                         <button data-action="heal" title="Cura (H)">
-                            ❤️‍🩹 Cura (3 👊)
+                            <span> ❤️‍🩹 </span>CURA
                         </button>
                     </div>
 
@@ -164,7 +163,7 @@
                 <div class="grow"></div>
 
                 <div id="players">
-
+                    <h1 class="title text-4xl pb-0">InterlogiDragons</h1>
                     <button class="font-bold"
                             data-micromodal-trigger="rules-modal">
                         📜 REGOLE DEL GIOCO
@@ -257,12 +256,10 @@
 
                 <h3>ATTACCARE</h3>
                 <p>
-                    Attaccare qualcuno che si trova nel tuo raggio d'azione (costo: 1 👊).
+                    Attaccare qualcuno che si trova t gittata (costo: 1 👊).
                     Attaccare con successo qualcuno toglie 1 💖 dalla sua salute.<br>
+                    All'inizio della partita, tutti hanno gittata pari a 2.
                 </p>
-
-                <h3>ADDESTRARSI</h3>
-                <p>Aumentare la tua gittata di 1 (costo: 3 👊)</p>
 
                 <h3>AIUTARE</h3>
                 <p>
@@ -277,9 +274,11 @@
                     E' possibile in questo modo resuscitare un eroe morto, che tornerà in vita con 1 💖.
                 </p>
 
+                <h3>ADDESTRARSI</h3>
+                <p>Aumentare la tua gittata di 1 (costo: 3 👊)</p>
 
                 <p class="mt-5">
-                    All'inizio della partita, tutti hanno una gittata pari a 2.
+
                 </p>
                 <p>
                     Un eroe muore quando raggiunge 0 💖.

@@ -59,9 +59,14 @@ h1, h2 {
 
 #actions button {
     display: block;
-    height: 50px;
     width: 50%;
+    font-weight: bold;
     background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
+}
+
+#actions button span {
+    font-size: 2em;
+    display:block;
 }
 
 .counters-background:after {

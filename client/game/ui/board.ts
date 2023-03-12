@@ -144,6 +144,7 @@ function drawEmptyCell(p5: p5, hex: TanksHex) {
 
 
 function drawCoordinates(p5: p5, hex: TanksHex) {
+    if (!GameState.debug) return;
     p5.noStroke()
     p5.fill('#fff');
     p5.textSize(10);
@@ -205,6 +206,16 @@ function drawBuilding(p5: p5, hex: TanksHex, building: any) {
                 HEX_WIDTH,
                 HEX_HEIGHT + 10
             );
+            break
+        case 'PIRATES':
+            p5.image(
+                GameGraphics.piratesImage,
+                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
+                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
+                HEX_WIDTH,
+                HEX_HEIGHT + 10
+            );
+            break;
 
         default:
             break;
