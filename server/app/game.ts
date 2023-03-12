@@ -36,11 +36,11 @@ const DEFAULT_BUILDINGS: Building[] = [
     },
     {
         type: 'TELEPORT',
-        position: {q: 0, r: 3}
+        position: {q: 0, r: 5}
     },
     {
         type: 'TELEPORT',
-        position: {q: 17, r: 2}
+        position: {q: 15, r: 3}
     },
     {
         type: 'TELEPORT',
@@ -48,11 +48,11 @@ const DEFAULT_BUILDINGS: Building[] = [
     },
     {
         type: 'TELEPORT',
-        position: {q: -6, r: 15}
+        position: {q: -4, r: 14}
     },
     {
         type: 'TELEPORT',
-        position: {q: 11, r: 14}
+        position: {q: 10, r: 13}
     }
 ]
 
@@ -200,6 +200,13 @@ export class Game {
                 }
             }
 
+            // if tank is in LAVA, remove 2 life points
+            if (hex.tile === TileType.LAVA && !hasBoots) {
+                if (tank.life > 0) {
+                    tank.life = Math.max(0, tank.life - 2);
+                }
+            }
+
             if (hex.tile === TileType.SWAMP) {
                 const randomChance = Math.random();
                 if (randomChance < 0.3) {
@@ -318,7 +325,7 @@ export class Game {
                                                     imageUrl: response.data.data.images.downsized.url,
                                                     onClick: {
                                                         openLink: {
-                                                            "url": "https://tanks-office-ruiner.herokuapp.com"
+                                                            "url": `${process.env.MAIN_DOMAIN}`
                                                         }
                                                     }
                                                 }

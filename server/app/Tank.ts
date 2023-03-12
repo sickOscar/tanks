@@ -64,7 +64,7 @@ export class Tank {
 
     static async create(game: Game, userId: string, name: string, picture: string): Promise<Tank> {
 
-        const tankPosition = game.board.getEmptyRandom([TileType.DESERT, TileType.MOUNTAIN, TileType.ICE]);
+        const tankPosition = game.board.getEmptyRandom([TileType.DESERT, TileType.MOUNTAIN, TileType.ICE, TileType.LAVA]);
         console.log(`new tankPosition`, tankPosition);
         const tank = new Tank(game, {
             id: userId,
@@ -154,7 +154,7 @@ export class Tank {
             this.game.sendMessageToChat(`
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
 
-*${enemy.name.toUpperCase()}* WAS KILLED BY *${this.name.toUpperCase()}* (${new Date().toLocaleString()})
+*${enemy.name.toUpperCase()}* è stato ucciso da *${this.name.toUpperCase()}* (${new Date().toLocaleString()})
 
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
             `, 'shoot')

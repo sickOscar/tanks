@@ -67,20 +67,30 @@ function drawPlayerPicture(tank: Tank, hex: TanksHex, p5: p5, hasBuilding: boole
         imageHeight
     );
 
+    if (tank.life <= 0) {
+        // draw black hexagon
+        p5.fill('rgba(0,0,0,0.5)');
+        p5.beginShape();
+        corners.forEach(({x, y}) => {
+            p5.vertex(x + OFFSET.X, y + OFFSET.Y);
+        })
+        p5.endShape(p5.CLOSE);
+    }
+
 
 }
 
 function drawSkull(p5: p5, corners: Point[]) {
-    p5.textSize(HEX.SIDE * 1.5);
+    p5.textSize(HEX.SIDE * 1.4);
     p5.textAlign(p5.CENTER);
     p5.noStroke()
     p5.fill('white')
-    p5.textStyle('bold');
-
+    // p5.textStyle('bold');
+    p5.textStyle('normal')
     p5.text(
         '☠',
         corners[0].x - HEX_WIDTH / 2 + OFFSET.X,
-        corners[0].y + HEX_HEIGHT / 2 + OFFSET.Y
+        corners[0].y + HEX_TOP_TRIANGLE_HEIGHT / 2 + HEX_HEIGHT / 2 + OFFSET.Y
     )
 
     resetFont(p5);
@@ -103,14 +113,6 @@ export function drawPlayer(p5: p5, hex: TanksHex, hasBuilding: boolean) {
     if (tank.life === 0) {
         drawSkull(p5, corners);
     }
-
-    // p5.stroke('black');
-    // p5.noFill();
-    // p5.beginShape();
-    // corners.forEach(({x, y}) => {
-    //     p5.vertex(x + OFFSET.X, y + OFFSET.Y);
-    // });
-    // p5.endShape(p5.CLOSE);
 
     if (GameState.localGrid!.pointToHex({x: p5.mouseX - OFFSET.X, y: p5.mouseY - OFFSET.Y}).equals({
         q: hex.q,

@@ -2,7 +2,7 @@
 <head>
     <title>InterlogiDragons</title>
     
-  <script type="module" crossorigin src="/assets/index-6086721e.js"></script>
+  <script type="module" crossorigin src="/assets/index-8ba264a1.js"></script>
   <link rel="stylesheet" href="/assets/index-f590da97.css">
 </head>
 <body>
@@ -37,21 +37,17 @@
                         <img src="/assets/top_image-5a042d9b.png" class="float-right" alt="cover">
                     </div>
                     <div class="text-2xl w-1/2">
-                        <h1 class="text-6xl">Benventuo avventuriero!</h1>
+                        <h1 class="text-6xl">Benvenuto avventuriero!</h1>
 
-                        <p class="mt-6 ">
-                            Sei stato chiamato a partecipare al più grande torneo mortale
-                            mai organizzato.
-                        </p>
                         <p class="mt-6">
                             Combattenti provenienti da ogni angolo del regno
-                            Interlogico si sono riuniti per sfidarsi in un torneo senza esclusione di colpi.
+                            Interlogico <br/> si sono riuniti per sfidarsi senza esclusione di colpi.
                         </p>
                         <p class="mt-6">
                             Il premio? La gloria eterna!
                         </p>
                         <p class="mt-6">
-                            Riuscirai a sconfiggere tutti i tuoi avversari e diventare così
+                            Riuscirai a sconfiggere tutti i tuoi avversari <br/>e diventare così
                             il nuovo campione del regno Interlogico?
                         </p>
                         <p class="mt-6">
@@ -112,22 +108,26 @@
 
                 </div>
 
-                <div id="actions" class="hidden flex flex-wrap">
-                    <button data-action="move" title="Muovi (M)">
-                        🏃‍♂️ (1 👊)
-                    </button>
-                    <button data-action="shoot" title="Attacca (A)">
-                        ⚔️ (1 👊)
-                    </button>
-                    <button data-action="give-action" title="Regala azione (G)">
-                        🤝🏻 (1 👊)
-                    </button>
-                    <button data-action="upgrade" title="Upgrade">
-                        ⬆️ (3 👊)
-                    </button>
-                    <button data-action="heal" title="Cura (H)">
-                        ❤️‍🩹 (3 👊)
-                    </button>
+                <div id="actions" class="hidden">
+                    <h2 class="clear text-4xl">Azioni</h2>
+                    <div class="flex flex-wrap">
+                        <button data-action="move" title="Muovi (M)">
+                            🏃‍♂️ Muovi (1 👊)
+                        </button>
+                        <button data-action="shoot" title="Attacca (A)">
+                            ⚔️ Attacca (1 👊)
+                        </button>
+                        <button data-action="give-action" title="Regala azione (G)">
+                            🤝🏻 Dai azione (1 👊)
+                        </button>
+                        <button data-action="upgrade" title="Upgrade">
+                            ⬆️ Upgrade (3 👊)
+                        </button>
+                        <button data-action="heal" title="Cura (H)">
+                            ❤️‍🩹 Cura (3 👊)
+                        </button>
+                    </div>
+
                 </div>
 
                 <form id="poll" class="hidden">
@@ -164,6 +164,11 @@
                 <div class="grow"></div>
 
                 <div id="players">
+
+                    <button class="font-bold"
+                            data-micromodal-trigger="rules-modal">
+                        📜 REGOLE DEL GIOCO
+                    </button>
                     <h4>Online</h4>
                     <hr>
                     <div id="players-container" class="flex flex-wrap">

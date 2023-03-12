@@ -13,6 +13,7 @@ export enum TileType {
     MOUNTAIN = 4,
     SWAMP = 5,
     ICE = 6,
+    LAVA = 7
 }
 
 const WALKABLE_TILES: TileType[] = [
@@ -21,7 +22,8 @@ const WALKABLE_TILES: TileType[] = [
     TileType.SWAMP,
     TileType.DESERT,
     TileType.MOUNTAIN,
-    TileType.ICE
+    TileType.ICE,
+    TileType.LAVA
 ];
 
 export class TanksHex extends defineHex() {
@@ -124,7 +126,6 @@ export class Board {
                 hexesToChooseFrom.push(hex)
             }
         })
-        console.log(`hexesToChooseFrom`, hexesToChooseFrom)
         if (hexesToChooseFrom.length === 0) {
             return {q, r};
         }

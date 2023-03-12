@@ -376,6 +376,7 @@ new p5((p5) => {
             p5.loadImage('./assets/mountain.png'),
             p5.loadImage('./assets/swamp.png'),
             p5.loadImage('./assets/ice.png'),
+            p5.loadImage('./assets/lava.png'),
         ]
 
         GameGraphics.oasisImage = p5.loadImage('./assets/oasis.webp');

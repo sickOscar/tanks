@@ -108,6 +108,12 @@ Mentre sei qui, la tua gittata 👁 aumenta di 1`
 30% di possibilità di non avere azioni`
     },
     {name: "❄️ Ghiaccio", description: "Muoverti qui costa 2 👊"},
+    {
+        name: "🌋 Lava",
+        description: `Muoverti qui costa 1 👊.
+Stare qui quando le azioni vengono 
+distribuite costa 2 💓`
+    }
 ];
 
 export enum Buffs {

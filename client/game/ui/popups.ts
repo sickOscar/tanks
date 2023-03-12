@@ -88,8 +88,11 @@ function drawPlayerPopupContent(hex: any, p5: p5, rectSourceX: number, popupXOff
     popupTextFont(p5);
 
     if (hex.tank.life < 1) {
+
         p5.text(
-            '☠',
+            `☠ Questo eroe è morto 
+Può risorgere con 1 💓
+se curato`,
             rectSourceX + popupXOffset,
             rectSourceY + 60
         )

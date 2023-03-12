@@ -70,7 +70,7 @@ function drawCell(p5: p5, hex: TanksHex) {
         drawPlayer(p5, hex, !!hasBuilding);
     }
 
-    // drawCoordinates(p5, hex);
+    drawCoordinates(p5, hex);
 
 
 }

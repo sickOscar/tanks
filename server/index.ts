@@ -16,6 +16,7 @@ import db, {prepareDb} from "./db";
 import {schedule} from 'node-cron';
 import {PlayerActions} from "./app/playerActions";
 import {serializeActionResult} from "./app/action-result";
+
 const assert = require('assert');
 
 type EventType = 'VALIDATE' | 'EXECUTE';
@@ -30,15 +31,16 @@ async function init() {
 
     const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
 
-    /*
+
     schedule(process.env.ACTION_CRON_EXPRESSION as string, async () => {
         setTimeout(async () => {
             try {
                 await game.distributeActions();
                 await game.dropHeart();
+                await game.dropAction();
                 game.sendMessageToChat(`
 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-        
+
 *IT'S ACTION TIME!!!!*
 
 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
@@ -51,19 +53,26 @@ async function init() {
         }, Math.round(Math.random()* actionTimeoutDelay))
 
     })
-     */
 
-    setInterval(async () => {
-        try {
-            await game.distributeActions();
-            // await game.dropHeart();
-            // await game.dropAction();
-            io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-        } catch (err) {
-            console.log(`err`, err)
-            console.log('Failed to distribute actions')
-        }
-    }, 4000)
+
+//     setInterval(async () => {
+//         try {
+//             await game.distributeActions();
+//             // await game.dropHeart();
+//             // await game.dropAction();
+//             game.sendMessageToChat(`
+// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+//
+// *Eroi! Avete una nuova azione da utilizzare!*
+//
+// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+//  `, 'action fight')
+//             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+//         } catch (err) {
+//             console.log(`err`, err)
+//             console.log('Failed to distribute actions')
+//         }
+//     }, 60000)
 
 
     const app = express()
@@ -95,15 +104,15 @@ async function init() {
             });
             game.addActivePlayer(player);
 
-            let tank:Tank;
+            let tank: Tank;
 
 
             if (game.isAlive(player)) {
                 tank = game.getPlayerTank(player) as Tank;
                 socket.emit(MessageTypes.PLAYER, tank.id)
-                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, type:EventType, callback) => {
+                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, type: EventType, callback) => {
 
-                    const action:Action = {
+                    const action: Action = {
                         created_at: new Date(),
                         action: actionString,
                         actor: tank,
@@ -127,7 +136,7 @@ async function init() {
                     }
 
                     if (actionString === PlayerActions.VOTE) {
-                        action.enemy = game.getPlayerTank({id:payload} as Player)
+                        action.enemy = game.getPlayerTank({id: payload} as Player)
                     }
 
                     const actionApplied = await tank.applyAction(action, type === 'VALIDATE');
@@ -203,7 +212,7 @@ async function init() {
 db.connect()
     .then(prepareDb())
     .then(init)
-    .catch((err:Error) => {
+    .catch((err: Error) => {
         console.error(err)
     })
 
