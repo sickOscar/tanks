@@ -435,8 +435,6 @@ export class Tank {
 
                     !dryRun && await this.shoot(q, r);
                     action.enemy = this.game.board.getAt(q, r);
-                    console.log('DONE')
-                    console.log(`successMessage`, successMessage)
                     return {
                         exit: true,
                         action,
@@ -487,12 +485,10 @@ export class Tank {
             }
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
 
-
                 // check if there is the CASTLE building in this tile
                 const castleHere = this.game.buildings
                     .find(b => b.position.q === q && b.position.r === r && b.type === 'CASTLE')
 
-                console.log(`castleHere`, castleHere)
                 if (castleHere && this.life < 3) {
                     if (this.actions >= 1) {
                         !dryRun && await this.heal(q, r);

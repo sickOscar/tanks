@@ -11,7 +11,7 @@ import {
     pictures,
     States,
     UI_WIDTH,
-    OFFSET
+    OFFSET, Buffs, BuffsDescriptions
 } from "./consts";
 import {drawPopup} from "./game/ui/popups";
 import {io} from "socket.io-client";
@@ -56,6 +56,7 @@ new p5((p5) => {
     const playerName = document.querySelector('#player-name') as HTMLDivElement;
     const playerHealth = document.querySelector('#player-health') as HTMLDivElement;
     const playerActions = document.querySelector('#player-actions') as HTMLDivElement;
+    const playerBuffs = document.querySelector('#user-buffs') as HTMLDivElement;
     const playerSight = document.querySelector('#player-sight') as HTMLDivElement;
     const boardHolder = document.querySelector('#board-holder') as HTMLDivElement;
 
@@ -87,9 +88,9 @@ new p5((p5) => {
     <td>${row.count}</td>
 </tr>
                 `).join('')
-                        })
-                        .catch(console.error)
-                }
+                    })
+                    .catch(console.error)
+            }
         });
 
 
@@ -189,7 +190,7 @@ new p5((p5) => {
                 this.tile = tile
             }
         }
-        // non ho voglia di capire come tipizzare questo
+        // non ho voglia di capire e tempo come tipizzare questo
         // @ts-ignore
         GameState.localGrid = new Honeycomb.Grid<TanksHex>(TanksHex, resizedGrid.coordinates);
     }
@@ -214,7 +215,8 @@ new p5((p5) => {
 
         // MAGIC: 69 is SUPER RANDOM
         // I don't properly understand how to calculate the size of the mask
-        GameGraphics.maskGraphics = p5.createGraphics(75, 75);
+        // GameGraphics.maskGraphics = p5.createGraphics(75, 75);
+        GameGraphics.maskGraphics = p5.createGraphics(HEX_WIDTH , HEX_HEIGHT);
 
         const jwt = await auth0.getTokenSilently()
         connectSocket(jwt);
@@ -222,7 +224,7 @@ new p5((p5) => {
         GameState.players = await getJson('/players')
         GameState.events = await getJson('/events')
 
-        drawEvents()
+        // drawEvents()
     }
 
     loginButton.addEventListener('click', () => {
@@ -245,7 +247,7 @@ new p5((p5) => {
         // sio.on('message', newMessage);
         sio.on('board', updateBoard);
         sio.on('playerslist', setOnline);
-        sio.on('action', addPlayerAction)
+        // sio.on('action', addPlayerAction)
 
         sio.on('connect_error', (error: any) => {
             console.error(error)
@@ -281,44 +283,52 @@ new p5((p5) => {
 
     function addPlayerAction(action: any) {
         GameState.events.unshift(action)
-        drawEvents();
+        // drawEvents();
     }
 
     function updateBoard(serverMessage: string) {
 
         const parsedMessage = JSON.parse(serverMessage);
-
-        // console.log(`parsedMessage`, parsedMessage)
         setupLocalGrid(parsedMessage.grid);
 
         const playersList: Tank[] = [];
 
-        GameState.localGrid!.forEach(hex => {
-            if (hex.tank) {
-                playersList.push(hex.tank);
-            }
-
-            if (hex.tank) {
-                if (!pictures[hex.tank.id]) {
-                    pictures[hex.tank.id] = p5.loadImage(hex.tank.picture)
+        if (GameState.localGrid) {
+            GameState.localGrid.forEach(hex => {
+                if (hex.tank) {
+                    playersList.push(hex.tank);
                 }
-            }
 
-            if (hex.tank && hex.tank.id === GameState.playerId) {
-                GameState.player = hex.tank;
-            }
-        })
+                if (hex.tank) {
+                    if (!pictures[hex.tank.id]) {
+                        pictures[hex.tank.id] = p5.loadImage(hex.tank.picture)
+                    }
+                }
+
+                if (hex.tank && hex.tank.id === GameState.playerId) {
+                    GameState.player = hex.tank;
+                }
+            })
+        }
 
         if (GameState.player) {
             guestBox.classList.add('hidden');
             playerBox.classList.remove('hidden');
 
-            playerImage.src = GameState.player.picture;
+            if (playerImage.src !== GameState.player.picture) {
+                playerImage.src = GameState.player.picture;
+            }
+
             playerName.textContent = GameState.player.name;
             playerHealth.textContent = GameState.player.life.toString();
             playerActions.textContent = GameState.player.actions.toString();
             playerSight.textContent = GameState.player.range.toString();
+            playerBuffs.innerHTML = Array.from(GameState.player.buffs).map(b => {
 
+                const title = BuffsDescriptions[b].name + `: ${BuffsDescriptions[b].description}`;
+                const emoji = BuffsDescriptions[b].icon;
+                return `<li title="${title}">${emoji}</li>`
+            }).join('');
         } else {
             guestBox.classList.remove('hidden');
             playerBox.classList.add('hidden');
@@ -330,13 +340,13 @@ new p5((p5) => {
 
             if (GameState.player.actions < 1) {
                 Array.from(actionButtons).forEach(el => {
-                    el.disabled = true;
+                    el.setAttribute(`disabled`, `true`);
                 });
             }
 
             if (GameState.player.actions > 0) {
                 Array.from(actionButtons).forEach(el => {
-                    el.disabled = false;
+                    el.removeAttribute(`disabled`)
                 });
             }
 
@@ -346,8 +356,8 @@ new p5((p5) => {
                         return el.getAttribute('data-action') === States.UPGRADE || el.getAttribute('data-action') === States.HEAL
                     })
                     .forEach(el => {
-                    el.disabled = true;
-                });
+                        el.setAttribute(`disabled`, 'true');
+                    });
             }
 
 
@@ -441,9 +451,9 @@ new p5((p5) => {
 
     }
 
-    p5.keyPressed = function() {
+    p5.keyPressed = function () {
 
-        console.log(p5.keyCode)
+        // console.log(p5.keyCode)
         if (!GameState.player) {
             return;
         }
@@ -489,8 +499,9 @@ new p5((p5) => {
     p5.mouseClicked = function () {
 
         const boardHolderSize = boardHolder.getBoundingClientRect();
+
         // check if the click is inside the boardHolder
-        if (p5.mouseX < boardHolderSize.left || p5.mouseX > boardHolderSize.right) {
+        if (p5.mouseX - boardHolder.scrollLeft > boardHolderSize.width) {
             return;
         }
 
@@ -547,7 +558,7 @@ new p5((p5) => {
 
                             modal.querySelector('.attack-button')!.addEventListener('click', () => {
                                 execAction(sio, hex)
-                                    .then((actionResult:ActionResult) => {
+                                    .then((actionResult: ActionResult) => {
 
                                         attackButton.style.display = 'none';
 
@@ -576,7 +587,7 @@ new p5((p5) => {
                                         }
 
                                         if (actionResult.successMessage === 0) {
-                                           attackResultTitle.innerHTML += `<br/> Arggh! Uno dei tuoi trucchi da pirata l'ha anche indebolito`;
+                                            attackResultTitle.innerHTML += `<br/> Arggh! Uno dei tuoi trucchi da pirata l'ha anche indebolito`;
                                         }
 
                                         GameState.currentState = States.IDLE;

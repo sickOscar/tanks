@@ -100,27 +100,29 @@
                             <div id="player-sight" title="Gittata" class="counters-background basis-1/3"></div>
                         </div>
 
+                        <div class="mt-3">
+                           <ul id="user-buffs"></ul>
+                        </div>
                     </div>
-
 
                 </div>
 
                 <div id="actions" class="hidden">
                     <h2 class="clear text-4xl">Azioni</h2>
                     <div class="flex flex-wrap">
-                        <button data-action="move" title="Muovi (M)">
-                            <span>🏃‍♂️</span>  MUOVI
+                        <button data-action="move" title="Muoviti sulla mappa (M)">
+                            <span>🏃‍♂️</span> MUOVI
                         </button>
-                        <button data-action="shoot" title="Attacca (A)">
+                        <button data-action="shoot" title="Attacca una altro giocatore (A)">
                             <span>⚔️</span> ATTACCA
                         </button>
                         <button data-action="give-action" title="Regala azione (G)">
-                            <span>🤝🏻 </span>REGALA AZIONE
+                            <span>🤝🏻</span>REGALA AZIONE
                         </button>
-                        <button data-action="upgrade" title="Upgrade">
-                            <span>⬆️ </span>UPGRADE
+                        <button data-action="upgrade" title="Aumenta la tua gittata di 1">
+                            <span>⬆️</span>ADDESTRATI
                         </button>
-                        <button data-action="heal" title="Cura (H)">
+                        <button data-action="heal" title="Cura te stesso o un altro a gittata di 1 (H)">
                             <span> ❤️‍🩹 </span>CURA
                         </button>
                     </div>
@@ -235,8 +237,8 @@
                 <h2>Regolamento</h2>
 
                 <p>
-                    Tutti i giocatori partono da una posizione casuale sulla mappa e hanno 3 cuori (💖) e nessun Punto
-                    Azione (👊).
+                    Tutti i giocatori partono da una posizione casuale sulla mappa e hanno 3 punti vita (💖)
+                    e nessun punto azione (👊).
                 </p>
                 <p>
                     Ogni 24 ore, tutti riceveranno 1 Punto Azione (👊).
@@ -247,48 +249,52 @@
                     In qualsiasi momento è possibile eseguire una delle seguenti azioni:
                 </p>
 
-                <h3>MOVERSI</h3>
-                <p>
-                    Muoversi in una casella adiacente non occupata (costo: 1 👊)
-                </p>
+                <div class="action-description">
+                    <h3>MOVERSI</h3>
+                    <p>
+                        Muoversi in una casella adiacente non occupata (costo: 1 👊)
+                    </p>
+                </div>
 
-                <h3>ATTACCARE</h3>
-                <p>
-                    Attaccare qualcuno che si trova t gittata (costo: 1 👊).
-                    Attaccare con successo qualcuno toglie 1 💖 dalla sua salute.<br>
-                    All'inizio della partita, tutti hanno gittata pari a 2.
-                </p>
+                <div class="action-description">
+                    <h3>ATTACCARE</h3>
+                    <p>
+                        Attaccare qualcuno che si trova a gittata (costo: 1 👊).<br/>
+                        Attaccare con successo qualcuno toglie 1 💖 dalla sua salute.<br/>
+                        All'inizio della partita, tutti hanno gittata pari a 2.
+                    </p>
+                </div>
+                <div class="action-description">
+                    <h3>AIUTARE</h3>
+                    <p>
+                        Regalare un'azione ad un altro eroe (costo: 1 👊). <br/>
+                        L'altro eroe avrà immediatamente a disposizione l'azione così regalata.
+                    </p>
+                </div>
+                <div class="action-description">
+                    <h3>CURARE</h3>
+                    <p>
+                        Curare di 1 💖 te stesso o un altro eroe entro gittata (costo: 3 👊).<br/>
+                        E' possibile anche superare il limite iniziale di 3 💖.<br/>
+                        E' possibile in questo modo resuscitare un eroe morto, che tornerà in vita con 1 💖.
+                    </p>
+                </div>
+                <div class="action-description">
+                    <h3>ADDESTRARSI</h3>
+                    <p>Aumentare la tua gittata di 1 (costo: 3 👊)</p>
+                </div>
 
-                <h3>AIUTARE</h3>
-                <p>
-                    Regalare un'azione ad un altro eroe (costo: 1 👊).
-                    L'altro eroe avrà immediatamente a disposizione l'azione così regalata.
-                </p>
-
-                <h3>CURARE</h3>
-                <p>
-                    Curare di 1 💖 te stesso o un altro eroe entro gittata (costo: 3 👊).
-                    E' possibile anche superare il limite iniziale di 3 💖.
-                    E' possibile in questo modo resuscitare un eroe morto, che tornerà in vita con 1 💖.
-                </p>
-
-                <h3>ADDESTRARSI</h3>
-                <p>Aumentare la tua gittata di 1 (costo: 3 👊)</p>
-
-                <p class="mt-5">
-
-                </p>
-                <p>
-                    Un eroe muore quando raggiunge 0 💖.
+                <p class="mt-8">
+                    Un eroe muore quando raggiunge 0 💖.<br/>
                     Tutti i punti azione che aveva vengono trasferiti all'eroe che lo ha ucciso.
                     Gli eroi morti rimangono sulla mappa.
                 </p>
 
                 <p>
-                    Una volta al giorno, in un momento casuale, verranno generate una pozione di cura e una pozione di
-                    forza (👊) sulla mappa.
+                    Una volta al giorno verranno generate una pozione di cura e una pozione di
+                    forza sulla mappa.
                     Il primo giocatore che raggiunge la casella contenente la pozione, ottiene immediatamente il
-                    corrispettivo bonus.;
+                    corrispettivo bonus.
                 </p>
 
 

@@ -60,13 +60,14 @@ h1, h2 {
 #actions button {
     display: block;
     width: 50%;
+    padding: 5px 0;
     font-weight: bold;
     background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
 }
 
 #actions button span {
     font-size: 2em;
-    display:block;
+    display: block;
 }
 
 .counters-background:after {
@@ -74,6 +75,7 @@ h1, h2 {
     display: block;
     clear: both;
     top: -45px;
+    height: 0px;
     opacity: 30%;
 }
 
@@ -87,6 +89,19 @@ h1, h2 {
 
 #player-sight.counters-background:after {
     content: '👁';
+}
+
+#user-buffs {
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+}
+
+#user-buffs li {
+    display: block;
+    width: 20px;
+    height: 20px;
+    text-align: center;
 }
 
 .user-actions button {
@@ -114,6 +129,11 @@ h1, h2 {
 }
 
 #rules {
+}
+
+.action-description {
+    padding-left: 2em;
+    padding-right: 2em;
 }
 
 table {

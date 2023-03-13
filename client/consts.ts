@@ -132,6 +132,29 @@ export enum Buffs {
     PIRATE
 }
 
+export const BuffsDescriptions = {
+    [Buffs.ICE_ARMOR]: {
+        name: "Armatura di ghiaccio",
+        icon: "🧊",
+        description: "Ogni volta che vieni colpito, 20% di possibilità che il colpo non vada a segno."
+    },
+    [Buffs.EXPLORER_BOOTS]: {
+        name: "Stivali dell'esploratore",
+        icon: "🥾",
+        description: "Non subisci 💓 da terreno ostile e spendi sempre solo 1 👊 per muoverti in qualsiasi tipo di terreno."
+    },
+    [Buffs.ORC_SKIN]: {
+        name: "Pelle d'orco",
+        icon: "👹",
+        description: "Ogni volta che vieni colpito, 20% di possibilità che il colpo non vada a segno."
+    },
+    [Buffs.PIRATE]: {
+        name: "Pirata",
+        icon: "🏴‍☠️",
+        description: "Ogni volta che attacchi, 20% di possibilità di causare -1 👊 al tuo avversario"
+    }
+}
+
 export const walkableTiles = [0, 2, 3, 4, 5, 6];
 
 export const States = {

@@ -26,14 +26,17 @@ function drawPlayerPicture(tank: Tank, hex: TanksHex, p5: p5, hasBuilding: boole
     originOffset.y = originOffset.y - HEX_TOP_TRIANGLE_HEIGHT;
 
     if (!hasBuilding) {
-        GameGraphics.maskGraphics.fill('rgba(0,0,0,1)');
-        GameGraphics.maskGraphics.beginShape();
-        corners.forEach(({x, y}) => {
-            GameGraphics.maskGraphics.vertex(
-                x + OFFSET.X - originOffset.x,
-                y + OFFSET.Y - originOffset.y
-            );
-        })
+        // do a square mask
+        // GameGraphics.maskGraphics.fill('rgba(0,0,0,1)');
+        // GameGraphics.maskGraphics.beginShape();
+        // GameGraphics.maskGraphics.fill('rgba(0,0,0,1)');
+        // GameGraphics.maskGraphics.beginShape();
+        // corners.forEach(({x, y}) => {
+        //     GameGraphics.maskGraphics.vertex(
+        //         x + OFFSET.X - originOffset.x,
+        //         y + OFFSET.Y - originOffset.y
+        //     );
+        // })
     } else {
         // do a circular mask
         GameGraphics.maskGraphics.fill('rgba(0,0,0,1)');
