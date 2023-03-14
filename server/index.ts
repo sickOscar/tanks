@@ -54,25 +54,25 @@ async function init() {
 //
 //     })
 
-
-    setInterval(async () => {
-        try {
-            await game.distributeActions();
-            // await game.dropHeart();
-            // await game.dropAction();
-//             game.sendMessageToChat(`
-// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
 //
-// *Eroi! Avete una nuova azione da utilizzare!*
-//
-// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-//  `, 'action fight')
-            io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-        } catch (err) {
-            console.log(`err`, err)
-            console.log('Failed to distribute actions')
-        }
-    }, 5000)
+//     setInterval(async () => {
+//         try {
+//             await game.distributeActions();
+//             // await game.dropHeart();
+//             // await game.dropAction();
+// //             game.sendMessageToChat(`
+// // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+// //
+// // *Eroi! Avete una nuova azione da utilizzare!*
+// //
+// // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+// //  `, 'action fight')
+//             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+//         } catch (err) {
+//             console.log(`err`, err)
+//             console.log('Failed to distribute actions')
+//         }
+//     }, 5000)
 
 
     const app = express()
