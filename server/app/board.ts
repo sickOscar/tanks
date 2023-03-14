@@ -285,6 +285,9 @@ export class Board {
             WHERE active = true
               AND id = $2
         `, [this.serialize(), this.game.id])
+        await db.query(`
+            INSERT INTO history (game, board) VALUES ($1, $2)
+        `, [this.game.id, this.serialize()])
     }
 
     getPlayers(): Tank[] {

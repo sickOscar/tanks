@@ -75,6 +75,19 @@ export async function prepareDb() {
         `)
     }
 
+    try {
+        await db.query(`SELECT * FROM history`)
+    } catch (err) {
+        db.query(`
+            CREATE TABLE history (
+                game INTEGER,
+                board JSONB NOT NULL,
+                created_at timestamptz DEFAULT NOW(),
+                CONSTRAINT fk_game FOREIGN KEY (game) REFERENCES games(id)
+            )
+        `)
+    }
+
 }
 
 

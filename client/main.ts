@@ -11,7 +11,7 @@ import {
     pictures,
     States,
     UI_WIDTH,
-    OFFSET, Buffs, BuffsDescriptions
+    OFFSET, Buffs, BuffsDescriptions, HistoryState
 } from "./consts";
 import {drawPopup} from "./game/ui/popups";
 import {io} from "socket.io-client";
@@ -25,6 +25,10 @@ import {ActionResult} from "../server/app/action-result";
 
 MicroModal.init();
 
+export enum Stages {
+    RUN = "RUN",
+    HISTORY = 'HISTORY'
+}
 
 new p5((p5) => {
 
@@ -33,7 +37,7 @@ new p5((p5) => {
     let sio: any;
     let visibleActions = false;
 
-    let stage = 'RUN';
+    let stage = Stages.RUN;
     // AUTH
     let auth0: any;
 
@@ -59,6 +63,14 @@ new p5((p5) => {
     const playerBuffs = document.querySelector('#user-buffs') as HTMLDivElement;
     const playerSight = document.querySelector('#player-sight') as HTMLDivElement;
     const boardHolder = document.querySelector('#board-holder') as HTMLDivElement;
+    const historyButton = document.querySelector('#history-button') as HTMLButtonElement;
+    const historyPlayer = document.querySelector('#history-player') as HTMLDivElement;
+    const historyPlayButton = document.querySelector('#history-play') as HTMLButtonElement;
+    const historyPauseButton = document.querySelector('#history-pause') as HTMLButtonElement;
+    const historyStopButton = document.querySelector('#history-stop') as HTMLButtonElement;
+    const historyRevButton = document.querySelector('#history-rev') as HTMLInputElement;
+    const historyFwdButton = document.querySelector('#history-fwd') as HTMLInputElement;
+
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
@@ -245,9 +257,15 @@ new p5((p5) => {
 
         sio.on('player', setPlayer)
         // sio.on('message', newMessage);
-        sio.on('board', updateBoard);
+        if (stage === Stages.RUN) {
+            console.log('RUN UPDATE')
+            sio.on('board', (data:string) => {
+                updateBoard(data);
+                GameState.lastMessageFromServer = data;
+            })
+        }
         sio.on('playerslist', setOnline);
-        // sio.on('action', addPlayerAction)
+        sio.on('action', addPlayerAction)
 
         sio.on('connect_error', (error: any) => {
             console.error(error)
@@ -280,6 +298,58 @@ new p5((p5) => {
         })
     })
 
+    historyButton.addEventListener('click', () => {
+
+       stage = (() => {
+            if (stage === Stages.HISTORY) {
+                GameState.history = [];
+                actionsContainer.classList.remove('hidden');
+                return Stages.RUN;
+            } else {
+                getJson('/history')
+                    .then(history => {
+                        GameState.history = history;
+                        const boardStringified = JSON.stringify(history[GameState.historyIndex].board);
+                        updateBoard(boardStringified);
+                    })
+                historyButton.classList.add('hidden');
+                historyPlayer.classList.remove('hidden');
+                actionsContainer.classList.add('hidden');
+                GameState.historyState = HistoryState.PAUSED;
+                return Stages.HISTORY;
+            }
+        })()
+    });
+    historyPlayButton.addEventListener('click', () => {
+        if (stage === Stages.RUN) return;
+        GameState.historyState = HistoryState.RUNNING;
+    });
+    historyRevButton.addEventListener('click', () => {
+        if (stage === Stages.RUN) return;
+        GameState.historyIndex = Math.max(0, GameState.historyIndex - 1);
+        const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
+        updateBoard(boardStringified);
+    });
+    historyFwdButton.addEventListener('click', () => {
+        if (stage === Stages.RUN) return;
+        GameState.historyIndex = Math.min(GameState.history.length - 1, GameState.historyIndex + 1);
+        const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
+        updateBoard(boardStringified);
+    });
+    historyStopButton.addEventListener('click', () => {
+        if (stage === Stages.RUN) return;
+        GameState.historyState = HistoryState.IDLE;
+        stage = Stages.RUN;
+        GameState.history = [];
+        updateBoard(GameState.lastMessageFromServer!);
+        historyButton.classList.remove('hidden');
+        historyPlayer.classList.add('hidden');
+        actionsContainer.classList.remove('hidden');
+    });
+    historyPauseButton.addEventListener('click', () => {
+        if (stage === Stages.RUN) return;
+        GameState.historyState = HistoryState.PAUSED;
+    });
 
     function addPlayerAction(action: any) {
         GameState.events.unshift(action)
@@ -335,8 +405,10 @@ new p5((p5) => {
         }
 
         if (GameState.player && GameState.player.life > 0) {
-            actionsContainer.classList.remove('hidden');
-            visibleActions = true;
+            if (stage === Stages.RUN) {
+                actionsContainer.classList.remove('hidden');
+                visibleActions = true;
+            }
 
             if (GameState.player.actions < 1) {
                 Array.from(actionButtons).forEach(el => {
@@ -435,6 +507,20 @@ new p5((p5) => {
 
         // handleViewport(p5);
 
+        if (stage === Stages.HISTORY ) {
+            if (p5.frameCount % 10 === 0 && GameState.historyState === HistoryState.RUNNING) {
+                GameState.historyIndex = (GameState.historyIndex + 1) % GameState.history.length;
+                updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
+            }
+        } else {
+            if (GameState.history.length > 0) {
+                GameState.historyIndex = 0;
+                updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
+            }
+
+        }
+
+
         GameState.activePlayerHover = null;
 
         p5.clear();
@@ -442,12 +528,12 @@ new p5((p5) => {
             return;
         }
 
-        if (stage === 'RUN') {
+        // if (stage === Stages.RUN) {
             drawBoard(p5);
-        }
+            drawCursor(p5);
+            drawPopup(p5);
+        // }
 
-        drawCursor(p5);
-        drawPopup(p5);
 
     }
 

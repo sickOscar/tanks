@@ -171,6 +171,12 @@ export const hover: any = {
     for: 0
 }
 
+export enum HistoryState {
+    IDLE,
+    RUNNING,
+    PAUSED
+}
+
 interface IGameState {
     heartsLocations: [q: number, r: number][],
     actionsLocations: [q: number, r: number][],
@@ -185,7 +191,11 @@ interface IGameState {
     currentState: string,
     events: any[],
     hasFocus: boolean,
-    debug: boolean
+    debug: boolean,
+    history: any[],
+    historyIndex: number,
+    historyState: HistoryState,
+    lastMessageFromServer: string | null
 }
 
 export const GameState: IGameState = {
@@ -202,7 +212,11 @@ export const GameState: IGameState = {
     currentState: States.IDLE,
     events: [],
     hasFocus: true,
-    debug: false
+    debug: false,
+    history: [],
+    historyIndex: 0,
+    historyState: HistoryState.IDLE,
+    lastMessageFromServer: null
 }
 
 interface IGameGraphics {

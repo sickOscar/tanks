@@ -26,3 +26,11 @@ apis.get("/auth_config.json", (req, res) => {
     res.sendFile(path.join(__dirname, "auth_config.json"));
 });
 
+apis.get("/history", checkJwt, async (req, res) => {
+    const {rows} = await db.query(`
+        SELECT * FROM history
+        ORDER BY created_at ASC
+    `);
+    res.json(rows);
+})
+

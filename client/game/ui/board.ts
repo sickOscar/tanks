@@ -27,7 +27,6 @@ function drawCell(p5: p5, hex: TanksHex) {
 
     if (!hex.tank) {
 
-
         if (GameState.heartsLocations) {
             const hasHeart = GameState.heartsLocations.find(loc => {
                 return loc[0] === hex.q && loc[1] === hex.r
