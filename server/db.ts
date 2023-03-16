@@ -38,6 +38,7 @@ export async function prepareDb() {
             CREATE TABLE players (
                 sub VARCHAR,
                 game INTEGER,
+                email VARCHAR,
                 FOREIGN KEY (game) REFERENCES games(id)
             )
         `)

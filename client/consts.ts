@@ -195,7 +195,8 @@ interface IGameState {
     history: any[],
     historyIndex: number,
     historyState: HistoryState,
-    lastMessageFromServer: string | null
+    lastMessageFromServer: string | null,
+    firstTimeIn: boolean
 }
 
 export const GameState: IGameState = {
@@ -216,7 +217,8 @@ export const GameState: IGameState = {
     history: [],
     historyIndex: 0,
     historyState: HistoryState.IDLE,
-    lastMessageFromServer: null
+    lastMessageFromServer: null,
+    firstTimeIn: true
 }
 
 interface IGameGraphics {

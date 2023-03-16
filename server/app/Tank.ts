@@ -71,7 +71,8 @@ export class Tank {
         const tank = new Tank(game, {
             id: userId,
             position: tankPosition,
-            name, picture
+            name,
+            picture
         });
 
         game.board.addTank(tank);
@@ -81,6 +82,8 @@ export class Tank {
             SET board = $1
             WHERE active = true
         `, [game.board.serialize()])
+
+        await game.board.updateOnDb();
 
         // @ts-ignore
         return tank;

@@ -8,7 +8,7 @@ Are you ready to stab some friends in the back?
 
 ### Development
 
-Ask me for the corrent .env file, and then:
+Ask me for the current .env file, and then:
 ```
 make dev
 ```

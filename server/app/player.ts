@@ -34,4 +34,18 @@ export class Player {
         return res.rows[0];
     }
 
+    static async getByEmail(email:string, gameId:number):Promise<{sub:string,game:number,email:string}|undefined> {
+        if (!email) return;
+        const res = await db.query(`
+            SELECT * FROM players WHERE email = $1 AND game = $2
+        `, [email, gameId])
+        return res.rows[0];
+    }
+
+    static async setSubOnPlayer(email:string, sub:string):Promise<void> {
+        await db.query(`
+            UPDATE players SET sub = $1 WHERE email = $2
+        `, [sub, email]);
+    }
+
 }

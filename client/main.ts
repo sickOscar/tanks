@@ -213,22 +213,15 @@ new p5((p5) => {
         const c = await getJson('/config');
         configFetched = true;
         setupLocalGrid(c.grid);
-
-        // GameState.WIDTH = c.cols * HEX_WIDTH + OFFSET.X;
-        // GameState.HEIGHT = c.rows * HEX_HEIGHT + OFFSET.Y;
-
+        
         GameState.WIDTH = window.innerWidth - UI_WIDTH;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
 
-        // p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
         p5.resizeCanvas(
             c.cols * HEX_WIDTH + OFFSET.X,
             c.rows * HEX_HEIGHT + OFFSET.Y
         )
 
-        // MAGIC: 69 is SUPER RANDOM
-        // I don't properly understand how to calculate the size of the mask
-        // GameGraphics.maskGraphics = p5.createGraphics(75, 75);
         GameGraphics.maskGraphics = p5.createGraphics(HEX_WIDTH, HEX_HEIGHT);
 
         const jwt = await auth0.getTokenSilently()
@@ -262,6 +255,23 @@ new p5((p5) => {
             sio.on('board', (data: string) => {
                 if (stage === Stages.RUN) {
                     updateBoard(data);
+                    
+                    if (GameState.firstTimeIn) {
+                        
+                        console.log(`GameState.player`, GameState.player)
+                        // get the position of the player's hexagon and scroll there
+                        const hex = GameState.localGrid!.getHex({
+                            q: GameState.player!.position.q,
+                            r: GameState.player!.position.r
+                        })
+
+                        if (hex) {
+                            const {x, y} = hex.corners[0];
+                            boardHolder.scrollTo(x - 300 , y - 300 );
+                        }
+                        GameState.firstTimeIn = false;
+                    }
+                    
                 }
                 GameState.lastMessageFromServer = data;
             })

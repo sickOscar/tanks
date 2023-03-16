@@ -85,11 +85,14 @@ export class Game {
         console.log(`Loading game from database...`)
         let res = await db.query(`SELECT * from games WHERE active = true`)
 
+        let firstTime = false;
+
         if (res.rows.length === 0) {
             console.log(`No active game found, creating a new one...`)
             const emptyBoard = new Board(this).serialize();
             await db.query(`INSERT INTO games (active, board) VALUES (true, $1)`, [emptyBoard])
             res = await db.query(`SELECT * from games WHERE active = true`)
+            firstTime = true;
         } else {
             console.log(`Active game found, loading...`)
         }
@@ -150,6 +153,12 @@ export class Game {
         }
 
         this.id = res.rows[0].id;
+
+        if (firstTime) {
+
+            //  to save the first board state
+            await this.board.updateOnDb();
+        }
     }
 
     isInJury(player: Player): boolean {

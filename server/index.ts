@@ -31,7 +31,6 @@ async function init() {
 
     const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
 
-
 //     schedule(process.env.ACTION_CRON_EXPRESSION as string, async () => {
 //         setTimeout(async () => {
 //             try {
@@ -94,9 +93,15 @@ async function init() {
         const userId = socket.decodedToken.sub;
         console.log(`new Connection ${userId} - ${socket.user.email}`);
 
-        const registeredPlayer = await Player.get(userId, game.id)
+        const registeredPlayer = await Player.getByEmail(socket.user.email, game.id)
 
         if (registeredPlayer) {
+
+            if (!registeredPlayer.sub) {
+                console.log(`UPDATE PLAYER WITH SUB`)
+                await Player.setSubOnPlayer(registeredPlayer.email, userId)
+            }
+
             const player = new Player({
                 id: userId,
                 name: socket.user.name,
@@ -163,7 +168,6 @@ async function init() {
                 })
             } else if (game.isInJury(player)) {
                 // DO NOTHING REAL TIME
-
             } else {
                 console.log(`CREATE TANK FOR ${userId}`)
                 const tank = await Tank.create(game, userId, socket.user.name, socket.user.picture);
