@@ -104,6 +104,22 @@ h1, h2 {
     text-align: center;
 }
 
+#history-list {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-height: 200px;
+    list-style: none;
+    padding: 0;
+}
+
+#history-list li {
+    cursor: pointer;
+}
+
+#history-list li.highlight {
+    background-color: #fefe33;
+}
+
 .user-actions button {
     font-weight: bold;
     border: 1px solid black;

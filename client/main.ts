@@ -64,6 +64,7 @@ new p5((p5) => {
     const playerSight = document.querySelector('#player-sight') as HTMLDivElement;
     const boardHolder = document.querySelector('#board-holder') as HTMLDivElement;
     const historyButton = document.querySelector('#history-button') as HTMLButtonElement;
+    const historyList = document.querySelector('#history-list') as HTMLUListElement;
     const historyPlayer = document.querySelector('#history-player') as HTMLDivElement;
     const historyPlayButton = document.querySelector('#history-play') as HTMLButtonElement;
     const historyPauseButton = document.querySelector('#history-pause') as HTMLButtonElement;
@@ -228,7 +229,7 @@ new p5((p5) => {
         // MAGIC: 69 is SUPER RANDOM
         // I don't properly understand how to calculate the size of the mask
         // GameGraphics.maskGraphics = p5.createGraphics(75, 75);
-        GameGraphics.maskGraphics = p5.createGraphics(HEX_WIDTH , HEX_HEIGHT);
+        GameGraphics.maskGraphics = p5.createGraphics(HEX_WIDTH, HEX_HEIGHT);
 
         const jwt = await auth0.getTokenSilently()
         connectSocket(jwt);
@@ -258,7 +259,7 @@ new p5((p5) => {
         sio.on('player', setPlayer)
         // sio.on('message', newMessage);
         if (stage === Stages.RUN) {
-            sio.on('board', (data:string) => {
+            sio.on('board', (data: string) => {
                 if (stage === Stages.RUN) {
                     updateBoard(data);
                 }
@@ -301,26 +302,59 @@ new p5((p5) => {
 
     historyButton.addEventListener('click', () => {
 
-       stage = (() => {
+        // ok, this is a bit of a mess. I'm sorry.
+        // I know how to do things properly, I swear.
+        // but this is actually funnier, so ¯\_(ツ)_/¯
+        stage = (() => {
             if (stage === Stages.HISTORY) {
                 GameState.history = [];
                 if (GameState.player) {
                     actionsContainer.classList.remove('hidden');
                 }
+                historyButton.classList.remove('hidden');
+                historyPlayer.classList.add('hidden');
+                historyList.innerHTML = '';
+                historyList.classList.add('hidden');
                 return Stages.RUN;
-            } else {
-                getJson('/history')
-                    .then(history => {
-                        GameState.history = history;
-                        const boardStringified = JSON.stringify(history[GameState.historyIndex].board);
-                        updateBoard(boardStringified);
-                    })
-                historyButton.classList.add('hidden');
-                historyPlayer.classList.remove('hidden');
-                actionsContainer.classList.add('hidden');
-                GameState.historyState = HistoryState.PAUSED;
-                return Stages.HISTORY;
             }
+
+            historyList.classList.remove('hidden');
+            historyList.innerHTML = `<p>Speta 'more...</p>`;
+            getJson('/history')
+                .then(history => {
+                    GameState.history = history;
+                    const boardStringified = JSON.stringify(history[GameState.historyIndex].board);
+                    updateBoard(boardStringified);
+
+                    historyList.innerHTML = '';
+                    history.forEach((_moment: any, i: number) => {
+                        const li = document.createElement('li');
+                        // const time = new Date(_moment.created_at).toLocaleTimeString();
+                        const date = new Date(_moment.created_at);
+                        const time = new Intl.DateTimeFormat('it-IT', {
+                            dateStyle: 'medium',
+                            timeStyle: 'long',
+                            timeZone: 'Europe/Rome'
+                        }).format(date);
+                        li.innerText = `${i} - ${time}`;
+                        li.addEventListener('click', () => {
+                            GameState.historyIndex = i;
+                            const boardStringified = JSON.stringify(history[i].board);
+                            updateBoard(boardStringified);
+                            highlightHistoryPlayer(i, false);
+                        });
+                        historyList.appendChild(li);
+                    })
+
+                    highlightHistoryPlayer(0);
+
+                })
+            historyButton.classList.add('hidden');
+            historyPlayer.classList.remove('hidden');
+            actionsContainer.classList.add('hidden');
+            GameState.historyState = HistoryState.PAUSED;
+            return Stages.HISTORY;
+
         })()
     });
     historyPlayButton.addEventListener('click', () => {
@@ -332,12 +366,14 @@ new p5((p5) => {
         GameState.historyIndex = Math.max(0, GameState.historyIndex - 1);
         const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
         updateBoard(boardStringified);
+        highlightHistoryPlayer(GameState.historyIndex);
     });
     historyFwdButton.addEventListener('click', () => {
         if (stage === Stages.RUN) return;
         GameState.historyIndex = Math.min(GameState.history.length - 1, GameState.historyIndex + 1);
         const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
         updateBoard(boardStringified);
+        highlightHistoryPlayer(GameState.historyIndex);
     });
     historyStopButton.addEventListener('click', () => {
         if (stage === Stages.RUN) return;
@@ -353,6 +389,18 @@ new p5((p5) => {
         if (stage === Stages.RUN) return;
         GameState.historyState = HistoryState.PAUSED;
     });
+
+    function highlightHistoryPlayer(index: number, scroll= true) {
+        for (let children of historyList.children) {
+            children.classList.remove('highlight');
+        }
+        const currentMoment = historyList.children[index] as HTMLElement;
+        currentMoment.classList.add('highlight');
+        if (scroll) {
+            // scroll historyList to the highlighted element
+            historyList.scrollTop = currentMoment.offsetTop - historyList.offsetTop - historyList.clientHeight / 2;
+        }
+    }
 
     function addPlayerAction(action: any) {
         GameState.events.unshift(action)
@@ -510,15 +558,17 @@ new p5((p5) => {
 
         // handleViewport(p5);
 
-        if (stage === Stages.HISTORY ) {
+        if (stage === Stages.HISTORY) {
             if (p5.frameCount % 10 === 0 && GameState.historyState === HistoryState.RUNNING) {
-                GameState.historyIndex = (GameState.historyIndex + 1) % GameState.history.length;
+                GameState.historyIndex = Math.min(GameState.historyIndex + 1, GameState.history.length - 1);
                 updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
+                highlightHistoryPlayer(GameState.historyIndex);
             }
         } else {
             if (GameState.history.length > 0) {
                 GameState.historyIndex = 0;
                 updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
+                highlightHistoryPlayer(GameState.historyIndex);
             }
 
         }
@@ -532,9 +582,9 @@ new p5((p5) => {
         }
 
         // if (stage === Stages.RUN) {
-            drawBoard(p5);
-            drawCursor(p5);
-            drawPopup(p5);
+        drawBoard(p5);
+        drawCursor(p5);
+        drawPopup(p5);
         // }
 
 
