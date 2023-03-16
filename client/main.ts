@@ -258,9 +258,10 @@ new p5((p5) => {
         sio.on('player', setPlayer)
         // sio.on('message', newMessage);
         if (stage === Stages.RUN) {
-            console.log('RUN UPDATE')
             sio.on('board', (data:string) => {
-                updateBoard(data);
+                if (stage === Stages.RUN) {
+                    updateBoard(data);
+                }
                 GameState.lastMessageFromServer = data;
             })
         }
@@ -303,7 +304,9 @@ new p5((p5) => {
        stage = (() => {
             if (stage === Stages.HISTORY) {
                 GameState.history = [];
-                actionsContainer.classList.remove('hidden');
+                if (GameState.player) {
+                    actionsContainer.classList.remove('hidden');
+                }
                 return Stages.RUN;
             } else {
                 getJson('/history')
