@@ -94,7 +94,6 @@ export class Tank {
     }
 
     async die(): Promise<void> {
-        // this.delete();
         this.actions = 0;
     }
 
@@ -230,7 +229,6 @@ export class Tank {
         }
 
         await db.query('COMMIT');
-
     }
 
     async hasVotedToday(): Promise<boolean> {

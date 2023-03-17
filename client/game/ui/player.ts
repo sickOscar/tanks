@@ -50,11 +50,10 @@ function drawPlayerPicture(tank: Tank, hex: TanksHex, p5: p5, hasBuilding: boole
     }
     GameGraphics.maskGraphics.endShape(p5.CLOSE);
 
-
     pictures[tank.id].mask(GameGraphics.maskGraphics);
 
     const imageWidth = hasBuilding ? HEX_WIDTH / 2 : HEX_WIDTH;
-    const imageHeight = hasBuilding ? HEX_HEIGHT / 2 : HEX_HEIGHT;
+    const imageHeight = hasBuilding ? HEX_HEIGHT / 2 : HEX_HEIGHT + 10;
     const dx = hasBuilding ?
         corners[0].x - HEX_WIDTH / 2 + OFFSET.X - imageWidth / 2
         : corners[0].x - HEX_WIDTH + OFFSET.X;

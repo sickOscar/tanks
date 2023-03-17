@@ -256,9 +256,8 @@ new p5((p5) => {
                 if (stage === Stages.RUN) {
                     updateBoard(data);
                     
-                    if (GameState.firstTimeIn) {
+                    if (GameState.firstTimeIn && GameState.player) {
                         
-                        console.log(`GameState.player`, GameState.player)
                         // get the position of the player's hexagon and scroll there
                         const hex = GameState.localGrid!.getHex({
                             q: GameState.player!.position.q,

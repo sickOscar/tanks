@@ -55,6 +55,10 @@ const DEFAULT_BUILDINGS: Building[] = [
         position: {q: 10, r: 13}
     },
     {
+        type: 'TELEPORT',
+        position: {q: 10, r: 1}
+    },
+    {
         type: 'PIRATES',
         position: {q: 13, r: 8}
     }
