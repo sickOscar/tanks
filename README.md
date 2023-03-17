@@ -1,3 +1,5 @@
+If you wish to look at the code, lease wash your eyes first and after.
+
 # Dragons
 
 Be ready adventurer, this is not for the faint of heart. 
