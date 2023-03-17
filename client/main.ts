@@ -392,7 +392,9 @@ new p5((p5) => {
         updateBoard(GameState.lastMessageFromServer!);
         historyButton.classList.remove('hidden');
         historyPlayer.classList.add('hidden');
-        actionsContainer.classList.remove('hidden');
+        if (GameState.player) {
+            actionsContainer.classList.remove('hidden');
+        }
     });
     historyPauseButton.addEventListener('click', () => {
         if (stage === Stages.RUN) return;
