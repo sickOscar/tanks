@@ -31,27 +31,28 @@ async function init() {
 
     const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
 
-//     schedule(process.env.ACTION_CRON_EXPRESSION as string, async () => {
-//         setTimeout(async () => {
-//             try {
-//                 await game.distributeActions();
-//                 await game.dropHeart();
-//                 await game.dropAction();
-//                 game.sendMessageToChat(`
-// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-//
-// *Eroi! Avete un'azione da utilizzare!*
-//
-// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-// `, 'action')
-//                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//             } catch (err) {
-//                 console.log('Failed to distribute actions')
-//             }
-//
-//         }, Math.round(Math.random()* actionTimeoutDelay))
-//
-//     })
+    schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
+        setTimeout(async () => {
+            try {
+                await game.distributeActions();
+                await game.dropHeart();
+                await game.dropAction();
+                game.sendMessageToChat(`
+💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+
+*E' TEMPO DI AZIONE!*
+
+💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+`, 'action')
+                io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+            } catch (err) {
+                console.log(`err`, err)
+                console.log('Failed to distribute actions')
+            }
+
+        }, Math.round(Math.random()* actionTimeoutDelay))
+
+    })
 
 
 //     setInterval(async () => {
