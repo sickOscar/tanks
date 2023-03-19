@@ -601,8 +601,8 @@ new p5((p5) => {
 
     p5.keyPressed = function () {
 
-        // console.log(p5.keyCode)
-        if (!GameState.player) {
+        console.log(p5.keyCode)
+        if (!GameState.player && p5.keyCode !== 80) {
             return;
         }
 
@@ -617,6 +617,7 @@ new p5((p5) => {
                 case 71:
                     return States.GIVE_ACTION;
                 case 80:
+                    console.log('toggle debug')
                     GameState.debug = !GameState.debug;
                     return null;
                 default:

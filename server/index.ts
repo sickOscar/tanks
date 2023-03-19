@@ -53,12 +53,12 @@ async function init() {
 //
 //     })
 
-//
+
 //     setInterval(async () => {
 //         try {
 //             await game.distributeActions();
-//             // await game.dropHeart();
-//             // await game.dropAction();
+//             await game.dropHeart();
+//             await game.dropAction();
 // //             game.sendMessageToChat(`
 // // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
 // //

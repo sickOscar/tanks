@@ -137,52 +137,37 @@ export class Board {
 
     getEmptyRandom(forbiddenTiles: TileType[] = []): AxialCoordinates {
 
-        let minQ = 0;
-        let minR = 0;
-        let maxQ = 0;
-        let maxR = 0;
-
+        const hexes:any[] = [];
         this.board.forEach((hex: TanksHex) => {
-            if (hex.q < minQ) {
-                minQ = hex.q;
-            }
-            if (hex.r < minR) {
-                minR = hex.r;
-            }
-            if (hex.q > maxQ) {
-                maxQ = hex.q;
-            }
-            if (hex.r > maxR) {
-                maxR = hex.r;
-            }
+           hexes.push(hex);
         });
 
-        const qDiff = maxQ - minQ;
-        const rDiff = maxR - minR;
+        const pick = ():{q:number, r:number} => {
+            const randomHex = hexes[Math.floor(Math.random() * hexes.length)];
+            const {q, r} = randomHex;
+            if (forbiddenTiles.includes(this.getTileAt(q, r)!)) {
+                return pick();
+            }
+            if (!this.isPositionWalkable(q, r)) {
+                return pick();
+            }
+            if (this.isPositionOccupied(q, r)) {
+                return pick();
+            }
+            if (this.game.hasHeartOn(q, r)) {
+                return pick()
+            }
+            if (this.game.hasActionOn(q, r)) {
+                return pick()
+            }
+            if (this.game.hasBuildingOn(q, r)) {
+                return pick()
+            }
+            return {q, r}
+        }
 
-        const tankQ = Math.round(Math.random() * qDiff) + minQ;
-        const tankR = Math.round(Math.random() * rDiff) + minR;
+       return pick();
 
-        if (forbiddenTiles.includes(this.getTileAt(tankQ, tankR)!)) {
-            return this.getEmptyRandom(forbiddenTiles);
-        }
-        if (!this.isPositionWalkable(tankQ, tankR)) {
-            return this.getEmptyRandom(forbiddenTiles);
-        }
-        if (this.isPositionOccupied(tankQ, tankR)) {
-            return this.getEmptyRandom(forbiddenTiles);
-        }
-        if (this.game.hasHeartOn(tankQ, tankR)) {
-            return this.getEmptyRandom(forbiddenTiles)
-        }
-        if (this.game.hasActionOn(tankQ, tankR)) {
-            return this.getEmptyRandom(forbiddenTiles)
-        }
-        if (this.game.hasBuildingOn(tankQ, tankR)) {
-            return this.getEmptyRandom(forbiddenTiles)
-        }
-
-        return {q: tankQ, r: tankR};
     }
 
     isPositionWalkable(q: number, r: number): boolean {
