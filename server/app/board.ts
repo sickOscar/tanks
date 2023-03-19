@@ -37,7 +37,6 @@ export class TanksHex extends defineHex() {
     }
 }
 
-
 export class Board {
 
     private game: Game

@@ -156,6 +156,10 @@ table {
     color: #fff
 }
 
+.spirits-table td {
+    text-align: center;
+}
+
 .drawer {
     position: fixed;
     width: 80%;

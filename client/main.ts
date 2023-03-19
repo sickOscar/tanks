@@ -73,11 +73,12 @@ new p5((p5) => {
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
-        sio.emit('playerevent', 'vote', voteSelect.value, (response: any) => {
-            if (!response) {
-                alert(`Well, no. You already voted today. The blockchain doesn't lie`)
+        sio.emit('playerevent', 'vote', null, voteSelect.value, (response: any) => {
+            console.log(`response`, response)
+            if (response.exit === true) {
+                alert('Grazie! La tua leggenda vive...');
             } else {
-                alert('Thank you!')
+                alert(`No. Il tuo spirito ha già influenzato il regno oggi`)
             }
         })
     })
@@ -238,7 +239,6 @@ new p5((p5) => {
     logoutButton.addEventListener('click', () => {
         auth0.logout();
     })
-
 
     function connectSocket(jwt: string) {
         sio = io('', {
