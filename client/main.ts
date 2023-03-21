@@ -3,25 +3,30 @@ import * as Honeycomb from 'honeycomb-grid';
 import {TanksHex} from "../server/app/board";
 import {Tank} from "./models/Tank";
 import {
+    BuffsDescriptions,
     GameGraphics,
     GameState,
-    HEX_HEIGHT,
     HEX,
-    HEX_WIDTH, MAIN_BORDER_HEIGHT,
+    HEX_HEIGHT,
+    HEX_WIDTH,
+    HistoryState,
+    MAIN_BORDER_HEIGHT,
+    OFFSET,
     pictures,
     States,
-    UI_WIDTH,
-    OFFSET, Buffs, BuffsDescriptions, HistoryState
+    UI_WIDTH
 } from "./consts";
 import {drawPopup} from "./game/ui/popups";
 import {io} from "socket.io-client";
 import {createAuth0Client} from '@auth0/auth0-spa-js';
 import {drawBoard} from "./game/ui/board";
 import MicroModal from 'micromodal';
-import {drawCursor, handleViewport} from './game/ui/mouse';
-import {drawEvents, setOnline} from "./game/ui/html-elements";
+import {drawCursor} from './game/ui/mouse';
+import {setOnline} from "./game/ui/html-elements";
 import {execAction, validateAction} from "./game/message-sender";
 import {ActionResult} from "../server/app/action-result";
+import {drawAnimations} from "./game/ui/animation";
+import {computeAnimations} from "./game/ui/diffing";
 
 MicroModal.init();
 
@@ -74,7 +79,6 @@ new p5((p5) => {
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
         sio.emit('playerevent', 'vote', null, voteSelect.value, (response: any) => {
-            console.log(`response`, response)
             if (response.exit === true) {
                 alert('Grazie! La tua leggenda vive...');
             } else {
@@ -202,7 +206,7 @@ new p5((p5) => {
                 this.tile = tile
             }
         }
-        // non ho voglia di capire e tempo come tipizzare questo
+        // non ho voglia di capire tipizzare questo
         // @ts-ignore
         GameState.localGrid = new Honeycomb.Grid<TanksHex>(TanksHex, resizedGrid.coordinates);
     }
@@ -212,7 +216,7 @@ new p5((p5) => {
         const c = await getJson('/config');
         configFetched = true;
         setupLocalGrid(c.grid);
-        
+
         GameState.WIDTH = window.innerWidth - UI_WIDTH;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
 
@@ -253,9 +257,9 @@ new p5((p5) => {
             sio.on('board', (data: string) => {
                 if (stage === Stages.RUN) {
                     updateBoard(data);
-                    
+
                     if (GameState.firstTimeIn && GameState.player) {
-                        
+
                         // get the position of the player's hexagon and scroll there
                         const hex = GameState.localGrid!.getHex({
                             q: GameState.player!.position.q,
@@ -264,11 +268,11 @@ new p5((p5) => {
 
                         if (hex) {
                             const {x, y} = hex.corners[0];
-                            boardHolder.scrollTo(x - 300 , y - 300 );
+                            boardHolder.scrollTo(x - 300, y - 300);
                         }
                         GameState.firstTimeIn = false;
                     }
-                    
+
                 }
                 GameState.lastMessageFromServer = data;
             })
@@ -331,7 +335,7 @@ new p5((p5) => {
                 .then(history => {
                     GameState.history = history;
                     const boardStringified = JSON.stringify(history[GameState.historyIndex].board);
-                    updateBoard(boardStringified);
+                    updateBoard(boardStringified, false);
 
                     historyList.innerHTML = '';
                     history.forEach((_moment: any, i: number) => {
@@ -347,7 +351,7 @@ new p5((p5) => {
                         li.addEventListener('click', () => {
                             GameState.historyIndex = i;
                             const boardStringified = JSON.stringify(history[i].board);
-                            updateBoard(boardStringified);
+                            updateBoard(boardStringified, false);
                             highlightHistoryPlayer(i, false);
                         });
                         historyList.appendChild(li);
@@ -387,7 +391,7 @@ new p5((p5) => {
         GameState.historyState = HistoryState.IDLE;
         stage = Stages.RUN;
         GameState.history = [];
-        updateBoard(GameState.lastMessageFromServer!);
+        updateBoard(GameState.lastMessageFromServer!, false);
         historyButton.classList.remove('hidden');
         historyPlayer.classList.add('hidden');
         if (GameState.player) {
@@ -399,7 +403,7 @@ new p5((p5) => {
         GameState.historyState = HistoryState.PAUSED;
     });
 
-    function highlightHistoryPlayer(index: number, scroll= true) {
+    function highlightHistoryPlayer(index: number, scroll = true) {
         for (let children of historyList.children) {
             children.classList.remove('highlight');
         }
@@ -416,9 +420,21 @@ new p5((p5) => {
         // drawEvents();
     }
 
-    function updateBoard(serverMessage: string) {
+    function updateBoard(serverMessage: string, animated = true) {
 
         const parsedMessage = JSON.parse(serverMessage);
+        // console.log(`parsedMessage.grid`, JSON.stringify(parsedMessage.grid));
+
+        if (animated) {
+            try {
+                computeAnimations(parsedMessage)
+            } catch (error) {
+                // console.log(`error`, error)
+                // do nothing on first run, thes it's always switching states
+            }
+
+        }
+
         setupLocalGrid(parsedMessage.grid);
 
         const playersList: Tank[] = [];
@@ -567,11 +583,22 @@ new p5((p5) => {
 
         // handleViewport(p5);
 
+        // this is soooo male
         if (stage === Stages.HISTORY) {
-            if (p5.frameCount % 10 === 0 && GameState.historyState === HistoryState.RUNNING) {
-                GameState.historyIndex = Math.min(GameState.historyIndex + 1, GameState.history.length - 1);
-                updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
-                highlightHistoryPlayer(GameState.historyIndex);
+            // if history id playing
+            if (
+                p5.frameCount % 10 === 0
+                && GameState.historyState === HistoryState.RUNNING
+            ) {
+                // if is the last step, just pause
+                if (GameState.historyIndex === GameState.history.length - 1)  {
+                    GameState.historyState = HistoryState.PAUSED;
+                } else {
+                    GameState.historyIndex = Math.min(GameState.historyIndex + 1, GameState.history.length - 1);
+                    updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
+                    highlightHistoryPlayer(GameState.historyIndex);
+                }
+
             }
         } else {
             if (GameState.history.length > 0) {
@@ -590,11 +617,11 @@ new p5((p5) => {
             return;
         }
 
-        // if (stage === Stages.RUN) {
         drawBoard(p5);
         drawCursor(p5);
         drawPopup(p5);
-        // }
+
+        drawAnimations(p5);
 
 
     }
@@ -711,7 +738,6 @@ new p5((p5) => {
 
                                         attackButton.style.display = 'none';
 
-                                        console.log(`actionResult`, actionResult)
                                         if (actionResult.exit === true) {
                                             attackResultTitle.innerHTML = `L'hai colpito!`;
                                         } else {

@@ -177,6 +177,13 @@ export enum HistoryState {
     PAUSED
 }
 
+export type Diffing = {
+    lostLife: AxialCoordinates[],
+    gainedLife: AxialCoordinates[],
+    lostAction: AxialCoordinates[],
+    gainedAction: AxialCoordinates[]
+}
+
 interface IGameState {
     heartsLocations: [q: number, r: number][],
     actionsLocations: [q: number, r: number][],
@@ -196,7 +203,8 @@ interface IGameState {
     historyIndex: number,
     historyState: HistoryState,
     lastMessageFromServer: string | null,
-    firstTimeIn: boolean
+    firstTimeIn: boolean,
+    diffing: Diffing | null
 }
 
 export const GameState: IGameState = {
@@ -218,7 +226,15 @@ export const GameState: IGameState = {
     historyIndex: 0,
     historyState: HistoryState.IDLE,
     lastMessageFromServer: null,
-    firstTimeIn: true
+    firstTimeIn: true,
+    diffing: null
+}
+
+export type Animation = {
+    type: string,
+    startedAt: number,
+    duration: number,
+    hex: AxialCoordinates
 }
 
 interface IGameGraphics {
@@ -229,7 +245,8 @@ interface IGameGraphics {
     castleImage: any,
     orcsCampImage: any,
     teleportImage: any,
-    piratesImage: any
+    piratesImage: any,
+    animations: Animation[]
 }
 
 export const GameGraphics: IGameGraphics = {
@@ -240,7 +257,8 @@ export const GameGraphics: IGameGraphics = {
     castleImage: null,
     orcsCampImage: null,
     teleportImage: null,
-    piratesImage: null
+    piratesImage: null,
+    animations: []
 }
 
 export const pictures: { [key: string]: any } = {};

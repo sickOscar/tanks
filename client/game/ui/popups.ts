@@ -7,7 +7,7 @@ import {
     hover,
     pictures,
     TILES,
-    OFFSET
+    OFFSET, GameGraphics
 } from "../../consts";
 import p5 from "p5";
 import {popupTextFont, popupTitleFont, resetFont} from "../../utils";
@@ -171,6 +171,9 @@ function adjustPopupDirection(p5: p5, rectSourceX: number, hex: any, size: numbe
     }
     return rectSourceX;
 }
+
+
+
 
 export function drawPopup(p5: p5) {
 
