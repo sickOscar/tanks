@@ -123,7 +123,8 @@ export class Tank {
 
         let actionsUsed = 1;
         const tile = this.game.board.getTileAt(q, r);
-        if (tile === TileType.MOUNTAIN || tile === TileType.ICE) {
+        const hasBoots = this.buffs.has(Buffs.EXPLORER_BOOTS);
+        if ((tile === TileType.MOUNTAIN || tile === TileType.ICE ) && !hasBoots) {
             actionsUsed = 2;
         }
 
@@ -333,7 +334,9 @@ export class Tank {
             }
 
             const tile = this.game.board.getTileAt(q, r);
-            if (tile === TileType.MOUNTAIN || tile === TileType.ICE) {
+            const hasBoots = this.buffs.has(Buffs.EXPLORER_BOOTS);
+            console.log(`hasBoots`, hasBoots)
+            if ((tile === TileType.MOUNTAIN || tile === TileType.ICE) && !hasBoots) {
                 if (this.actions < 2) {
                     return {
                         exit: false,
