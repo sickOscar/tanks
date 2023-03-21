@@ -45,18 +45,18 @@ export function computeAnimations(parsedMessage:any) {
             GameState.diffing!.lostLife.push(next);
         }
 
-        // // somebody gained 1 action
-        // if (prev.tank && next.tank && prev.tank.actions < next.tank.actions) {
-        //     initDiffing();
-        //     GameState.diffing!.gainedAction.push(next);
-        // }
-        //
-        // // somebody lost 1 action
-        // if (prev.tank && next.tank && prev.tank.actions > next.tank.actions) {
-        //     initDiffing();
-        //     GameState.diffing!.lostAction.push(next);
-        // }
-        //
+        // somebody gained 1 action
+        if (prev.tank && next.tank && prev.tank.actions < next.tank.actions) {
+            initDiffing();
+            GameState.diffing!.gainedAction.push(next);
+        }
+
+        // somebody lost 1 action
+        if (prev.tank && next.tank && prev.tank.actions > next.tank.actions) {
+            initDiffing();
+            GameState.diffing!.lostAction.push(next);
+        }
+
 
         // somebody gained a life
         if (prev.tank && next.tank && prev.tank.life < next.tank.life) {

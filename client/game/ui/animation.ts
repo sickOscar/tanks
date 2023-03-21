@@ -30,7 +30,15 @@ export function drawAnimations(p5:p5) {
 
 function drawUpAction(p5: p5, animation: Animation) {
     const progress = (Date.now() - animation.startedAt) / animation.duration;
-    // draw red circle on animation.hex
+    const hex = GameState.localGrid?.getHex(animation.hex)!;
+    const circlePostionX = hex.corners[0].x + OFFSET.X - HEX_WIDTH / 2;
+    const circlePostionY = hex.corners[0].y + OFFSET.Y;
+    p5.fill('#00ff00');
+    p5.noStroke();
+    p5.textStyle("bold")
+    p5.textSize(40);
+    p5.textAlign("center");
+    p5.text(`+1 👊`, circlePostionX, circlePostionY - progress * 10);
 }
 function drawDownAction(p5: p5, animation: Animation) {
     const progress = (Date.now() - animation.startedAt) / animation.duration;
