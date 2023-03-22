@@ -1,4 +1,4 @@
-If you wish to look at the code, lease wash your eyes first and after.
+If you wish to look at the code, please wash your eyes before and after.
 
 # Dragons
 
