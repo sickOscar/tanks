@@ -225,8 +225,14 @@ export class Tank {
 
         if (parseInt(res.rows[0].count) % 3 === 0) {
             enemy.actions += 1;
-
             await this.game.addAction({id: 'jury'} as Tank, 'give-action', undefined, enemy)
+            this.game.sendMessageToChat(`
+💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+
+*Il piano astrale ha aiutato ${enemy.name.toUpperCase()}*
+
+💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+`, 'help')
         }
 
         await db.query('COMMIT');
@@ -335,7 +341,6 @@ export class Tank {
 
             const tile = this.game.board.getTileAt(q, r);
             const hasBoots = this.buffs.has(Buffs.EXPLORER_BOOTS);
-            console.log(`hasBoots`, hasBoots)
             if ((tile === TileType.MOUNTAIN || tile === TileType.ICE) && !hasBoots) {
                 if (this.actions < 2) {
                     return {

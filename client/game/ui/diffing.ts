@@ -1,7 +1,14 @@
 import {GameGraphics, GameState, HistoryState} from "../../consts";
-
+import {Stages} from "../../main";
+export enum AnimationType {
+    UP_ACTION = 'UP_ACTION',
+    DOWN_ACTION = 'DOWN_ACTION',
+    UP_LIFE = 'UP_LIFE',
+    DOWN_LIFE = 'DOWN_LIFE',
+    MOVEMENT = 'MOVEMENT',
+}
 const DEFAULT_ANIMATION_DURATION = 1000;
-export function computeAnimations(parsedMessage:any) {
+export function computeAnimations(parsedMessage:any, stage: Stages, scrollCallback: (hex:any) => void) {
 
     const lastMessage = (() => {
         if (GameState.historyState === HistoryState.IDLE) {
@@ -36,8 +43,14 @@ export function computeAnimations(parsedMessage:any) {
             const movedFrom = prevCoord.find((hex: any) => hex.tank && hex.tank.id === tank.id);
             initDiffing();
             GameState.diffing!.lostAction.push(next);
+            GameGraphics.animations.push({
+                type: AnimationType.MOVEMENT,
+                startedAt: Date.now(),
+                duration: DEFAULT_ANIMATION_DURATION,
+                from: movedFrom,
+                to: next
+            });
         }
-
 
         // somebody here loose 1 life
         if (prev.tank && next.tank && prev.tank.life > next.tank.life) {
@@ -57,7 +70,6 @@ export function computeAnimations(parsedMessage:any) {
             GameState.diffing!.lostAction.push(next);
         }
 
-
         // somebody gained a life
         if (prev.tank && next.tank && prev.tank.life < next.tank.life) {
             initDiffing();
@@ -67,11 +79,9 @@ export function computeAnimations(parsedMessage:any) {
     }
 
     if (!GameState.diffing) return;
-    console.log('diffing', GameState.diffing);
 
     // action up
     for (const actionUp of GameState.diffing.gainedAction) {
-        console.log('add Action UP')
         GameGraphics.animations.push({
             type: `UP_ACTION`,
             startedAt: Date.now(),
@@ -82,7 +92,6 @@ export function computeAnimations(parsedMessage:any) {
 
     // action down
     for (const actionDown of GameState.diffing.lostAction) {
-        console.log('add acitron  dionw')
         GameGraphics.animations.push({
             type: `DOWN_ACTION`,
             startedAt: Date.now(),
@@ -109,6 +118,18 @@ export function computeAnimations(parsedMessage:any) {
             duration: DEFAULT_ANIMATION_DURATION,
             hex: lifeDown
         });
+    }
+
+    if (GameState.diffing && stage === Stages.HISTORY) {
+        const diffs = [
+            ...GameState.diffing.lostAction,
+            ...GameState.diffing.gainedAction,
+            ...GameState.diffing.gainedLife,
+            ...GameState.diffing.lostLife
+        ];
+        if (diffs[0]) {
+            scrollCallback(diffs[0]);
+        }
     }
 
 

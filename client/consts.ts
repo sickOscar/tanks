@@ -234,7 +234,9 @@ export type Animation = {
     type: string,
     startedAt: number,
     duration: number,
-    hex: AxialCoordinates
+    hex?: AxialCoordinates,
+    from?: AxialCoordinates,
+    to?: AxialCoordinates,
 }
 
 interface IGameGraphics {

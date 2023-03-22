@@ -25,7 +25,7 @@ import {drawCursor} from './game/ui/mouse';
 import {setOnline} from "./game/ui/html-elements";
 import {execAction, validateAction} from "./game/message-sender";
 import {ActionResult} from "../server/app/action-result";
-import {drawAnimations} from "./game/ui/animation";
+import {clearAnimations, drawAnimations} from "./game/ui/animation";
 import {computeAnimations} from "./game/ui/diffing";
 
 MicroModal.init();
@@ -78,7 +78,7 @@ new p5((p5) => {
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
-        sio.emit('playerevent', 'vote', null, voteSelect.value, (response: any) => {
+        sio.emit('playerevent', 'vote', voteSelect.value, null, (response: any) => {
             if (response.exit === true) {
                 alert('Grazie! La tua leggenda vive...');
             } else {
@@ -199,7 +199,7 @@ new p5((p5) => {
                 super({q, r});
                 this.tank = tank;
 
-                if (this.tank && tank) {
+                if (this.tank && tank && tank.buffs.size) {
                     this.tank.buffs = new Set(tank.buffs);
                 }
 
@@ -376,7 +376,7 @@ new p5((p5) => {
         if (stage === Stages.RUN) return;
         GameState.historyIndex = Math.max(0, GameState.historyIndex - 1);
         const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
-        updateBoard(boardStringified);
+        updateBoard(boardStringified, false);
         highlightHistoryPlayer(GameState.historyIndex);
     });
     historyFwdButton.addEventListener('click', () => {
@@ -425,17 +425,22 @@ new p5((p5) => {
         const parsedMessage = JSON.parse(serverMessage);
         // console.log(`parsedMessage.grid`, JSON.stringify(parsedMessage.grid));
 
+        setupLocalGrid(parsedMessage.grid);
+
         if (animated) {
             try {
-                computeAnimations(parsedMessage)
+                // clearAnimations();
+                computeAnimations(parsedMessage, stage, (hex: any) => {
+                    // scroll to player
+                    // console.log(`hex`, hex)
+                    // boardHolder.scrollTo(hex.corners[0].x - 100, hex.corners[0].i - 100)
+                });
             } catch (error) {
                 // console.log(`error`, error)
                 // do nothing on first run, thes it's always switching states
             }
 
         }
-
-        setupLocalGrid(parsedMessage.grid);
 
         const playersList: Tank[] = [];
 
@@ -518,7 +523,6 @@ new p5((p5) => {
             pollForm.classList.remove('hidden')
         }
 
-
         GameState.heartsLocations = parsedMessage.features.heartsLocations;
         GameState.actionsLocations = parsedMessage.features.actionsLocations;
         GameState.buildings = parsedMessage.features.buildings;
@@ -591,7 +595,7 @@ new p5((p5) => {
                 && GameState.historyState === HistoryState.RUNNING
             ) {
                 // if is the last step, just pause
-                if (GameState.historyIndex === GameState.history.length - 1)  {
+                if (GameState.historyIndex === GameState.history.length - 1) {
                     GameState.historyState = HistoryState.PAUSED;
                 } else {
                     GameState.historyIndex = Math.min(GameState.historyIndex + 1, GameState.history.length - 1);
