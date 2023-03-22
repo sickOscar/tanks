@@ -199,7 +199,7 @@ new p5((p5) => {
                 super({q, r});
                 this.tank = tank;
 
-                if (this.tank && tank && tank.buffs.size) {
+                if (this.tank && tank) {
                     this.tank.buffs = new Set(tank.buffs);
                 }
 
