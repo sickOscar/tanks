@@ -92,7 +92,7 @@ async function init() {
     io.on('connection', async socket => {
 
         const userId = socket.decodedToken.sub;
-        console.log(`new Connection ${userId} - ${socket.user.email}`);
+        console.log(`${new Date().toISOString()} - new Connection ${userId} - ${socket.user.email}`);
 
         const registeredPlayer = await Player.getByEmail(socket.user.email, game.id)
 

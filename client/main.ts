@@ -75,14 +75,14 @@ new p5((p5) => {
     const historyRevButton = document.querySelector('#history-rev') as HTMLInputElement;
     const historyFwdButton = document.querySelector('#history-fwd') as HTMLInputElement;
 
-
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
         sio.emit('playerevent', 'vote', voteSelect.value, null, (response: any) => {
             if (response.exit === true) {
                 alert('Grazie! La tua leggenda vive...');
-            } else {
-                alert(`No. Il tuo spirito ha già influenzato il regno oggi`)
+            }
+            if (!response || response.exit === false) {
+                alert('Il tuo spirito ha già influenzato il regno oggi!'); 
             }
         })
     })
@@ -527,13 +527,20 @@ new p5((p5) => {
         GameState.actionsLocations = parsedMessage.features.actionsLocations;
         GameState.buildings = parsedMessage.features.buildings;
 
-        voteSelect.innerHTML = playersList
+        const playersListElement = playersList
+            // .concat([{life: 1, name: "Testr Alllee"}, {life:1, name:"Paolo Parro"}])
             .filter(p => p.life > 0)
+            .sort((a, b) => {
+                const surA = a.name.split(' ')[1];
+                const surB = b.name.split(' ')[1];
+                return surA.localeCompare(surB);
+            })
             .map(p => `
             <option value=${p.id}>${p.name}</option>
-        `)
-            .join('')
-
+        `);
+        playersListElement.unshift(`<option value="">Seleziona un giocatore</option>`)
+         
+        voteSelect.innerHTML  = playersListElement.join('');
         // debugger;
 
     }

@@ -68,6 +68,4 @@ function drawArrow(p5: p5, animation: Animation, color: string) {
             circlePositionY + (circlePositionY2 - circlePositionY) * progress
         );
     }
-
-
 }
