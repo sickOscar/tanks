@@ -1,3 +1,5 @@
+import {GAME_MAP} from "./const";
+
 const { Client } = require('pg')
 
 let dbUrl = process.env.DATABASE_URL;
@@ -12,6 +14,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const db = new Client(connectionParams)
+
 
 export async function prepareDb() {
 
@@ -29,6 +32,9 @@ export async function prepareDb() {
             )
         `)
     }
+
+    console.log('WAITING 1s')
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     try {
         await db.query('SELECT * FROM players')
@@ -65,6 +71,7 @@ export async function prepareDb() {
     try {
         await db.query(`SELECT * FROM votes`)
     } catch (err) {
+        console.log('Creating votes table');
         db.query(`
             CREATE TABLE votes (
                 voted_at DATE DEFAULT CURRENT_DATE,
@@ -79,11 +86,50 @@ export async function prepareDb() {
     try {
         await db.query(`SELECT * FROM history`)
     } catch (err) {
-        db.query(`
+        console.log('Creating history table');
+        await db.query(`
             CREATE TABLE history (
                 game INTEGER,
                 board JSONB NOT NULL,
                 created_at timestamptz DEFAULT NOW(),
+                CONSTRAINT fk_game FOREIGN KEY (game) REFERENCES games(id)
+            )
+        `)
+    }
+
+    try {
+        await db.query(`SELECT * FROM maps`)
+    } catch (err) {
+        console.log('Creating maps table');
+        await db.query(`
+            CREATE TABLE maps (
+                id SERIAL PRIMARY KEY,
+                game INTEGER,
+                map JSONB NOT NULL,
+                CONSTRAINT fk_game FOREIGN KEY (game) REFERENCES games(id)
+            )
+        `)
+        // await db.query(`
+        //     INSERT INTO maps (
+        //         game,
+        //         map
+        //     ) VALUES (
+        //         1,
+        //         $1
+        //     )
+        // `, [JSON.stringify({map: GAME_MAP})]);
+    }
+
+    try {
+        await db.query(`SELECT * FROM buildings`);
+    } catch (err) {
+        console.log('Creating buildings table');
+
+        await db.query(`
+            CREATE TABLE buildings (
+                id SERIAL PRIMARY KEY,
+                game INTEGER,
+                buildings JSONB NOT NULL,
                 CONSTRAINT fk_game FOREIGN KEY (game) REFERENCES games(id)
             )
         `)

@@ -31,48 +31,79 @@ async function init() {
 
     const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
 
-    schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
-        setTimeout(async () => {
+    if (process.env.LOCAL_ENV) {
+        console.log('LOCAL ENVIRONMENT');
+        setInterval(async () => {
             try {
                 await game.distributeActions();
-                await game.dropHeart();
-                await game.dropAction();
-                game.sendMessageToChat(`
+                // await game.dropHeart();
+                // await game.dropAction();
+
+//             game.sendMessageToChat(`
+// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+//
+// *Eroi! Avete una nuova azione da utilizzare!*
+//
+// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+//  `, 'action fight')
+                io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+
+                // ODDIO UN GENERATOR
+                const generator = game.moveDragons();
+
+                while (generator.next().done === false) {
+                    io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                // add burned hexes arounf dragons
+                await game.addBurnedHexesAroundDragons();
+                io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+
+            } catch (err) {
+                console.log(`err`, err)
+                console.log('Failed to distribute actions')
+            }
+        }, 5000)
+    } else {
+        console.log('PRODUCTION ENVIRONMENT');
+        schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
+            setTimeout(async () => {
+                try {
+                    await game.distributeActions();
+                    await game.dropHeart();
+                    await game.dropAction();
+                    game.sendMessageToChat(`
 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
 
 *E' TEMPO DI AZIONE!*
 
 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
 `, 'action')
-                io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-            } catch (err) {
-                console.log(`err`, err)
-                console.log('Failed to distribute actions')
-            }
+                    io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
 
-        }, Math.round(Math.random()* actionTimeoutDelay))
+                    // ODDIO UN GENERATOR
+                    const generator = game.moveDragons();
 
-    })
+                    while (generator.next().done === false) {
+                        io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+                    // add burned hexes arounf dragons
+                    await game.addBurnedHexesAroundDragons();
+                    io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+                } catch (err) {
+                    console.log(`err`, err)
+                    console.log('Failed to distribute actions')
+                }
+
+            }, Math.round(Math.random()* actionTimeoutDelay))
+
+        })
+    }
 
 
-//     setInterval(async () => {
-//         try {
-//             await game.distributeActions();
-//             await game.dropHeart();
-//             await game.dropAction();
-// //             game.sendMessageToChat(`
-// // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-// //
-// // *Eroi! Avete una nuova azione da utilizzare!*
-// //
-// // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-// //  `, 'action fight')
-//             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//         } catch (err) {
-//             console.log(`err`, err)
-//             console.log('Failed to distribute actions')
-//         }
-//     }, 5000)
 
 
     const app = express()
@@ -85,7 +116,6 @@ async function init() {
     app.use(cors())
     app.use(express.static(path.join(__dirname, '../client/dist')));
     app.use('/', apis)
-
 
     io.use(authIoMiddleware())
 
@@ -215,9 +245,14 @@ async function init() {
 }
 
 db.connect()
-    .then(prepareDb())
-    .then(init)
+    .then( () => {
+        return prepareDb()
+    })
+    .then(() => {
+        return init()
+    })
     .catch((err: Error) => {
+        console.log('OMG AN ERRRO');
         console.error(err)
     })
 

@@ -6,6 +6,8 @@ import {Action} from "./player";
 import {TileType} from "./board";
 import {FailReason} from "./fail-reason";
 import {ActionResult, SuccessMessage} from "./action-result";
+import {Dragon} from "./Dragon";
+import {Loot} from "./loot";
 
 const ICE_ARMOR_CHANCE = 0.2;
 const ORC_SKIN_CHANCE = 0.2;
@@ -14,7 +16,8 @@ export enum Buffs {
     ICE_ARMOR,
     EXPLORER_BOOTS,
     ORC_SKIN,
-    PIRATE
+    PIRATE,
+    TERRIFIED
 }
 
 interface TankParams {
@@ -97,13 +100,14 @@ export class Tank {
         this.actions = 0;
     }
 
-    forceMove(q:number, r:number): void {
+    forceMove(q: number, r: number): void {
         this.game.board.moveTankFromTo(this.position, {q, r});
         this.position.q = q;
         this.position.r = r;
     }
 
     async move(q: number, r: number): Promise<void> {
+        const originalPosition = {q: this.position.q, r: this.position.r};
         this.game.board.moveTankFromTo(this.position, {q, r});
 
         if (this.game.hasHeartOn(q, r)) {
@@ -116,6 +120,14 @@ export class Tank {
             this.game.clearAction(q, r)
         }
 
+        console.log(`this.game.loot`, this.game.loot)
+        const lootHere = this.game.loot.some(loot => {
+            return loot.position.q === q && loot.position.r === r;
+        })
+        if (lootHere) {
+            console.log('loot here');
+        }
+
         this.position.q = q;
         this.position.r = r;
 
@@ -124,50 +136,93 @@ export class Tank {
         let actionsUsed = 1;
         const tile = this.game.board.getTileAt(q, r);
         const hasBoots = this.buffs.has(Buffs.EXPLORER_BOOTS);
-        if ((tile === TileType.MOUNTAIN || tile === TileType.ICE ) && !hasBoots) {
+        if ((tile === TileType.MOUNTAIN || tile === TileType.ICE) && !hasBoots) {
             actionsUsed = 2;
+        }
+
+        const isTerrified = this.game.dragons.some(dragon => {
+            return this.game.board.isInRange(dragon.position, originalPosition, 3);
+        })
+        if (isTerrified) {
+            actionsUsed = actionsUsed + 1;
         }
 
         this.useAction(actionsUsed);
     }
 
     async shoot(q: number, r: number): Promise<void> {
-        const enemy: Tank = this.game.board.getAt(q, r) as Tank;
+        let enemy: Tank | Dragon;
+        enemy = this.game.board.getAt(q, r) as Tank;
+
+        if (!enemy) {
+            // get dragon
+            enemy = this.game.board.getDragonAt(q, r) as Dragon;
+        }
+
         enemy.life = Math.max(0, enemy.life - 1);
 
         if (enemy.life === 0) {
-            console.log(`${enemy.id} was killed by ${this.id}`);
-            this.actions += enemy.actions;
 
-            // if he was on a building, find an adjacent square and move him there
-            const buildingInTheSpot = this.game.buildings.find(b => b.position.q === q && b.position.r === r);
+            if (enemy instanceof Dragon) {
+                console.log(`dragon was killed by ${this.id}`);
+                // create loot
+                this.game.addLoot(enemy.position);
+                this.game.sendMessageToChat(`
+⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
 
-            if (buildingInTheSpot) {
-                // make a spiral traversal from the spot and take the first 6 elements
-                // take a random one of them
-                // keep on doing this until you find one free
-                // mve the dead player there
-                const randomHexToMoveInto = this.game.board.getRandomAdjacent(q, r)
-                console.log(`randomHexToMoveInto`, randomHexToMoveInto)
-                if (randomHexToMoveInto) {
-                    console.log(`moving ${enemy.id} to ${randomHexToMoveInto.q}, ${randomHexToMoveInto.r}`)
-                    // enemy.position = {q: randomHexToMoveInto.q, r: randomHexToMoveInto.r};
-                    enemy.forceMove(randomHexToMoveInto.q, randomHexToMoveInto.r);
-                }
+*${this.name.toUpperCase()}* HA APPENA UCCISO UN DRAGO!
+Un grande TESORO è stato lasciato sul campo di battaglia!
+
+⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
+            `, 'paladin dragon')
+                // remove dragon from the game
+                this.game.killDragon(enemy.id);
             }
 
-            await enemy.die();
-            this.game.sendMessageToChat(`
+            if (enemy instanceof Tank) {
+                console.log(`${enemy.id} was killed by ${this.id}`);
+                this.actions += enemy.actions;
+
+                // if he was on a building, find an adjacent square and move him there
+                const buildingInTheSpot = this.game.buildings.find(b => b.position.q === q && b.position.r === r);
+
+                if (buildingInTheSpot) {
+                    // make a spiral traversal from the spot and take the first 6 elements
+                    // take a random one of them
+                    // keep on doing this until you find one free
+                    // mve the dead player there
+                    const randomHexToMoveInto = this.game.board.getRandomAdjacent(q, r)
+                    console.log(`randomHexToMoveInto`, randomHexToMoveInto)
+                    if (randomHexToMoveInto) {
+                        console.log(`moving ${enemy.id} to ${randomHexToMoveInto.q}, ${randomHexToMoveInto.r}`)
+                        // enemy.position = {q: randomHexToMoveInto.q, r: randomHexToMoveInto.r};
+                        enemy.forceMove(randomHexToMoveInto.q, randomHexToMoveInto.r);
+                    }
+                }
+                await enemy.die();
+                this.game.sendMessageToChat(`
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
 
 *${enemy.name.toUpperCase()}* è stato ucciso da *${this.name.toUpperCase()}* (${new Date().toLocaleString()})
 
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
             `, 'shoot')
+
+            }
+
         }
 
         await this.game.addAction(this, 'shoot', {q, r}, enemy)
-        this.useAction();
+
+        let actionsToUse = 2;
+        // che if dragon nearby
+        const isTerrified = this.game.dragons.some(dragon => {
+            return this.game.board.isInRange(dragon.position, this.position, 3);
+        })
+        if (isTerrified) {
+            actionsToUse = 2;
+        }
+        this.useAction(actionsToUse);
     }
 
     async failShoot(q: number, r: number): Promise<void> {
@@ -339,10 +394,17 @@ export class Tank {
                 }
             }
 
+
+            // check if a dragon is close
+            const isTerrified = this.game.dragons.some(dragon => {
+                return this.game.board.isInRange(dragon.position, this.position, 3);
+            })
+
+            // MOVEMENT TO MOUNTAIN OR ICE
             const tile = this.game.board.getTileAt(q, r);
             const hasBoots = this.buffs.has(Buffs.EXPLORER_BOOTS);
             if ((tile === TileType.MOUNTAIN || tile === TileType.ICE) && !hasBoots) {
-                if (this.actions < 2) {
+                if (this.actions < 2 || (isTerrified && this.actions < 3)) {
                     return {
                         exit: false,
                         failReason: FailReason.NOT_ENOUGH_ACTIONS
@@ -350,11 +412,18 @@ export class Tank {
                 }
             }
 
+            // TELEPORTATION
             // check if tank is on a rune of teleportation
             // if it is and the destination is another run, teleport
             const runeHere = this.game.buildings.find(building => building.type === 'TELEPORT' && building.position.q === this.position.q && building.position.r === this.position.r);
             const runeThere = this.game.buildings.find(building => building.type === 'TELEPORT' && building.position.q === q && building.position.r === r);
             if (runeHere && runeThere) {
+                if (isTerrified && this.actions < 2) {
+                    return {
+                        exit: false,
+                        failReason: FailReason.NOT_ENOUGH_ACTIONS
+                    }
+                }
                 !dryRun && await this.move(q, r);
                 return {
                     exit: true,
@@ -362,7 +431,14 @@ export class Tank {
                 }
             }
 
+            // NORMAL MOVEMENT
             if (this.game.board.isInRange(this.position, boardCell, 1)) {
+                if (isTerrified && this.actions < 2) {
+                    return {
+                        exit: false,
+                        failReason: FailReason.NOT_ENOUGH_ACTIONS
+                    }
+                }
                 !dryRun && await this.move(q, r);
                 return {
                     exit: true,
@@ -374,7 +450,12 @@ export class Tank {
         }
 
         if (action.action === PlayerActions.SHOOT) {
-            if (!this.game.board.isPositionOccupied(q, r) || !this.game.board.isPositionValid(q, r)) {
+            const hasEnemyPlayerOn = !this.game.board.isPositionOccupied(q, r) || !this.game.board.isPositionValid(q, r);
+            const hasDragonOn = this.game.board.isDragonThere(q, r);
+
+            console.log(`hasEnemyPlayerOn, hasDragonOn`, hasEnemyPlayerOn, hasDragonOn)
+            if (!hasEnemyPlayerOn && !hasDragonOn) {
+                console.log('invalid destination', q, r)
                 return {
                     exit: false,
                     failReason: FailReason.INVALID_DESTINATION
@@ -389,10 +470,22 @@ export class Tank {
             }
 
             if (this.game.board.isInRange(this.position, boardCell, this.range, true)) {
-                const enemy = this.game.board.getAt(q, r) as Tank;
-                if (enemy.life > 0) {
 
-                    let successMessage:SuccessMessage | undefined = undefined;
+                const enemy = this.game.board.getAt(q, r) as Tank;
+
+                if (enemy && enemy.life > 0) {
+
+                    let successMessage: SuccessMessage | undefined = undefined;
+
+                    const isTerrified = this.game.dragons.some(dragon => {
+                        return this.game.board.isInRange(dragon.position, this.position, 3);
+                    })
+                    if (isTerrified && this.actions < 2) {
+                        return {
+                            exit: false,
+                            failReason: FailReason.NOT_ENOUGH_ACTIONS
+                        }
+                    }
 
                     // PIRATE happens in any case, even with armor
                     if (this.buffs.has(Buffs.PIRATE)) {
@@ -450,6 +543,32 @@ export class Tank {
                         successMessage
                     }
                 }
+
+                const dragonToShoot = this.game.board.getDragonAt(q, r);
+                console.log(`dragonToShoot`, dragonToShoot?.position)
+
+                if (dragonToShoot && dragonToShoot.life > 0) {
+                    let actionsNeeded = 1;
+                    const hasDragonNearby = this.game.dragons.some(dragon => {
+                        return this.game.board.isInRange(dragon.position, this.position, 3);
+                    });
+                    if (hasDragonNearby) {
+                        actionsNeeded = actionsNeeded + 2;
+                    }
+                    if (this.actions < actionsNeeded) {
+                        return {
+                            exit: false,
+                            failReason: FailReason.NOT_ENOUGH_ACTIONS
+                        }
+                    }
+                    !dryRun && await this.shoot(q, r);
+                    action.enemy = this.game.board.getAt(q, r);
+                    return {
+                        exit: true,
+                        action
+                    }
+                }
+
             }
         }
 

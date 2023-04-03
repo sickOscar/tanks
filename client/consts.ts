@@ -118,7 +118,7 @@ Mentre sei qui, la tua gittata 👁 aumenta di 1`
     },
     {name: "❄️ Ghiaccio", description: "Muoverti qui costa 2 👊"},
     {
-        name: "🌋 Lava",
+        name: "🌋 La desolazione del drago",
         description: `Muoverti qui costa 1 👊.
 Stare qui quando le azioni vengono 
 distribuite costa 2 💓`
@@ -129,7 +129,8 @@ export enum Buffs {
     ICE_ARMOR,
     EXPLORER_BOOTS,
     ORC_SKIN,
-    PIRATE
+    PIRATE,
+    TERRIFIED
 }
 
 export const BuffsDescriptions = {
@@ -152,6 +153,11 @@ export const BuffsDescriptions = {
         name: "Pirata",
         icon: "🏴‍☠️",
         description: "Ogni volta che attacchi, 20% di possibilità di causare -1 👊 al tuo avversario"
+    },
+    [Buffs.TERRIFIED]: {
+        name: "Terrorizzato",
+        icon: "😱",
+        description: "Muoversi e attaccare costa 1 👊 in più"
     }
 }
 
@@ -188,6 +194,8 @@ interface IGameState {
     heartsLocations: [q: number, r: number][],
     actionsLocations: [q: number, r: number][],
     buildings: { type: string, position: AxialCoordinates }[],
+    dragons: { position: AxialCoordinates, life: number}[],
+    loot: { position: AxialCoordinates, type: string }[],
     WIDTH: number,
     HEIGHT: number,
     localGrid: Grid<TanksHex> | null,
@@ -211,6 +219,8 @@ export const GameState: IGameState = {
     heartsLocations: [],
     actionsLocations: [],
     buildings: [],
+    dragons: [],
+    loot: [],
     WIDTH: 200,
     HEIGHT: 200,
     localGrid: null,
@@ -248,6 +258,8 @@ interface IGameGraphics {
     orcsCampImage: any,
     teleportImage: any,
     piratesImage: any,
+    dragonImage: any,
+    lootImage: any,
     animations: Animation[]
 }
 
@@ -260,6 +272,8 @@ export const GameGraphics: IGameGraphics = {
     orcsCampImage: null,
     teleportImage: null,
     piratesImage: null,
+    dragonImage: null,
+    lootImage:null,
     animations: []
 }
 

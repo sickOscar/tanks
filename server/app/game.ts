@@ -3,7 +3,10 @@ import db from "../db";
 import {Board, TanksHex, TileType} from "./board";
 import {Buffs, Tank} from "./Tank";
 import axios from "axios";
-import {AxialCoordinates} from "honeycomb-grid";
+import {AxialCoordinates, hexToOffset} from "honeycomb-grid";
+import {GAME_MAP} from "../const";
+import {Dragon} from "./Dragon";
+import {Loot} from "./loot";
 
 interface Building {
     type: string;
@@ -15,6 +18,8 @@ interface GameState {
     heartsLocations: AxialCoordinates[];
     actionsLocations: AxialCoordinates[];
     buildings: Building[];
+    dragons: Dragon[];
+    loot: Loot[];
 }
 
 const DEFAULT_BUILDINGS: Building[] = [
@@ -72,7 +77,9 @@ export class Game {
         board: new Board(this),
         heartsLocations: [],
         actionsLocations: [],
-        buildings: DEFAULT_BUILDINGS
+        buildings: DEFAULT_BUILDINGS,
+        dragons: [],
+        loot: []
     };
 
     addActivePlayer(player: Player) {
@@ -85,24 +92,90 @@ export class Game {
         this.activePlayers = this.activePlayers.filter(p => p.id !== player.id);
     }
 
+    * moveDragons() {
+        // add actions to dragons
+        for (let dragon of this.state.dragons) {
+            dragon.actions = 5;
+        }
+
+        const doMovement = (dragon: Dragon) => {
+            const {q, r} = dragon.position;
+            const randomAdj = this.board.getRandomAdjacent(q, r);
+            if (randomAdj) {
+                dragon.position = randomAdj;
+                dragon.actions = dragon.actions - 1
+            }
+        }
+
+        if (this.state.dragons.length > 0) {
+
+            while (this.state.dragons[0].actions > 0) {
+                for (let dragon of this.state.dragons) {
+                    doMovement(dragon);
+                }
+                yield;
+            }
+        }
+
+    }
+
+    async addBurnedHexesAroundDragons() {
+        for (let i = 0; i < this.state.dragons.length; i++) {
+            const dragon = this.state.dragons[i];
+            const randomAdjacent = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
+            await this.board.burnAt(randomAdjacent.q, randomAdjacent.r)
+                .catch(err => console.log(err))
+        }
+    }
+
     async loadActive() {
         console.log(`Loading game from database...`)
-        let res = await db.query(`SELECT * from games WHERE active = true`)
+        let res = await db.query(`SELECT * from games WHERE active = true`);
 
         let firstTime = false;
+        let currentMap = GAME_MAP;
 
+        // if it's the firt time, create a new game
         if (res.rows.length === 0) {
             console.log(`No active game found, creating a new one...`)
             const emptyBoard = new Board(this).serialize();
             await db.query(`INSERT INTO games (active, board) VALUES (true, $1)`, [emptyBoard])
             res = await db.query(`SELECT * from games WHERE active = true`)
+            // insert map into db (take GAME MAP)
+            await db.query(`INSERT INTO maps (map, game) VALUES ($1, $2)`, [{
+                map: currentMap
+            }, res.rows[0].id]);
+            // so che ha zero senso andarsela a riprendere ma dovevo vedere che funzionasse
+            let currentMapRes = await db.query(`SELECT * from maps WHERE game = $1`, [res.rows[0].id]);
+            currentMap = currentMapRes.rows[0].map.map;
             firstTime = true;
         } else {
-            console.log(`Active game found, loading...`)
+            // try to load the existing game and the existing map
+            console.log(`Active game found, loading map...`)
+
+            const currentMapRes = await db.query(`SELECT * from maps WHERE game = $1`, [res.rows[0].id]);
+
+            if (currentMapRes.rows.length === 0) {
+                // create the map
+                console.log(`No map found, creating a new one...`);
+
+
+                await db.query(`INSERT INTO maps (map, game) VALUES ($1, $2)`, [
+                    JSON.stringify({
+                        map: currentMap
+                    }),
+                    res.rows[0].id || 1
+                ]);
+
+            } else {
+                // load the map
+                console.log(`Map found, loading...`);
+                currentMap = currentMapRes.rows[0].map.map;
+            }
         }
 
         const dbBoard = res.rows[0].board;
-        this.state.board.load(dbBoard.grid);
+        this.state.board.load(dbBoard.grid, currentMap);
 
         if (dbBoard.features.heartsLocations) {
             this.state.heartsLocations = dbBoard.features.heartsLocations
@@ -118,48 +191,66 @@ export class Game {
 
             // SYNC BUILDINGS
 
-            console.log(`dbBoard.features.buildings`, dbBoard.features.buildings);
-            // controlla che i building siano uguali a quelli di default
+            const dbBuildingsRes = await db.query(`SELECT * from buildings WHERE game = $1`, [res.rows[0].id]);
 
-            if (dbBoard.features.buildings.length !== DEFAULT_BUILDINGS.length) {
-
-                const removedBuildings = dbBoard.features.buildings
-                    .filter((building: Building) => {
-                        return !DEFAULT_BUILDINGS.find(dbBuilding => dbBuilding.type === building.type)
-                    });
-
-                const addedBuildings = DEFAULT_BUILDINGS
-                    .filter(building => {
-                        return !dbBoard.features.buildings.find((dbBuilding: Building) => dbBuilding.type === building.type)
-                    });
-
-                console.log(`newBuildings`, addedBuildings)
-                console.log(`removedBuildings`, removedBuildings)
-
-                if (removedBuildings.length > 0) {
-                    this.state.buildings = dbBoard.features.buildings
-                        .filter((building: Building) => {
-                            return !removedBuildings.find((dbBuilding: Building) => dbBuilding.type === building.type)
-                        });
-                }
-
-                if (addedBuildings.length > 0) {
-                    this.state.buildings = [...dbBoard.features.buildings, ...addedBuildings];
-                }
-
+            // first time, create row equals to DEFAULT_BUILDINGS
+            if (dbBuildingsRes.rows.length === 0) {
+                console.log(`No buildings found, creating new ones...`)
+                await db.query(`INSERT INTO buildings (game, buildings) VALUES ($1, $2)`, [
+                    res.rows[0].id,
+                    JSON.stringify({
+                        buildings: DEFAULT_BUILDINGS
+                    })
+                ]);
+                this.state.buildings = JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
             } else {
-
-                this.state.buildings = dbBoard.features.buildings;
+                // load buildings from database
+                console.log(`Buildings found, loading...`)
+                this.state.buildings = dbBuildingsRes.rows[0].buildings.buildings;
             }
 
             console.log(`this.state.buildings`, this.state.buildings)
 
         }
 
+        if (dbBoard.features.dragons && dbBoard.features.dragons.length > 0) {
+            // load dragons from database
+            console.log(`Dragons found, loading...`)
+            this.state.dragons = dbBoard.features.dragons.map((dragon: any) => {
+                return new Dragon(this, dragon);
+            })
+            firstTime = true;
+        } else {
+            // create dragons
+            console.log(`No dragons found, creating new ones...`)
+            const dragons = [];
+            const dragonCoords = [
+                {q: -1, r: 3},
+                {q: 13, r: 11},
+                {q: 2, r: 18},
+            ]
+            for (let i = 0; i < 3; i++) {
+                dragons.push(await Dragon.create(this, dragonCoords[i]));
+            }
+            this.state.dragons = dragons;
+            firstTime = true;
+        }
+
+        if (dbBoard.features.loot) {
+            // load loot from database
+            console.log(`Loot found, loading...`)
+            const loots = dbBoard.features.loot.map((loot: any) => {
+                return Loot.create(this, loot);
+            })
+            this.state.loot = loots;
+        } else {
+            dbBoard.features.loot = [];
+            firstTime = true;
+        }
+
         this.id = res.rows[0].id;
 
         if (firstTime) {
-
             //  to save the first board state
             await this.board.updateOnDb();
         }
@@ -304,12 +395,14 @@ export class Game {
         }
     }
 
-    async addAction(actor: Tank, action: string, dest?: AxialCoordinates, enemy?: Tank): Promise<void> {
+    async addAction(actor: Tank, action: string, dest?: AxialCoordinates, enemy?: Tank | Dragon): Promise<void> {
         const destination = dest ? [dest.q, dest.r] : null;
-        const en = enemy ? enemy.id : null;
-        await db.query(`
+        if (enemy instanceof Tank) {
+            const en = enemy ? enemy.id : null;
+            await db.query(`
             INSERT INTO events (game, actor, action, destination, enemy) VALUES ($1, $2, $3, $4, $5)
         `, [this.id, actor.id, action, JSON.stringify(destination), en])
+        }
     }
 
     async getActions(): Promise<any> {
@@ -443,8 +536,25 @@ export class Game {
         return this.state.buildings;
     }
 
+    get dragons(): Dragon[] {
+        return this.state.dragons;
+    }
+
     set board(board: Board) {
         this.state.board = board;
+    }
+
+    get loot(): Loot[] {
+        return this.state.loot;
+    }
+
+    killDragon(id: string) {
+       this.state.dragons = this.state.dragons.filter(d => d.id !== id);
+    }
+
+    addLoot(position: AxialCoordinates) {
+       const loot = Loot.create(this, position);
+       this.loot.push(loot)
     }
 }
 

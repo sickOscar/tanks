@@ -3,6 +3,7 @@ import * as Honeycomb from 'honeycomb-grid';
 import {TanksHex} from "../server/app/board";
 import {Tank} from "./models/Tank";
 import {
+    Buffs,
     BuffsDescriptions,
     GameGraphics,
     GameState,
@@ -25,7 +26,7 @@ import {drawCursor} from './game/ui/mouse';
 import {setOnline} from "./game/ui/html-elements";
 import {execAction, validateAction} from "./game/message-sender";
 import {ActionResult} from "../server/app/action-result";
-import {clearAnimations, drawAnimations} from "./game/ui/animation";
+import {drawAnimations} from "./game/ui/animation";
 import {computeAnimations} from "./game/ui/diffing";
 
 MicroModal.init();
@@ -216,6 +217,7 @@ new p5((p5) => {
         const c = await getJson('/config');
         configFetched = true;
         setupLocalGrid(c.grid);
+        console.log(`c`, c);
 
         GameState.WIDTH = window.innerWidth - UI_WIDTH;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
@@ -456,6 +458,20 @@ new p5((p5) => {
                     }
                 }
 
+                if (hex.tank) {
+                    let dragonInRange = false;
+                    if (parsedMessage.features.dragons)  {
+                        dragonInRange = parsedMessage.features.dragons.some((dragon: any) => {
+                            const dist = GameState.localGrid!.distance(hex.tank!.position, dragon.position);
+                            return dist <= 3;
+                        })
+                    }
+                    if (dragonInRange) {
+                        hex.tank.buffs.add(Buffs.TERRIFIED);
+                    }
+
+                }
+
                 if (hex.tank && hex.tank.id === GameState.playerId) {
                     GameState.player = hex.tank;
                 }
@@ -526,6 +542,8 @@ new p5((p5) => {
         GameState.heartsLocations = parsedMessage.features.heartsLocations;
         GameState.actionsLocations = parsedMessage.features.actionsLocations;
         GameState.buildings = parsedMessage.features.buildings;
+        GameState.dragons = parsedMessage.features.dragons;
+        GameState.loot = parsedMessage.features.loot;
 
         const playersListElement = playersList
             // .concat([{life: 1, name: "Testr Alllee"}, {life:1, name:"Paolo Parro"}])
@@ -579,6 +597,8 @@ new p5((p5) => {
         GameGraphics.orcsCampImage = p5.loadImage('./assets/orc_camp.png');
         GameGraphics.teleportImage = p5.loadImage('./assets/teleport.png');
         GameGraphics.piratesImage = p5.loadImage('./assets/pirates.png');
+        GameGraphics.dragonImage = p5.loadImage('./assets/dragon.png');
+        GameGraphics.lootImage = p5.loadImage('./assets/treasure.png');
     }
 
     p5.setup = function () {
@@ -736,7 +756,16 @@ new p5((p5) => {
                             const actionTemplate = document.getElementById(`${GameState.currentState}-content`) as HTMLTemplateElement;
                             const clone = actionTemplate.content.cloneNode(true) as HTMLElement;
                             (clone.querySelector('.you') as HTMLImageElement).src = GameState.player?.picture as string;
-                            (clone.querySelector('.target') as HTMLImageElement).src = hex.tank!.picture;
+
+                            let pic = hex.tank?.picture;
+                            const hasDragonThere = GameState.dragons.some(dragon => {
+                                return dragon.position.q === hex.q && hex.r === dragon.position.r;
+                            });
+                            if (hasDragonThere) {
+                                pic = `assets/dragon.png`;
+                            }
+
+                            (clone.querySelector('.target') as HTMLImageElement).src = pic as string;
 
                             modal.querySelector('.modal__content')!.append(clone);
                             const attackResultTitle = modal.querySelector('.attack-result h3') as HTMLHeadingElement;

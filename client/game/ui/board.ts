@@ -54,11 +54,30 @@ function drawCell(p5: p5, hex: TanksHex) {
             }
         }
 
+        if (GameState.dragons) {
+            const hasDragon = GameState.dragons.find(dragon => {
+                return dragon.position.q === hex.q && dragon.position.r === hex.r
+            })
+            if (hasDragon) {
+                drawDragon(p5, hex);
+            }
+        }
+
+
+        if (GameState.loot) {
+            const hasLoot = GameState.loot.find(loot => {
+                return loot.position.q === hex.q && loot.position.r === hex.r
+            })
+            if (hasLoot) {
+                drawLoot(p5, hex);
+            }
+        }
+
 
     } else {
         let hasBuilding = undefined;
+        let hasDragon = undefined;
         if (GameState.buildings) {
-
             hasBuilding = GameState.buildings.find(building => {
                 return building.position.q === hex.q && building.position.r === hex.r
             })
@@ -66,7 +85,15 @@ function drawCell(p5: p5, hex: TanksHex) {
                 drawBuilding(p5, hex, hasBuilding);
             }
         }
-        drawPlayer(p5, hex, !!hasBuilding);
+        if (GameState.dragons) {
+            hasDragon = GameState.dragons.find(dragon => {
+                return dragon.position.q === hex.q && dragon.position.r === hex.r
+            })
+            if (hasDragon) {
+                drawDragon(p5, hex);
+            }
+        }
+        drawPlayer(p5, hex, !!hasBuilding || !!hasDragon);
     }
 
     drawCoordinates(p5, hex);
@@ -91,6 +118,14 @@ function drawEmptyCell(p5: p5, hex: TanksHex) {
     )
 
     const highlightColor = 'rgba(255, 255, 255, 0.3)'
+
+    const dragonNearby = GameState.dragons.some(dragon => {
+        return isInRange(dragon.position, hex, 3)
+    })
+    if (dragonNearby) {
+        p5.fill(`rgba(0, 0, 0, 0.3)`);
+    }
+
 
     if (GameState.localGrid!.pointToHex({x: p5.mouseX - OFFSET.X, y: p5.mouseY - OFFSET.Y}) === hex) {
         p5.fill(highlightColor);
@@ -153,6 +188,26 @@ function drawCoordinates(p5: p5, hex: TanksHex) {
         hex.corners[0].x - (HEX_WIDTH / 2) + OFFSET.X,
         hex.corners[0].y + OFFSET.Y
     )
+}
+
+function drawDragon(p5: p5, hex: TanksHex) {
+    p5.image(
+        GameGraphics.dragonImage,
+        hex.corners[0].x - HEX_WIDTH + OFFSET.X,
+        hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
+        HEX_WIDTH,
+        HEX_HEIGHT + 12
+    );
+}
+
+function drawLoot(p5: p5, hex: TanksHex) {
+    p5.image(
+        GameGraphics.lootImage,
+        hex.corners[0].x - HEX_WIDTH + OFFSET.X,
+        hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
+        HEX_WIDTH,
+        HEX_HEIGHT + 12
+    );
 }
 
 function drawBuilding(p5: p5, hex: TanksHex, building: any) {

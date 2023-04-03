@@ -4,6 +4,8 @@ import db from "../db";
 
 import {AxialCoordinates, defineHex, Grid, rectangle, spiral} from "honeycomb-grid";
 import {Game} from "./game";
+import {Dragon} from "./Dragon";
+import {Loot} from "./loot";
 
 export enum TileType {
     PLAINS = 0,
@@ -75,7 +77,7 @@ export class Board {
         this.board.forEach(cb);
     }
 
-    load(dbGrid: any) {
+    load(dbGrid: any, map: number[][]) {
         const coords = dbGrid.coordinates.map(({q, r, tank, tile}: any) => {
             return {
                 q,
@@ -93,8 +95,8 @@ export class Board {
         let x = 0;
         let y = 0;
         traversedGrid.forEach((hex: TanksHex) => {
-            if (hex.tile !== GAME_MAP[y][x]) {
-                hex.tile = GAME_MAP[y][x];
+            if (hex.tile !== map[y][x]) {
+                hex.tile = map[y][x];
             }
             x++;
             if (x >= COLS) {
@@ -111,6 +113,18 @@ export class Board {
 
     isPositionValid(q: number, r: number): boolean {
         return !!this.board.getHex({q, r});
+    }
+
+    isDragonThere(q: number, r: number): boolean {
+        return this.game.dragons.some(dragon => {
+            return dragon.position.q === q && dragon.position.r === r;
+        })
+    }
+
+    getDragonAt(q: number, r: number): Dragon | undefined {
+        return this.game.dragons.find(dragon => {
+            return dragon.position.q === q && dragon.position.r === r;
+        })
     }
 
     getRandomAdjacent(q: number, r: number): AxialCoordinates {
@@ -217,6 +231,30 @@ export class Board {
 
     }
 
+    async burnAt(q: number, r: number): Promise<void> {
+        const hex = this.board.getHex({q, r});
+        if (hex && hex.tile !== TileType.WATER) {
+            hex.tile = TileType.LAVA;
+        }
+
+        // TODO SAVE TO DB
+        console.log(`burned Offset`, hex?.row, hex?.col)
+        await db.query('BEGIN');
+        
+        const mapRes = await db.query(`SELECT * FROM maps WHERE game = $1`, [this.game.id]);
+        const map = mapRes.rows[0].map.map;
+        console.log(`tile at ${q} ${r}`, map[hex!.row][hex!.col])
+
+        map[hex!.row][hex!.col] = TileType.LAVA;
+        const newMapCol = {
+            map
+        }
+
+        await db.query(`UPDATE maps SET map = $1 WHERE game = $2`, [newMapCol, this.game.id]);
+
+        await db.query('COMMIT');
+    }
+
     clearCell(q: number, r: number): void {
         this.board.getHex({q, r})!.tank = null;
     }
@@ -234,6 +272,7 @@ export class Board {
 
     serialize(): string {
         const clone = this.board.toJSON();
+        // console.log('dragons to serialize', this.game.dragons)
         return JSON.stringify({
             features: {
                 heartsLocations: this.game.heartsLocations.map((heartPos: AxialCoordinates) => {
@@ -242,7 +281,13 @@ export class Board {
                 actionsLocations: this.game.actionsLocations.map((actionPos: AxialCoordinates) => {
                     return [actionPos.q, actionPos.r]
                 }),
-                buildings: this.game.buildings
+                buildings: this.game.buildings,
+                dragons: this.game.dragons.map((d:Dragon) => {
+                    return d.serialize()
+                }),
+                loot: this.game.loot.map((l:Loot) => {
+                    return l.serialize()
+                })
             },
             grid: {
                 ...clone,
@@ -255,6 +300,7 @@ export class Board {
                             ...coord,
                             tank
                         }
+
                     }
                     return coord;
                 })
