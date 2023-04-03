@@ -520,13 +520,16 @@ new p5((p5) => {
             }
 
             if (GameState.player.actions < 3) {
-                Array.from(actionButtons)
-                    .filter(el => {
-                        return el.getAttribute('data-action') === States.UPGRADE || el.getAttribute('data-action') === States.HEAL
-                    })
-                    .forEach(el => {
-                        el.setAttribute(`disabled`, 'true');
-                    });
+                // Array.from(actionButtons)
+                //     .filter(el => {
+                //         return (
+                //             el.getAttribute('data-action') === States.UPGRADE
+                //             || el.getAttribute('data-action') === States.HEAL
+                //         )
+                //     })
+                //     .forEach(el => {
+                //         el.setAttribute(`disabled`, 'true');
+                //     });
             }
 
 

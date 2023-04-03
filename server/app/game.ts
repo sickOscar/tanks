@@ -3,10 +3,11 @@ import db from "../db";
 import {Board, TanksHex, TileType} from "./board";
 import {Buffs, Tank} from "./Tank";
 import axios from "axios";
-import {AxialCoordinates, hexToOffset} from "honeycomb-grid";
+import {AxialCoordinates} from "honeycomb-grid";
 import {GAME_MAP} from "../const";
 import {Dragon} from "./Dragon";
 import {Loot} from "./loot";
+import {LootType} from "./lootType";
 
 interface Building {
     type: string;
@@ -95,7 +96,7 @@ export class Game {
     * moveDragons() {
         // add actions to dragons
         for (let dragon of this.state.dragons) {
-            dragon.actions = 5;
+            dragon.actions = 10;
         }
 
         const doMovement = (dragon: Dragon) => {
@@ -122,8 +123,13 @@ export class Game {
     async addBurnedHexesAroundDragons() {
         for (let i = 0; i < this.state.dragons.length; i++) {
             const dragon = this.state.dragons[i];
-            const randomAdjacent = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
-            await this.board.burnAt(randomAdjacent.q, randomAdjacent.r)
+
+            const randomAdjacent1 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
+            await this.board.burnAt(randomAdjacent1.q, randomAdjacent1.r)
+                .catch(err => console.log(err))
+
+            const randomAdjacent2 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
+            await this.board.burnAt(randomAdjacent2.q, randomAdjacent2.r)
                 .catch(err => console.log(err))
         }
         await this.board.updateOnDb();
@@ -235,15 +241,22 @@ export class Game {
         }
 
         if (dbBoard.features.loot) {
+
+            if (dbBoard.features.loot.length === 0) {
+                console.log('No loot found, creating new ones...');
+                dbBoard.features.loot = [
+                    Loot.create(this, {q: 0, r: 0}, LootType.RING, false, false),
+                    Loot.create(this, {q: 0, r: 0}, LootType.BRACELET, false, false),
+                    Loot.create(this, {q: 0, r: 0}, LootType.CROWN, false, false),
+                ];
+                firstTime = true;
+            }
             // load loot from database
             console.log(`Loot found, loading...`)
             const loots = dbBoard.features.loot.map((loot: any) => {
-                return Loot.create(this, loot);
+                return Loot.create(this, loot.position, loot.type, loot.isActive, loot.given);
             })
             this.state.loot = loots;
-        } else {
-            dbBoard.features.loot = [];
-            firstTime = true;
         }
 
         this.id = res.rows[0].id;
@@ -551,8 +564,15 @@ export class Game {
     }
 
     addLoot(position: AxialCoordinates) {
-       const loot = Loot.create(this, position);
-       this.loot.push(loot)
+
+        for (let i = 0; i < 3; i++) {
+            if (!this.loot[i].isActive && !this.loot[i].given) {
+                this.loot[i].isActive = true;
+                this.loot[i].position = position;
+                return;
+            }
+        }
+
     }
 }
 

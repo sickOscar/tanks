@@ -66,7 +66,7 @@ function drawCell(p5: p5, hex: TanksHex) {
 
         if (GameState.loot) {
             const hasLoot = GameState.loot.find(loot => {
-                return loot.position.q === hex.q && loot.position.r === hex.r
+                return loot.position.q === hex.q && loot.position.r === hex.r && loot.isActive
             })
             if (hasLoot) {
                 drawLoot(p5, hex);

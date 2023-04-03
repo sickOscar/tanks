@@ -7,7 +7,7 @@ import {TileType} from "./board";
 import {FailReason} from "./fail-reason";
 import {ActionResult, SuccessMessage} from "./action-result";
 import {Dragon} from "./Dragon";
-import {Loot} from "./loot";
+import {LootType} from "./lootType";
 
 const ICE_ARMOR_CHANCE = 0.2;
 const ORC_SKIN_CHANCE = 0.2;
@@ -17,7 +17,10 @@ export enum Buffs {
     EXPLORER_BOOTS,
     ORC_SKIN,
     PIRATE,
-    TERRIFIED
+    TERRIFIED,
+    RING,
+    BRACELET,
+    CROWN
 }
 
 interface TankParams {
@@ -120,12 +123,24 @@ export class Tank {
             this.game.clearAction(q, r)
         }
 
-        console.log(`this.game.loot`, this.game.loot)
-        const lootHere = this.game.loot.some(loot => {
-            return loot.position.q === q && loot.position.r === r;
+        // console.log(`this.game.loot`, this.game.loot)
+        const lootHere = this.game.loot.find(loot => {
+            return loot.position.q === q && loot.position.r === r && loot.isActive
         })
         if (lootHere) {
-            console.log('loot here');
+            console.log('loot here', lootHere);
+            if (lootHere.type === LootType.RING) {
+                this.buffs.add(Buffs.RING);
+            }
+            if (lootHere.type === LootType.BRACELET) {
+                this.buffs.add(Buffs.BRACELET);
+            }
+            if (lootHere.type === LootType.CROWN) {
+                this.buffs.add(Buffs.CROWN);
+            }
+            lootHere.isActive = false;
+            lootHere.position = {q: -10, r: -10};
+            lootHere.given = true;
         }
 
         this.position.q = q;
@@ -159,7 +174,8 @@ export class Tank {
             enemy = this.game.board.getDragonAt(q, r) as Dragon;
         }
 
-        enemy.life = Math.max(0, enemy.life - 1);
+        const lifeToRemove = this.buffs.has(Buffs.CROWN) ? 2 : 1;
+        enemy.life = Math.max(0, enemy.life - lifeToRemove);
 
         if (enemy.life === 0) {
 
@@ -241,7 +257,11 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
     async upgrade(): Promise<void> {
         this.range += 1;
         await this.game.addAction(this, 'upgrade')
-        this.useAction(3);
+        let actionsToUse = 3;
+        if (this.buffs.has(Buffs.BRACELET)) {
+            actionsToUse = 1;
+        }
+        this.useAction(actionsToUse);
     }
 
     async heal(q: number, r: number): Promise<void> {
@@ -258,6 +278,9 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
             .find(b => b.position.q === q && b.position.r === r && b.type === 'CASTLE')
         let actionsToUse = 3;
         if (castleHere && this.life < 3) {
+            actionsToUse = 1;
+        }
+        if (this.buffs.has(Buffs.RING)) {
             actionsToUse = 1;
         }
 
@@ -355,7 +378,9 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
         }
 
         if (action.action === PlayerActions.UPGRADE) {
-            if (this.actions >= 3) {
+            const hasBracelet = this.buffs.has(Buffs.BRACELET);
+
+            if (this.actions >= 3 || (hasBracelet && this.actions >= 1)) {
                 !dryRun && await this.upgrade();
                 return {
                     exit: true,
@@ -450,7 +475,7 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
         }
 
         if (action.action === PlayerActions.SHOOT) {
-            const hasEnemyPlayerOn = !this.game.board.isPositionOccupied(q, r) || !this.game.board.isPositionValid(q, r);
+            const hasEnemyPlayerOn = this.game.board.isPositionOccupied(q, r);
             const hasDragonOn = this.game.board.isDragonThere(q, r);
 
             console.log(`hasEnemyPlayerOn, hasDragonOn`, hasEnemyPlayerOn, hasDragonOn)
@@ -617,7 +642,9 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
                 const castleHere = this.game.buildings
                     .find(b => b.position.q === q && b.position.r === r && b.type === 'CASTLE')
 
-                if (castleHere && this.life < 3) {
+                const hasRing = this.buffs.has(Buffs.RING);
+
+                if ((castleHere && this.life < 3) || hasRing) {
                     if (this.actions >= 1) {
                         !dryRun && await this.heal(q, r);
                         action.enemy = this.game.board.getAt(q, r)

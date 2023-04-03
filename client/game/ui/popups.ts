@@ -7,11 +7,12 @@ import {
     hover,
     pictures,
     TILES,
-    OFFSET, GameGraphics
+    OFFSET, GameGraphics, LootDesriptions
 } from "../../consts";
 import p5 from "p5";
 import {popupTextFont, popupTitleFont, resetFont} from "../../utils";
 import {AxialCoordinates} from "honeycomb-grid";
+import {LootType} from "../../../server/app/lootType";
 
 const POPUP_DELAY = 10;
 
@@ -63,7 +64,7 @@ function drawTilePopupContet(p5: p5, rectSourceX: number, rectSourceY: number, s
     p5.text(TILES[hex.tile].description, rectSourceX + popupXOffset, rectSourceY + 40);
 }
 
-function drawLootPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], hex: any, popupXOffset: number) {
+function drawLootPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], loot: {position: AxialCoordinates, type:string}, popupXOffset: number) {
     p5.fill('black');
     p5.stroke('white');
     p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
@@ -71,8 +72,27 @@ function drawLootPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, 
     popupTitleFont(p5);
     p5.text('Tesoro', rectSourceX + popupXOffset, rectSourceY + 20);
 
+    const lootDescription = (() => {
+        switch(loot.type) {
+            case LootType.RING:
+                return LootDesriptions.RING;
+            case LootType.BRACELET:
+                return LootDesriptions.BRACELET;
+            case LootType.CROWN:
+                return LootDesriptions.CROWN;
+            default:
+                return LootDesriptions.RING;
+        }
+    })()
+
     popupTextFont(p5);
-    p5.text('Muoviti qui per ottenere 1 grande tesoro', rectSourceX + popupXOffset, rectSourceY + 40);
+    p5.text(`La carcassa del drago giace a terra,
+ma un grande tesoro è nascosto sotto di essa!
+
+${lootDescription.icon} ${lootDescription.name.toUpperCase()}
+${lootDescription.description}     
+    
+    `, rectSourceX + popupXOffset, rectSourceY + 40);
 }
 
 function drawDragonPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], hex: any, popupXOffset: number) {
@@ -204,6 +224,27 @@ se curato`,
             rectSourceY + 50
         )
     }
+    if (hex.tank.buffs.has(Buffs.RING)) {
+        p5.text(
+            '💍',
+            rectSourceX + 140,
+            rectSourceY + 50
+        )
+    }
+    if (hex.tank.buffs.has(Buffs.BRACELET)) {
+        p5.text(
+            '🔗',
+            rectSourceX + 140,
+            rectSourceY + 30
+        );
+    }
+    if (hex.tank.buffs.has(Buffs.CROWN)) {
+        p5.text(
+            '👑',
+            rectSourceX + 165,
+            rectSourceY + 30
+        );
+    }
     resetFont(p5);
 }
 
@@ -326,8 +367,8 @@ export function drawPopup(p5: p5) {
             drawPlayerPopupContent(hex, p5, rectSourceX, popupXOffset, rectSourceY - mediumSize[1] - 5, size);
         }
 
-    } else if (GameState.loot.find(({position}) => position.q === hex.q && position.r === hex.r)) {
-        const loot = GameState.loot.find(({position}) => position.q === hex.q && position.r === hex.r);
+    } else if (GameState.loot.find(({position, isActive}) => position.q === hex.q && position.r === hex.r && isActive)) {
+        const loot = GameState.loot.find(({position, isActive}) => position.q === hex.q && position.r === hex.r && isActive);
         if (!loot) {
             return
         }

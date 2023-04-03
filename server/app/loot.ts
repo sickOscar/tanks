@@ -1,28 +1,31 @@
 import {AxialCoordinates} from "honeycomb-grid";
 import {Game} from "./game";
-
-export enum LootType {
-    RING = 'RING',
-}
+import {LootType} from "./lootType";
 
 export class Loot {
 
     type: LootType;
     position: AxialCoordinates;
+    isActive: boolean = false;
+    given: boolean = false;
 
-    private constructor(game:Game, position:AxialCoordinates) {
-        this.type = LootType.RING;
-        this.position = position;
+    private constructor(game:Game, position:AxialCoordinates, type:LootType, active:boolean, given:boolean) {
+        this.type = type;
+        this.position = position
+        this.isActive = active;
+        this.given = given;
     }
 
-    static create(game: Game, position:AxialCoordinates) {
-        return new Loot(game, position);
+    static create(game: Game, position:AxialCoordinates, type:LootType, isActive:boolean = false, given:boolean = false) {
+        return new Loot(game, position, type, isActive, given);
     }
 
     serialize() {
         return {
             type: this.type,
-            position: this.position
+            position: this.position,
+            isActive: this.isActive,
+            given: this.given
         }
     }
 }

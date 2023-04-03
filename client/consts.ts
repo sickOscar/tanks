@@ -2,6 +2,7 @@ import {AxialCoordinates, Grid} from "honeycomb-grid";
 import {Tank} from "./models/Tank";
 import {TanksHex} from "../server/app/board";
 import {COLS, ROWS} from "../server/const";
+import {LootType} from "../server/app/lootType";
 
 export interface IBuilding {
     name: string;
@@ -130,7 +131,29 @@ export enum Buffs {
     EXPLORER_BOOTS,
     ORC_SKIN,
     PIRATE,
-    TERRIFIED
+    TERRIFIED,
+    RING,
+    BRACELET,
+    CROWN,
+}
+
+export const LootDesriptions = {
+    [LootType.RING]: {
+        name: "Anello della resurrezione",
+        icon: "💍",
+        description: `Curare costa sempre 1 👊, sia te stesso 
+che un altro eroe, vivo o morto che sia...`
+    },
+    [LootType.BRACELET]: {
+        name: "Bracciale del potere",
+        icon: "🧿",
+        description: "Addestrarti costa sempre 1 👊"
+    },
+    [LootType.CROWN]: {
+        name: "Corona della morte",
+        icon: "👑",
+        description: "Un attacco toglie 2 💓 al nemico"
+    }
 }
 
 export const BuffsDescriptions = {
@@ -158,7 +181,10 @@ export const BuffsDescriptions = {
         name: "Terrorizzato",
         icon: "😱",
         description: "Muoversi e attaccare costa 1 👊 in più"
-    }
+    },
+    [Buffs.RING]: LootDesriptions.RING,
+    [Buffs.BRACELET]: LootDesriptions.BRACELET,
+    [Buffs.CROWN]: LootDesriptions.CROWN
 }
 
 export const walkableTiles = [0, 2, 3, 4, 5, 6];
@@ -195,7 +221,7 @@ interface IGameState {
     actionsLocations: [q: number, r: number][],
     buildings: { type: string, position: AxialCoordinates }[],
     dragons: { position: AxialCoordinates, life: number}[],
-    loot: { position: AxialCoordinates, type: string }[],
+    loot: { position: AxialCoordinates, type: string, isActive:boolean }[],
     WIDTH: number,
     HEIGHT: number,
     localGrid: Grid<TanksHex> | null,
