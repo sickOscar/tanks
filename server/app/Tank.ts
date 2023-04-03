@@ -553,7 +553,7 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
                         return this.game.board.isInRange(dragon.position, this.position, 3);
                     });
                     if (hasDragonNearby) {
-                        actionsNeeded = actionsNeeded + 2;
+                        actionsNeeded = actionsNeeded + 1;
                     }
                     if (this.actions < actionsNeeded) {
                         return {
