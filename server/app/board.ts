@@ -95,9 +95,9 @@ export class Board {
         let x = 0;
         let y = 0;
         traversedGrid.forEach((hex: TanksHex) => {
-            if (hex.tile !== map[y][x]) {
-                hex.tile = map[y][x];
-            }
+            // if (hex.tile !== map[y][x]) {
+            //     hex.tile = map[y][x];
+            // }
             x++;
             if (x >= COLS) {
                 x = 0;
@@ -238,21 +238,21 @@ export class Board {
         }
 
         // TODO SAVE TO DB
-        console.log(`burned Offset`, hex?.row, hex?.col)
-        await db.query('BEGIN');
-        
-        const mapRes = await db.query(`SELECT * FROM maps WHERE game = $1`, [this.game.id]);
-        const map = mapRes.rows[0].map.map;
-        console.log(`tile at ${q} ${r}`, map[hex!.row][hex!.col])
-
-        map[hex!.row][hex!.col] = TileType.LAVA;
-        const newMapCol = {
-            map
-        }
-
-        await db.query(`UPDATE maps SET map = $1 WHERE game = $2`, [newMapCol, this.game.id]);
-
-        await db.query('COMMIT');
+        // console.log(`burned Offset`, hex?.row, hex?.col)
+        // await db.query('BEGIN');
+        //
+        // const mapRes = await db.query(`SELECT * FROM maps WHERE game = $1`, [this.game.id]);
+        // const map = mapRes.rows[0].map.map;
+        // console.log(`tile at ${q} ${r}`, map[hex!.row][hex!.col])
+        //
+        // map[hex!.row][hex!.col] = TileType.LAVA;
+        // const newMapCol = {
+        //     map
+        // }
+        //
+        // await db.query(`UPDATE maps SET map = $1 WHERE game = $2`, [newMapCol, this.game.id]);
+        //
+        // await db.query('COMMIT');
     }
 
     clearCell(q: number, r: number): void {

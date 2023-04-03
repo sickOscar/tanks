@@ -126,6 +126,7 @@ export class Game {
             await this.board.burnAt(randomAdjacent.q, randomAdjacent.r)
                 .catch(err => console.log(err))
         }
+        await this.board.updateOnDb();
     }
 
     async loadActive() {
@@ -158,15 +159,12 @@ export class Game {
             if (currentMapRes.rows.length === 0) {
                 // create the map
                 console.log(`No map found, creating a new one...`);
-
-
                 await db.query(`INSERT INTO maps (map, game) VALUES ($1, $2)`, [
                     JSON.stringify({
                         map: currentMap
                     }),
                     res.rows[0].id || 1
                 ]);
-
             } else {
                 // load the map
                 console.log(`Map found, loading...`);

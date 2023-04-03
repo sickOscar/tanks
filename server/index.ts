@@ -21,6 +21,8 @@ const assert = require('assert');
 
 type EventType = 'VALIDATE' | 'EXECUTE';
 
+const LOCAL_DEV_DISTRIBUTION_INTERVAl = 150000000;
+
 async function init() {
 
     const game = new Game();
@@ -64,7 +66,7 @@ async function init() {
                 console.log(`err`, err)
                 console.log('Failed to distribute actions')
             }
-        }, 5000)
+        }, LOCAL_DEV_DISTRIBUTION_INTERVAl)
     } else {
         console.log('PRODUCTION ENVIRONMENT');
         schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
@@ -102,9 +104,6 @@ async function init() {
 
         })
     }
-
-
-
 
     const app = express()
     const server = http.createServer(app)
