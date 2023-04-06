@@ -327,6 +327,7 @@ export class Game {
             const loots = dbBoard.features.loot.map((loot: any) => {
                 return Loot.create(this, loot.position, loot.type, loot.isActive, loot.given);
             })
+            console.log('Loots:', loots);
             this.state.loot = loots;
         }
 
