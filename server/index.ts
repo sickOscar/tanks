@@ -28,6 +28,7 @@ async function init() {
     const game = new Game();
     await game.loadActive();
 
+    console.log('Game loaded');
     assert(process.env.ACTION_CRON_EXPRESSION, 'ENV MISSING: ACTION_CRON_EXPRESSION')
     assert(process.env.ACTION_TIMEOUT_DELAY, `ENV MISSING: ACTION_TIMEOUT_DELAY`)
 
@@ -104,6 +105,8 @@ async function init() {
 
         })
     }
+
+    console.log('Create server');
 
     const app = express()
     const server = http.createServer(app)
