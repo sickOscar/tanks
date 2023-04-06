@@ -334,6 +334,7 @@ export class Game {
         this.id = res.rows[0].id;
 
         if (firstTime) {
+            console.log('Save board to db');
             //  to save the first board state
             await this.board.updateOnDb();
         }
