@@ -21,7 +21,7 @@ const assert = require('assert');
 
 type EventType = 'VALIDATE' | 'EXECUTE';
 
-const LOCAL_DEV_DISTRIBUTION_INTERVAl = 100000000000;
+const LOCAL_DEV_DISTRIBUTION_INTERVAl = 1000000;
 
 async function init() {
 

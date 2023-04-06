@@ -99,39 +99,110 @@ export class Game {
             dragon.actions = 10;
         }
 
-        const doMovement = (dragon: Dragon) => {
-            const {q, r} = dragon.position;
-            const randomAdj = this.board.getRandomAdjacent(q, r);
-            if (randomAdj) {
-                dragon.position = randomAdj;
-                dragon.actions = dragon.actions - 1
+        const visited: AxialCoordinates[][] = this.state.dragons.map(d => {
+            // can't go back to the initial position
+            return [d.position]
+        });
+
+        const doMovement = (dragon: Dragon, index: number) => {
+            if (dragon.actions === 0) {
+                return;
             }
+            const {q, r} = dragon.position;
+            let done = false;
+            // puo capitare che giri in torno e poi si fermi in mezzo e non
+            // può pià muoversi, sad
+            let maxIterations = 100;
+            while (!done && maxIterations > 0) {
+                const randomAdj = this.board.getRandomAdjacent(q, r);
+                const alreadyVisited = visited[index].some(v => {
+                    return v.q === randomAdj.q && v.r === randomAdj.r
+                })
+                if (randomAdj && !alreadyVisited) {
+                    dragon.position = randomAdj;
+                    dragon.actions = dragon.actions - 1
+                    done = true;
+                    visited[index].push(randomAdj);
+                }
+                maxIterations--;
+            }
+            if (maxIterations === 0) {
+                console.log(`Dragon ${dragon.id} could not move...`)
+                dragon.actions = 0;
+            }
+
         }
 
-        if (this.state.dragons.length > 0) {
+        const allDragonsAreDone = () => {
+            return this.state.dragons.every(d => d.actions === 0)
+        }
 
-            while (this.state.dragons[0].actions > 0) {
-                for (let dragon of this.state.dragons) {
-                    doMovement(dragon);
-                }
-                yield;
+        while (!allDragonsAreDone()) {
+            for (let i = 0; i < this.state.dragons.length; i++) {
+                doMovement(this.state.dragons[i], i);
             }
+            yield;
         }
 
     }
 
     async addBurnedHexesAroundDragons() {
-        for (let i = 0; i < this.state.dragons.length; i++) {
-            const dragon = this.state.dragons[i];
 
-            const randomAdjacent1 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
-            await this.board.burnAt(randomAdjacent1.q, randomAdjacent1.r)
-                .catch(err => console.log(err))
-
-            const randomAdjacent2 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
-            await this.board.burnAt(randomAdjacent2.q, randomAdjacent2.r)
-                .catch(err => console.log(err))
+        const validHexToBurn = (hex: AxialCoordinates) => {
+            const hexType = this.board.getTileAt(hex.q, hex.r);
+            return hexType !== TileType.WATER && hexType !== TileType.LAVA;
         }
+
+        const areDifferent = (hex1: AxialCoordinates, hex2: AxialCoordinates) => {
+            return hex1.q !== hex2.q || hex1.r !== hex2.r;
+        }
+
+        for (let dragon of this.state.dragons) {
+            let done = false;
+            // easy way to avoid infinite loop
+            let maxIterations = 100;
+            while (!done && maxIterations > 0) {
+                const randomAdjacent1 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
+                const randomAdjacent2 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
+
+                // they must be two different hexes to burn
+                if (
+                    validHexToBurn(randomAdjacent1)
+                    && validHexToBurn(randomAdjacent2)
+                    && areDifferent(randomAdjacent1, randomAdjacent2)
+                ) {
+
+                    done = true;
+                    await this.board.burnAt(randomAdjacent1.q, randomAdjacent1.r) .catch(err => {
+                            console.log('Failed to burn hex at', randomAdjacent1.q, randomAdjacent1.r)
+                            console.log(err)
+                        })
+
+                    await this.board.burnAt(randomAdjacent2.q, randomAdjacent2.r)
+                        .catch(err => {
+                            console.log('Failed to burn hex at', randomAdjacent2.q, randomAdjacent2.r)
+                            console.log(err)
+                        })
+                }
+                maxIterations--;
+            }
+            if (maxIterations === 0) {
+                console.log(`Dragon ${dragon.id} could not burn...`)
+            }
+
+        }
+
+        // for (let i = 0; i < this.state.dragons.length; i++) {
+        //     const dragon = this.state.dragons[i];
+        //
+        //     const randomAdjacent1 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
+        //     await this.board.burnAt(randomAdjacent1.q, randomAdjacent1.r)
+        //         .catch(err => console.log(err))
+        //
+        //     const randomAdjacent2 = this.board.getRandomAdjacent(dragon.position.q, dragon.position.r);
+        //     await this.board.burnAt(randomAdjacent2.q, randomAdjacent2.r)
+        //         .catch(err => console.log(err))
+        // }
         await this.board.updateOnDb();
     }
 
@@ -560,7 +631,7 @@ export class Game {
     }
 
     killDragon(id: string) {
-       this.state.dragons = this.state.dragons.filter(d => d.id !== id);
+        this.state.dragons = this.state.dragons.filter(d => d.id !== id);
     }
 
     addLoot(position: AxialCoordinates) {
