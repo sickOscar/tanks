@@ -230,7 +230,7 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
 
         await this.game.addAction(this, 'shoot', {q, r}, enemy)
 
-        let actionsToUse = 2;
+        let actionsToUse = 1;
         // che if dragon nearby
         const isTerrified = this.game.dragons.some(dragon => {
             return this.game.board.isInRange(dragon.position, this.position, 3);
