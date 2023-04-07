@@ -78,12 +78,18 @@ new p5((p5) => {
 
     pollForm.addEventListener('submit', event => {
         event.preventDefault();
+        console.info(voteSelect.value);
+        if(!voteSelect.value){
+            alert('Prima dovresti scegliere chi aiutare.');
+            return;
+        }
+
         sio.emit('playerevent', 'vote', voteSelect.value, null, (response: any) => {
             if (response.exit === true) {
                 alert('Grazie! La tua leggenda vive...');
             }
             if (!response || response.exit === false) {
-                alert('Il tuo spirito ha già influenzato il regno oggi!'); 
+                alert('Il tuo spirito ha già influenzato il regno oggi!');
             }
         })
     })

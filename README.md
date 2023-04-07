@@ -11,13 +11,16 @@ Are you ready to stab some friends in the back?
 ### Development
 
 Ask me for the current .env file, and then:
+
 ```
+npm i
 make dev
 ```
+
 Docker needed
 
 ### Contribution
 Feel free to contribute to the project by opening a pull request.
-
 ### License
+
 This project is licensed under the MIT License.
