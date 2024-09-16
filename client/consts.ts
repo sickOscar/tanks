@@ -74,7 +74,7 @@ causare -1 👊 al tuo avversario`
 }
 
 export const OFFSET = {
-    X: 50,
+    X: 40,
     Y: 100
 }
 
@@ -277,7 +277,7 @@ export type Animation = {
 
 interface IGameGraphics {
     maskGraphics: any,
-    tiles: any[],
+    tiles: {[key: number]: any},
     oasisImage: any,
     iceFortressImage: any,
     castleImage: any,
@@ -291,7 +291,7 @@ interface IGameGraphics {
 
 export const GameGraphics: IGameGraphics = {
     maskGraphics: null,
-    tiles: [],
+    tiles: {},
     oasisImage: null,
     iceFortressImage: null,
     castleImage: null,

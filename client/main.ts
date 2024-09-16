@@ -76,48 +76,48 @@ new p5((p5) => {
     const historyRevButton = document.querySelector('#history-rev') as HTMLInputElement;
     const historyFwdButton = document.querySelector('#history-fwd') as HTMLInputElement;
 
-    pollForm.addEventListener('submit', event => {
-        event.preventDefault();
-        console.info(voteSelect.value);
-        if(!voteSelect.value){
-            alert('Prima dovresti scegliere chi aiutare.');
-            return;
-        }
+    // pollForm.addEventListener('submit', event => {
+    //     event.preventDefault();
+    //     console.info(voteSelect.value);
+    //     if(!voteSelect.value){
+    //         alert('Prima dovresti scegliere chi aiutare.');
+    //         return;
+    //     }
 
-        sio.emit('playerevent', 'vote', voteSelect.value, null, (response: any) => {
-            if (response.exit === true) {
-                alert('Grazie! La tua leggenda vive...');
-            }
-            if (!response || response.exit === false) {
-                alert('Il tuo spirito ha già influenzato il regno oggi!');
-            }
-        })
-    })
+    //     sio.emit('playerevent', 'vote', voteSelect.value, null, (response: any) => {
+    //         if (response.exit === true) {
+    //             alert('Grazie! La tua leggenda vive...');
+    //         }
+    //         if (!response || response.exit === false) {
+    //             alert('Il tuo spirito ha già influenzato il regno oggi!');
+    //         }
+    //     })
+    // })
 
-    showPollResultsButton.addEventListener('click', event => {
-        event.preventDefault();
-        // pollResultsContainer.classList.remove('hidden');
-        // modalOverlay.classList.remove('hidden');
+    // showPollResultsButton.addEventListener('click', event => {
+    //     event.preventDefault();
+    //     // pollResultsContainer.classList.remove('hidden');
+    //     // modalOverlay.classList.remove('hidden');
 
-        MicroModal.show('jury-modal', {
-            onShow: () => {
-                console.log('show')
-                getJson('poll')
-                    .then(response => {
-                        pollResultsTable.innerHTML = response.map((row: any) => `
-<tr>
-    <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
-    <td>${row.name}</td>
-    <td>${row.count}</td>
-</tr>
-                `).join('')
-                    })
-                    .catch(console.error)
-            }
-        });
+    //     MicroModal.show('jury-modal', {
+    //         onShow: () => {
+    //             console.log('show')
+    //             getJson('poll')
+    //                 .then(response => {
+    //                     pollResultsTable.innerHTML = response.map((row: any) => `
+// <tr>
+    // <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
+    // <td>${row.name}</td>
+    // <td>${row.count}</td>
+// </tr>
+    //             `).join('')
+    //                 })
+    //                 .catch(console.error)
+    //         }
+    //     });
 
 
-    })
+    // })
 
 
     const fetchAuthConfig = () => fetch("/auth_config.json");
@@ -137,17 +137,17 @@ new p5((p5) => {
 
     async function updateLoginUi() {
         const isAuthenticated = await auth0.isAuthenticated();
-        loginButton.disabled = isAuthenticated;
-        logoutButton.disabled = !isAuthenticated;
+        // loginButton.disabled = isAuthenticated;
+        // logoutButton.disabled = !isAuthenticated;
 
         if (isAuthenticated) {
             boardContainer.classList.remove('hidden');
-            rightSide.classList.remove('hidden');
-            intro.classList.add('hidden');
+            // rightSide.classList.remove('hidden');
+            // intro.classList.add('hidden');
         } else {
             boardContainer.classList.add('hidden');
-            rightSide.classList.add('hidden');
-            intro.classList.remove('hidden');
+            // rightSide.classList.add('hidden');
+            // intro.classList.remove('hidden');
         }
 
     }
@@ -225,7 +225,7 @@ new p5((p5) => {
         setupLocalGrid(c.grid);
         console.log(`c`, c);
 
-        GameState.WIDTH = window.innerWidth - UI_WIDTH;
+        GameState.WIDTH = window.innerWidth;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
 
         p5.resizeCanvas(
@@ -244,13 +244,13 @@ new p5((p5) => {
         // drawEvents()
     }
 
-    loginButton.addEventListener('click', () => {
-        auth0.loginWithRedirect();
-    })
+    // loginButton.addEventListener('click', () => {
+    //     auth0.loginWithRedirect();
+    // })
 
-    logoutButton.addEventListener('click', () => {
-        auth0.logout();
-    })
+    // logoutButton.addEventListener('click', () => {
+    //     auth0.logout();
+    // })
 
     function connectSocket(jwt: string) {
         sio = io('', {
@@ -319,109 +319,109 @@ new p5((p5) => {
         })
     })
 
-    historyButton.addEventListener('click', () => {
+    // historyButton.addEventListener('click', () => {
 
-        // ok, this is a bit of a mess. I'm sorry.
-        // I know how to do things properly, I swear.
-        // but this is actually funnier, so ¯\_(ツ)_/¯
-        stage = (() => {
-            if (stage === Stages.HISTORY) {
-                GameState.history = [];
-                if (GameState.player) {
-                    actionsContainer.classList.remove('hidden');
-                }
-                historyButton.classList.remove('hidden');
-                historyPlayer.classList.add('hidden');
-                historyList.innerHTML = '';
-                historyList.classList.add('hidden');
-                return Stages.RUN;
-            }
+    //     // ok, this is a bit of a mess. I'm sorry.
+    //     // I know how to do things properly, I swear.
+    //     // but this is actually funnier, so ¯\_(ツ)_/¯
+    //     stage = (() => {
+    //         if (stage === Stages.HISTORY) {
+    //             GameState.history = [];
+    //             if (GameState.player) {
+    //                 actionsContainer.classList.remove('hidden');
+    //             }
+    //             historyButton.classList.remove('hidden');
+    //             historyPlayer.classList.add('hidden');
+    //             historyList.innerHTML = '';
+    //             historyList.classList.add('hidden');
+    //             return Stages.RUN;
+    //         }
 
-            historyList.classList.remove('hidden');
-            historyList.innerHTML = `<p>Speta 'more...</p>`;
-            getJson('/history')
-                .then(history => {
-                    GameState.history = history;
-                    const boardStringified = JSON.stringify(history[GameState.historyIndex].board);
-                    updateBoard(boardStringified, false);
+    //         historyList.classList.remove('hidden');
+    //         historyList.innerHTML = `<p>Speta 'more...</p>`;
+    //         getJson('/history')
+    //             .then(history => {
+    //                 GameState.history = history;
+    //                 const boardStringified = JSON.stringify(history[GameState.historyIndex].board);
+    //                 updateBoard(boardStringified, false);
 
-                    historyList.innerHTML = '';
-                    history.forEach((_moment: any, i: number) => {
-                        const li = document.createElement('li');
-                        // const time = new Date(_moment.created_at).toLocaleTimeString();
-                        const date = new Date(_moment.created_at);
-                        const time = new Intl.DateTimeFormat('it-IT', {
-                            dateStyle: 'medium',
-                            timeStyle: 'long',
-                            timeZone: 'Europe/Rome'
-                        }).format(date);
-                        li.innerText = `${i} - ${time}`;
-                        li.addEventListener('click', () => {
-                            GameState.historyIndex = i;
-                            const boardStringified = JSON.stringify(history[i].board);
-                            updateBoard(boardStringified, false);
-                            highlightHistoryPlayer(i, false);
-                        });
-                        historyList.appendChild(li);
-                    })
+    //                 historyList.innerHTML = '';
+    //                 history.forEach((_moment: any, i: number) => {
+    //                     const li = document.createElement('li');
+    //                     // const time = new Date(_moment.created_at).toLocaleTimeString();
+    //                     const date = new Date(_moment.created_at);
+    //                     const time = new Intl.DateTimeFormat('it-IT', {
+    //                         dateStyle: 'medium',
+    //                         timeStyle: 'long',
+    //                         timeZone: 'Europe/Rome'
+    //                     }).format(date);
+    //                     li.innerText = `${i} - ${time}`;
+    //                     li.addEventListener('click', () => {
+    //                         GameState.historyIndex = i;
+    //                         const boardStringified = JSON.stringify(history[i].board);
+    //                         updateBoard(boardStringified, false);
+    //                         highlightHistoryPlayer(i, false);
+    //                     });
+    //                     historyList.appendChild(li);
+    //                 })
 
-                    highlightHistoryPlayer(0);
+    //                 highlightHistoryPlayer(0);
 
-                })
-            historyButton.classList.add('hidden');
-            historyPlayer.classList.remove('hidden');
-            actionsContainer.classList.add('hidden');
-            GameState.historyState = HistoryState.PAUSED;
-            return Stages.HISTORY;
+    //             })
+    //         historyButton.classList.add('hidden');
+    //         historyPlayer.classList.remove('hidden');
+    //         actionsContainer.classList.add('hidden');
+    //         GameState.historyState = HistoryState.PAUSED;
+    //         return Stages.HISTORY;
 
-        })()
-    });
-    historyPlayButton.addEventListener('click', () => {
-        if (stage === Stages.RUN) return;
-        GameState.historyState = HistoryState.RUNNING;
-    });
-    historyRevButton.addEventListener('click', () => {
-        if (stage === Stages.RUN) return;
-        GameState.historyIndex = Math.max(0, GameState.historyIndex - 1);
-        const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
-        updateBoard(boardStringified, false);
-        highlightHistoryPlayer(GameState.historyIndex);
-    });
-    historyFwdButton.addEventListener('click', () => {
-        if (stage === Stages.RUN) return;
-        GameState.historyIndex = Math.min(GameState.history.length - 1, GameState.historyIndex + 1);
-        const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
-        updateBoard(boardStringified);
-        highlightHistoryPlayer(GameState.historyIndex);
-    });
-    historyStopButton.addEventListener('click', () => {
-        if (stage === Stages.RUN) return;
-        GameState.historyState = HistoryState.IDLE;
-        stage = Stages.RUN;
-        GameState.history = [];
-        updateBoard(GameState.lastMessageFromServer!, false);
-        historyButton.classList.remove('hidden');
-        historyPlayer.classList.add('hidden');
-        if (GameState.player) {
-            actionsContainer.classList.remove('hidden');
-        }
-    });
-    historyPauseButton.addEventListener('click', () => {
-        if (stage === Stages.RUN) return;
-        GameState.historyState = HistoryState.PAUSED;
-    });
+    //     })()
+    // });
+    // historyPlayButton.addEventListener('click', () => {
+    //     if (stage === Stages.RUN) return;
+    //     GameState.historyState = HistoryState.RUNNING;
+    // });
+    // historyRevButton.addEventListener('click', () => {
+    //     if (stage === Stages.RUN) return;
+    //     GameState.historyIndex = Math.max(0, GameState.historyIndex - 1);
+    //     const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
+    //     updateBoard(boardStringified, false);
+    //     highlightHistoryPlayer(GameState.historyIndex);
+    // });
+    // historyFwdButton.addEventListener('click', () => {
+    //     if (stage === Stages.RUN) return;
+    //     GameState.historyIndex = Math.min(GameState.history.length - 1, GameState.historyIndex + 1);
+    //     const boardStringified = JSON.stringify(GameState.history[GameState.historyIndex].board);
+    //     updateBoard(boardStringified);
+    //     highlightHistoryPlayer(GameState.historyIndex);
+    // });
+    // historyStopButton.addEventListener('click', () => {
+    //     if (stage === Stages.RUN) return;
+    //     GameState.historyState = HistoryState.IDLE;
+    //     stage = Stages.RUN;
+    //     GameState.history = [];
+    //     updateBoard(GameState.lastMessageFromServer!, false);
+    //     historyButton.classList.remove('hidden');
+    //     historyPlayer.classList.add('hidden');
+    //     if (GameState.player) {
+    //         actionsContainer.classList.remove('hidden');
+    //     }
+    // });
+    // historyPauseButton.addEventListener('click', () => {
+    //     if (stage === Stages.RUN) return;
+    //     GameState.historyState = HistoryState.PAUSED;
+    // });
 
-    function highlightHistoryPlayer(index: number, scroll = true) {
-        for (let children of historyList.children) {
-            children.classList.remove('highlight');
-        }
-        const currentMoment = historyList.children[index] as HTMLElement;
-        currentMoment.classList.add('highlight');
-        if (scroll) {
-            // scroll historyList to the highlighted element
-            historyList.scrollTop = currentMoment.offsetTop - historyList.offsetTop - historyList.clientHeight / 2;
-        }
-    }
+    // function highlightHistoryPlayer(index: number, scroll = true) {
+    //     for (let children of historyList.children) {
+    //         children.classList.remove('highlight');
+    //     }
+    //     const currentMoment = historyList.children[index] as HTMLElement;
+    //     currentMoment.classList.add('highlight');
+    //     if (scroll) {
+    //         // scroll historyList to the highlighted element
+    //         historyList.scrollTop = currentMoment.offsetTop - historyList.offsetTop - historyList.clientHeight / 2;
+    //     }
+    // }
 
     function addPlayerAction(action: any) {
         GameState.events.unshift(action)
@@ -503,8 +503,8 @@ new p5((p5) => {
                 return `<li title="${title}">${emoji}</li>`
             }).join('');
         } else {
-            guestBox.classList.remove('hidden');
-            playerBox.classList.add('hidden');
+            // guestBox.classList.remove('hidden');
+            // playerBox.classList.add('hidden');
         }
 
         if (GameState.player && GameState.player.life > 0) {
@@ -567,7 +567,7 @@ new p5((p5) => {
         `);
         playersListElement.unshift(`<option value="">Seleziona un giocatore</option>`)
          
-        voteSelect.innerHTML  = playersListElement.join('');
+        // voteSelect.innerHTML  = playersListElement.join('');
         // debugger;
 
     }
@@ -589,16 +589,26 @@ new p5((p5) => {
     }
 
     p5.preload = function () {
-        GameGraphics.tiles = [
-            p5.loadImage('./assets/grass.png'),
-            p5.loadImage('./assets/sea.png'),
-            p5.loadImage('./assets/desert.png'),
-            p5.loadImage('./assets/forest.png'),
-            p5.loadImage('./assets/mountain.png'),
-            p5.loadImage('./assets/swamp.png'),
-            p5.loadImage('./assets/ice.png'),
-            p5.loadImage('./assets/lava.png'),
-        ]
+        GameGraphics.tiles = {
+            // grass
+            0: p5.loadImage('./assets/Pine_Tile0.png'), 
+            // sea
+            1: p5.loadImage('./assets/Water_Tile2.png'), 
+            // desert
+            2: p5.loadImage('./assets/Desert_Tile0.png'), 
+            2.1: p5.loadImage('./assets/Desert_Tile4.png'),
+            2.2: p5.loadImage('./assets/Desert_Tile10.png'),
+            // forest
+            3: p5.loadImage('./assets/Pine_Tile6.png'),
+            // mountain
+            4: p5.loadImage('./assets/Stone_Tile19.png'), 
+            // swamp
+            5: p5.loadImage('./assets/swamp.png'),
+            // snow
+            6: p5.loadImage('./assets/Snow_Tile2.png'), 
+            // lava
+            7: p5.loadImage('./assets/lava.png') 
+        }
 
         GameGraphics.oasisImage = p5.loadImage('./assets/oasis.webp');
         GameGraphics.iceFortressImage = p5.loadImage('./assets/ice_fortress.webp');
@@ -620,6 +630,7 @@ new p5((p5) => {
     }
 
     p5.draw = function () {
+
 
         // handleViewport(p5);
 
@@ -663,6 +674,8 @@ new p5((p5) => {
 
         drawAnimations(p5);
 
+        p5.fill('black');
+        p5.circle(0, 0, 10)
 
     }
 

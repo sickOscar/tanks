@@ -4,12 +4,13 @@
   "description": "It's gonna ruin friendships",
   "scripts": {
     "build-client-static": "cd client && vite build",
-    "build-client": "cd client && npx vite build --watch",
+    "client": "cd client && npx vite build --watch",
     "local-server": "npx ts-node-dev server",
     "server": "ts-node server",
     "start": "npm run server",
     "dev": "npm run local-server",
-    "prepare": "husky install"
+    "prepare": "husky install",
+	"db": "docker run --name tanks-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
   },
   "keywords": [],
   "author": "",

@@ -58,10 +58,10 @@ function drawTilePopupContet(p5: p5, rectSourceX: number, rectSourceY: number, s
     p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
 
     popupTitleFont(p5);
-    p5.text(TILES[hex.tile].name, rectSourceX + popupXOffset, rectSourceY + 20);
+    p5.text(TILES[Math.trunc(hex.tile)].name, rectSourceX + popupXOffset, rectSourceY + 20);
 
     popupTextFont(p5);
-    p5.text(TILES[hex.tile].description, rectSourceX + popupXOffset, rectSourceY + 40);
+    p5.text(TILES[Math.trunc(hex.tile)].description, rectSourceX + popupXOffset, rectSourceY + 40);
 }
 
 function drawLootPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], loot: {position: AxialCoordinates, type:string}, popupXOffset: number) {

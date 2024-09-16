@@ -4,12 +4,12 @@ import {Board, TanksHex, TileType} from "./board";
 import {Buffs, Tank} from "./Tank";
 import axios from "axios";
 import {AxialCoordinates} from "honeycomb-grid";
-import {GAME_MAP} from "../const";
+import {GAME_MAP, DEFAULT_BUILDINGS} from "../const";
 import {Dragon} from "./Dragon";
 import {Loot} from "./loot";
 import {LootType} from "./lootType";
 
-interface Building {
+export interface Building {
     type: string;
     position: AxialCoordinates;
 }
@@ -22,53 +22,6 @@ interface GameState {
     dragons: Dragon[];
     loot: Loot[];
 }
-
-const DEFAULT_BUILDINGS: Building[] = [
-    {
-        type: 'OASIS',
-        position: {q: -1, r: 15}
-    },
-    {
-        type: 'ICE_FORTRESS',
-        position: {q: 3, r: 0}
-    },
-    {
-        type: 'CASTLE',
-        position: {q: 8, r: 4}
-    },
-    {
-        type: 'ORCS_CAMP',
-        position: {q: 7, r: 14}
-    },
-    {
-        type: 'TELEPORT',
-        position: {q: 0, r: 5}
-    },
-    {
-        type: 'TELEPORT',
-        position: {q: 15, r: 3}
-    },
-    {
-        type: 'TELEPORT',
-        position: {q: 4, r: 10}
-    },
-    {
-        type: 'TELEPORT',
-        position: {q: -4, r: 14}
-    },
-    {
-        type: 'TELEPORT',
-        position: {q: 10, r: 13}
-    },
-    {
-        type: 'TELEPORT',
-        position: {q: 10, r: 1}
-    },
-    {
-        type: 'PIRATES',
-        position: {q: 13, r: 8}
-    }
-]
 
 export class Game {
 
@@ -288,48 +241,48 @@ export class Game {
 
         }
 
-        if (dbBoard.features.dragons && dbBoard.features.dragons.length > 0) {
-            // load dragons from database
-            console.log(`Dragons found, loading...`)
-            this.state.dragons = dbBoard.features.dragons.map((dragon: any) => {
-                return new Dragon(this, dragon);
-            })
-            firstTime = true;
-        } else {
-            // create dragons
-            console.log(`No dragons found, creating new ones...`)
-            const dragons = [];
-            const dragonCoords = [
-                {q: -1, r: 3},
-                {q: 13, r: 11},
-                {q: 2, r: 18},
-            ]
-            for (let i = 0; i < 3; i++) {
-                dragons.push(await Dragon.create(this, dragonCoords[i]));
-            }
-            this.state.dragons = dragons;
-            firstTime = true;
-        }
+        // if (dbBoard.features.dragons && dbBoard.features.dragons.length > 0) {
+        //     // load dragons from database
+        //     console.log(`Dragons found, loading...`)
+        //     this.state.dragons = dbBoard.features.dragons.map((dragon: any) => {
+        //         return new Dragon(this, dragon);
+        //     })
+        //     firstTime = true;
+        // } else {
+        //     // create dragons
+        //     console.log(`No dragons found, creating new ones...`)
+        //     const dragons = [];
+        //     const dragonCoords = [
+        //         {q: -1, r: 3},
+        //         {q: 13, r: 11},
+        //         {q: 2, r: 18},
+        //     ]
+        //     for (let i = 0; i < 3; i++) {
+        //         dragons.push(await Dragon.create(this, dragonCoords[i]));
+        //     }
+        //     this.state.dragons = dragons;
+        //     firstTime = true;
+        // }
 
-        if (dbBoard.features.loot) {
+        // if (dbBoard.features.loot) {
 
-            if (dbBoard.features.loot.length === 0) {
-                console.log('No loot found, creating new ones...');
-                dbBoard.features.loot = [
-                    Loot.create(this, {q: 0, r: 0}, LootType.RING, false, false),
-                    Loot.create(this, {q: 0, r: 0}, LootType.BRACELET, false, false),
-                    Loot.create(this, {q: 0, r: 0}, LootType.CROWN, false, false),
-                ];
-                firstTime = true;
-            }
-            // load loot from database
-            console.log(`Loot found, loading...`)
-            const loots = dbBoard.features.loot.map((loot: any) => {
-                return Loot.create(this, loot.position, loot.type, loot.isActive, loot.given);
-            })
-            console.log('Loots:', loots);
-            this.state.loot = loots;
-        }
+        //     if (dbBoard.features.loot.length === 0) {
+        //         console.log('No loot found, creating new ones...');
+        //         dbBoard.features.loot = [
+        //             Loot.create(this, {q: 0, r: 0}, LootType.RING, false, false),
+        //             Loot.create(this, {q: 0, r: 0}, LootType.BRACELET, false, false),
+        //             Loot.create(this, {q: 0, r: 0}, LootType.CROWN, false, false),
+        //         ];
+        //         firstTime = true;
+        //     }
+        //     // load loot from database
+        //     console.log(`Loot found, loading...`)
+        //     const loots = dbBoard.features.loot.map((loot: any) => {
+        //         return Loot.create(this, loot.position, loot.type, loot.isActive, loot.given);
+        //     })
+        //     console.log('Loots:', loots);
+        //     this.state.loot = loots;
+        // }
 
         this.id = res.rows[0].id;
 

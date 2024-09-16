@@ -104,17 +104,21 @@ function drawCell(p5: p5, hex: TanksHex) {
 function drawEmptyCell(p5: p5, hex: TanksHex) {
     p5.noFill()
     p5.strokeWeight(2);
-    p5.stroke('rgb(243,235,173)');
+    p5.stroke('rgba(243,235,173,0.5)');
     // p5.noStroke();
 
     const [...corners] = hex.corners;
 
+    const tileImage = GameGraphics.tiles[hex.tile]
+
+    const [x, y, imageWidth, imageHeight] = getImageCoordinates(corners, tileImage)
+
     p5.image(
         GameGraphics.tiles[hex.tile],
-        corners[4].x + OFFSET.X,
-        corners[4].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-        HEX_WIDTH,
-        HEX_HEIGHT + 9, // +5 WHY???
+        x,
+        y,
+        imageWidth,
+        imageHeight
     )
 
     const highlightColor = 'rgba(255, 255, 255, 0.3)'
@@ -164,12 +168,13 @@ function drawEmptyCell(p5: p5, hex: TanksHex) {
 
 
     p5.beginShape();
+    p5.noStroke();
     let first = true;
     corners.forEach(({x, y}) => {
         p5.vertex(x + OFFSET.X, y + OFFSET.Y);
-        if (first) {
-            p5.circle(x + OFFSET.X, y + OFFSET.Y, 5)
-        }
+        // if (first) {
+        //     p5.circle(x + OFFSET.X, y + OFFSET.Y, 5)
+        // }
         first = false;
     });
     p5.endShape(p5.CLOSE);
@@ -191,85 +196,102 @@ function drawCoordinates(p5: p5, hex: TanksHex) {
 }
 
 function drawDragon(p5: p5, hex: TanksHex) {
+    const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.dragonImage)
     p5.image(
         GameGraphics.dragonImage,
-        hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-        hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-        HEX_WIDTH,
-        HEX_HEIGHT + 12
+        centerX,
+        centerY,
+        imageWidth,
+        imageHeight
     );
 }
 
 function drawLoot(p5: p5, hex: TanksHex) {
+    const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.lootImage)
     p5.image(
         GameGraphics.lootImage,
-        hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-        hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-        HEX_WIDTH,
-        HEX_HEIGHT + 12
+        centerX,
+        centerY,
+        imageWidth,
+        imageHeight
     );
 }
 
 function drawBuilding(p5: p5, hex: TanksHex, building: any) {
+
     switch (building.type) {
 
-        case 'OASIS':
+        case 'OASIS': {
+            let [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.oasisImage)
             p5.image(
                 GameGraphics.oasisImage,
-                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-                hex.corners[0].y + OFFSET.Y - 10,
-                HEX_WIDTH,
-                HEX_HEIGHT
+                centerX,
+                centerY,
+                imageWidth,
+                imageHeight
             );
             break;
+        } 
 
-        case 'ICE_FORTRESS':
+        case 'ICE_FORTRESS': {
+            const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.iceFortressImage)
             p5.image(
                 GameGraphics.iceFortressImage,
-                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-                HEX_WIDTH,
-                HEX_HEIGHT + 12
+                centerX,
+                centerY,
+                imageWidth,
+                imageHeight
             );
             break;
+        }
 
-        case 'CASTLE':
+        case 'CASTLE': {
+            const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.castleImage) 
             p5.image(
                 GameGraphics.castleImage,
-                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-                HEX_WIDTH,
-                HEX_HEIGHT + 10
+                centerX,
+                centerY,
+                imageWidth,
+                imageHeight
             );
             break;
+        }
 
-        case 'ORCS_CAMP':
+        case 'ORCS_CAMP': {
+            const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.orcsCampImage)
             p5.image(
                 GameGraphics.orcsCampImage,
-                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-                HEX_WIDTH,
-                HEX_HEIGHT + 15
+                centerX,
+                centerY,
+                imageWidth,
+                imageHeight
             );
             break;
-        case 'TELEPORT':
+        }
+
+        case 'TELEPORT': {
+            const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.teleportImage)
             p5.image(
                 GameGraphics.teleportImage,
-                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-                HEX_WIDTH,
-                HEX_HEIGHT + 10
+                centerX,
+                centerY,
+                imageWidth,
+                imageHeight
             );
             break
-        case 'PIRATES':
+        }
+
+        case 'PIRATES': {
+            const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.piratesImage)
             p5.image(
                 GameGraphics.piratesImage,
-                hex.corners[0].x - HEX_WIDTH + OFFSET.X,
-                hex.corners[0].y + OFFSET.Y - HEX_TOP_TRIANGLE_HEIGHT,
-                HEX_WIDTH,
-                HEX_HEIGHT + 10
+                centerX,
+                centerY,
+                imageWidth,
+                imageHeight
             );
             break;
+        }
 
         default:
             break;
@@ -303,4 +325,18 @@ function drawHeart(p5: p5, hex: TanksHex) {
         corners[0].x - HEX_WIDTH / 2 + OFFSET.X,
         corners[0].y + HEX_HEIGHT / 2 + OFFSET.Y
     )
+}
+
+// tile is the loaded image
+function getImageCoordinates(corners: { x: number, y: number }[], image:any) {
+
+    const scale = HEX_WIDTH / image.width;
+
+    const imageWidth = HEX_WIDTH;
+    const imageHeight = image.height * scale;
+    
+    const x = corners[4].x + OFFSET.X
+    const y = corners[2].y + OFFSET.Y - imageHeight
+
+    return [x, y, imageWidth, imageHeight]
 }

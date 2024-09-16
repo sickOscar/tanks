@@ -70,7 +70,8 @@ export class Board {
     }
 
     getTileAt(q: number, r: number): TileType | undefined {
-        return this.board.getHex({q, r})?.tile;
+        const tile =  this.board.getHex({q, r})?.tile
+        return tile != undefined ? Math.trunc(tile) : undefined;
     }
 
     forEach(cb: (hex: TanksHex) => void) {

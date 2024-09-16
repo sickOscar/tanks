@@ -2,24 +2,24 @@ import {GameState, States} from "../../consts";
 
 export function setOnline(playersList: string) {
 
-    const playersContainer = document.querySelector('#players-container') as HTMLDivElement;
+    // const playersContainer = document.querySelector('#players-container') as HTMLDivElement;
 
-    try {
+    // try {
 
-        const onlinePlayers = JSON.parse(playersList);
-        // const players = JSON.parse(playersList);
-        // const onlinePlayers = [
-        //     ...players, ...players, ...players, ...players, ...players, ...players,
-        //     ...players, ...players, ...players, ...players, ...players, ...players,
-        // ]
-        const listItems = onlinePlayers.map((p: any, i:number) => {
-            return `<img alt="${p.name}" src="${p.picture}" title="${p.name}" class="img-thumbnail">`
-        });
-        playersContainer.innerHTML = listItems.join('');
+    //     const onlinePlayers = JSON.parse(playersList);
+    //     // const players = JSON.parse(playersList);
+    //     // const onlinePlayers = [
+    //     //     ...players, ...players, ...players, ...players, ...players, ...players,
+    //     //     ...players, ...players, ...players, ...players, ...players, ...players,
+    //     // ]
+    //     const listItems = onlinePlayers.map((p: any, i:number) => {
+    //         return `<img alt="${p.name}" src="${p.picture}" title="${p.name}" class="img-thumbnail">`
+    //     });
+    //     playersContainer.innerHTML = listItems.join('');
 
-    } catch (err) {
-        console.error(err)
-    }
+    // } catch (err) {
+    //     console.error(err)
+    // }
 
 }
 

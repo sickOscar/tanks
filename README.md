@@ -19,6 +19,14 @@ make dev
 
 Docker needed
 
+If you need live reload on save, run
+
+```
+npm run db
+npm run server 
+npm run build-client
+```
+
 ### Contribution
 Feel free to contribute to the project by opening a pull request.
 ### License
