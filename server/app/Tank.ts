@@ -426,9 +426,9 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
             })
 
             // MOVEMENT TO MOUNTAIN OR ICE
-            const tile = this.game.board.getTileAt(q, r);
+            const tile = this.game.board.getTileAt(q, r) as number;
             const hasBoots = this.buffs.has(Buffs.EXPLORER_BOOTS);
-            if ((tile === TileType.MOUNTAIN || tile === TileType.ICE) && !hasBoots) {
+            if ((Math.trunc(tile) === TileType.MOUNTAIN || Math.trunc(tile) === TileType.ICE) && !hasBoots) {
                 if (this.actions < 2 || (isTerrified && this.actions < 3)) {
                     return {
                         exit: false,

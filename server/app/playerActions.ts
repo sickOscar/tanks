@@ -6,4 +6,5 @@ export enum PlayerActions {
     HEAL = 'heal',
     VOTE = 'vote',
     FAIL_SHOOT = 'fail-shoot',
+    DIALOGUE = 'dialogue',
 }

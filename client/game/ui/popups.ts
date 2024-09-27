@@ -118,6 +118,21 @@ Muoversi e attaccare costa 1 👊 in più.
 `, rectSourceX + popupXOffset, rectSourceY + 40);
 }
 
+function drawNPCPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], hex: any, popupXOffset: number) {
+    p5.fill('black');
+    p5.stroke('white');
+    p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
+
+    const npc = GameState.npcs.find(({position}) => position.q === hex.position.q && position.r === hex.position.r);
+
+    popupTitleFont(p5);
+    p5.text(`NPC NAME   ${npc!.life} 💓`, rectSourceX + popupXOffset, rectSourceY + 20);
+
+    popupTextFont(p5);
+    p5.text(`NPC Description   
+`, rectSourceX + popupXOffset, rectSourceY + 40);
+}
+
 function drawPlayerPopupContent(hex: any, p5: p5, rectSourceX: number, popupXOffset: number, rectSourceY: number, size: number[]) {
     p5.fill('black');
     p5.stroke('white');
@@ -343,6 +358,29 @@ export function drawPopup(p5: p5) {
             drawPlayerPopupContent(hex, p5, rectSourceX, popupXOffset, rectSourceY - mediumSize[1] - 5, size);
         }
 
+
+    }  else if (GameState.npcs.find(({position}) => position.q === hex.q && position.r === hex.r)) {
+
+        const npc = GameState.npcs.find(({position}) => position.q === hex.q && position.r === hex.r);
+        if (!npc) {
+            return
+        }
+        size = largeSize;
+
+        rectSourceX = adjustPopupDirection(p5, rectSourceX, hex, size);
+
+        drawNPCPopupContent(p5, rectSourceX, rectSourceY, size, npc, popupXOffset);
+
+        size = smallSize;
+        drawTilePopupContet(p5, rectSourceX, rectSourceY + largeSize[1] + popupMargin, size, hex, popupXOffset)
+
+        // if there is a tank on the tile, show its stats
+        if (hex.tank) {
+            size = mediumSize;
+
+            rectSourceX = adjustPopupDirection(p5, rectSourceX, hex, size);
+            drawPlayerPopupContent(hex, p5, rectSourceX, popupXOffset, rectSourceY - mediumSize[1] - 5, size);
+        }
 
     } else if (GameState.dragons.find(({position}) => position.q === hex.q && position.r === hex.r)) {
 

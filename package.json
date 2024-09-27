@@ -10,7 +10,7 @@
     "start": "npm run server",
     "dev": "npm run local-server",
     "prepare": "husky install",
-	"db": "docker run --name tanks-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
+    "db": "docker run --name tanks-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
   },
   "keywords": [],
   "author": "",
@@ -39,7 +39,8 @@
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.5",
     "vite": "^4.1.1",
-    "vite-plugin-static-copy": "^0.13.0"
+    "vite-plugin-static-copy": "^0.13.0",
+    "yaml": "^2.5.1"
   },
   "devDependencies": {
     "@types/auth0": "^2.35.9",

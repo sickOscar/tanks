@@ -3,6 +3,7 @@ import {Tank} from "./models/Tank";
 import {TanksHex} from "../server/app/board";
 import {COLS, ROWS} from "../server/const";
 import {LootType} from "../server/app/lootType";
+import {Sprite} from "./models/Sprite"
 
 export interface IBuilding {
     name: string;
@@ -221,6 +222,7 @@ interface IGameState {
     actionsLocations: [q: number, r: number][],
     buildings: { type: string, position: AxialCoordinates }[],
     dragons: { position: AxialCoordinates, life: number}[],
+    npcs: { position: AxialCoordinates, life: number }[],
     loot: { position: AxialCoordinates, type: string, isActive:boolean }[],
     WIDTH: number,
     HEIGHT: number,
@@ -246,6 +248,7 @@ export const GameState: IGameState = {
     actionsLocations: [],
     buildings: [],
     dragons: [],
+    npcs: [],
     loot: [],
     WIDTH: 200,
     HEIGHT: 200,
@@ -275,6 +278,11 @@ export type Animation = {
     to?: AxialCoordinates,
 }
 
+export type SpriteSheet = {
+    sheet: any,
+    data: any,
+}
+
 interface IGameGraphics {
     maskGraphics: any,
     tiles: {[key: number]: any},
@@ -286,7 +294,13 @@ interface IGameGraphics {
     piratesImage: any,
     dragonImage: any,
     lootImage: any,
-    animations: Animation[]
+    titleBanner: any,
+    animations: any[]
+    spritesheets: Map<string, SpriteSheet>,
+    sprites: Map<any, Sprite>,
+    camera: any,
+    cloudsImages: any[],
+    clouds: any[]
 }
 
 export const GameGraphics: IGameGraphics = {
@@ -300,7 +314,13 @@ export const GameGraphics: IGameGraphics = {
     piratesImage: null,
     dragonImage: null,
     lootImage:null,
-    animations: []
+    titleBanner: null,
+    animations: [],
+    spritesheets: new Map(),
+    sprites: new Map(),
+    camera: null,
+    cloudsImages: [],
+    clouds: []
 }
 
 export const pictures: { [key: string]: any } = {};

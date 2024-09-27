@@ -1,6 +1,5 @@
 export enum FailReason {
     ICE_ARMOR,
-
     NOT_IN_JURY,
     ALREADY_VOTED,
     NOT_ENEMY,
@@ -10,4 +9,5 @@ export enum FailReason {
     INVALID_ACTION,
     OUT_OF_TIME,
     ORC_SKIN,
+    INVALID_DIALOGUE
 }

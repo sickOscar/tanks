@@ -1,5 +1,5 @@
 {
-  "domain": "codeinthedarkve.eu.auth0.com",
-  "clientId": "QQ1VymTjEz2qKeCVYVOMa54D1o0OoPao",
-  "audience": "tanksAPI"
+  "domain": "bimbum.eu.auth0.com",
+  "clientid": "9W1Y1hx61LyPHK5x89cma32QqEy3fX0T",
+  "audience": "https://bimbum.eu.auth0.com/api/v2/"
 }

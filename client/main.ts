@@ -15,12 +15,13 @@ import {
     OFFSET,
     pictures,
     States,
-    UI_WIDTH
+    UI_WIDTH,
+    SpriteSheet
 } from "./consts";
 import {drawPopup} from "./game/ui/popups";
 import {io} from "socket.io-client";
 import {createAuth0Client} from '@auth0/auth0-spa-js';
-import {drawBoard} from "./game/ui/board";
+import {drawBoard, placeClouds, drawClouds, drawTitleBanner} from "./game/ui/board";
 import MicroModal from 'micromodal';
 import {drawCursor} from './game/ui/mouse';
 import {setOnline} from "./game/ui/html-elements";
@@ -28,6 +29,7 @@ import {execAction, validateAction} from "./game/message-sender";
 import {ActionResult} from "../server/app/action-result";
 import {drawAnimations} from "./game/ui/animation";
 import {computeAnimations} from "./game/ui/diffing";
+import {Sprite} from "./models/Sprite";
 
 MicroModal.init();
 
@@ -54,17 +56,19 @@ new p5((p5) => {
     const pollResultsTable = document.querySelector('#poll-results-table') as HTMLTableElement;
     const loginButton = document.querySelector('#btn-login') as HTMLButtonElement;
     const logoutButton = document.querySelector('#btn-logout') as HTMLButtonElement;
+    const helpButton = document.querySelector('#help-button') as HTMLButtonElement;
     const actionButtons = document.querySelectorAll(`#actions  button`) as NodeListOf<HTMLButtonElement>;
     const boardContainer = document.querySelector('#board-holder') as HTMLDivElement;
     const intro = document.querySelector('#intro') as HTMLDivElement;
-    const rightSide = document.querySelector('#right-side') as HTMLDivElement;
+    const playerUi = document.querySelector('#player-ui') as HTMLDivElement;
     const guestBox = document.querySelector('#guest-box') as HTMLDivElement;
+    const gameUi = document.querySelector('#game-ui') as HTMLDivElement;
     const playerImage = document.querySelector('#player-image') as HTMLImageElement;
     const playerBox = document.querySelector('#player-box') as HTMLDivElement;
     const playerName = document.querySelector('#player-name') as HTMLDivElement;
     const playerHealth = document.querySelector('#player-health') as HTMLDivElement;
     const playerActions = document.querySelector('#player-actions') as HTMLDivElement;
-    const playerBuffs = document.querySelector('#user-buffs') as HTMLDivElement;
+    const playerBuffs = document.querySelector('#player-buffs') as HTMLDivElement;
     const playerSight = document.querySelector('#player-sight') as HTMLDivElement;
     const boardHolder = document.querySelector('#board-holder') as HTMLDivElement;
     const historyButton = document.querySelector('#history-button') as HTMLButtonElement;
@@ -125,29 +129,35 @@ new p5((p5) => {
         const response = await fetchAuthConfig();
         const config = await response.json();
 
-        auth0 = await createAuth0Client({
+
+        const auth0Config = {
             domain: config.domain,
             clientId: config.clientId,
             authorizationParams: {
                 audience: config.audience,
                 redirect_uri: window.location.origin
             }
-        });
+        }
+        console.log(auth0Config);
+
+        auth0 = await createAuth0Client(auth0Config);
     };
 
     async function updateLoginUi() {
         const isAuthenticated = await auth0.isAuthenticated();
-        // loginButton.disabled = isAuthenticated;
-        // logoutButton.disabled = !isAuthenticated;
+        loginButton.disabled = isAuthenticated;
+        logoutButton.disabled = !isAuthenticated;
 
         if (isAuthenticated) {
             boardContainer.classList.remove('hidden');
-            // rightSide.classList.remove('hidden');
-            // intro.classList.add('hidden');
+            playerUi.classList.remove('hidden');
+            intro.classList.add('hidden');
+            gameUi.classList.add('hidden');
         } else {
             boardContainer.classList.add('hidden');
-            // rightSide.classList.add('hidden');
-            // intro.classList.remove('hidden');
+            playerUi.classList.add('hidden');
+            intro.classList.remove('hidden');
+            gameUi.classList.remove('hidden');
         }
 
     }
@@ -223,7 +233,7 @@ new p5((p5) => {
         const c = await getJson('/config');
         configFetched = true;
         setupLocalGrid(c.grid);
-        console.log(`c`, c);
+        // console.log(`c`, c);
 
         GameState.WIDTH = window.innerWidth;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
@@ -244,13 +254,13 @@ new p5((p5) => {
         // drawEvents()
     }
 
-    // loginButton.addEventListener('click', () => {
-    //     auth0.loginWithRedirect();
-    // })
+    loginButton.addEventListener('click', () => {
+        auth0.loginWithRedirect();
+    })
 
-    // logoutButton.addEventListener('click', () => {
-    //     auth0.logout();
-    // })
+     logoutButton.addEventListener('click', () => {
+         auth0.logout();
+     })
 
     function connectSocket(jwt: string) {
         sio = io('', {
@@ -428,6 +438,8 @@ new p5((p5) => {
         // drawEvents();
     }
 
+
+
     function updateBoard(serverMessage: string, animated = true) {
 
         const parsedMessage = JSON.parse(serverMessage);
@@ -485,14 +497,15 @@ new p5((p5) => {
         }
 
         if (GameState.player) {
-            guestBox.classList.add('hidden');
-            playerBox.classList.remove('hidden');
+            // guestBox.classList.add('hidden');
+            // playerBox.classList.remove('hidden');
 
             if (playerImage.src !== GameState.player.picture) {
-                playerImage.src = GameState.player.picture;
+                // playerImage.src = GameState.player.picture;
+                playerImage.src = "./assets/ui/generic_profile_image.png"
             }
 
-            playerName.textContent = GameState.player.name;
+            // playerName.textContent = GameState.player.name;
             playerHealth.textContent = GameState.player.life.toString();
             playerActions.textContent = GameState.player.actions.toString();
             playerSight.textContent = GameState.player.range.toString();
@@ -502,9 +515,18 @@ new p5((p5) => {
                 const emoji = BuffsDescriptions[b].icon;
                 return `<li title="${title}">${emoji}</li>`
             }).join('');
+
+            for (let uiElement of playerUi.children) {
+                uiElement.classList.remove('hidden');
+            }
+
         } else {
             // guestBox.classList.remove('hidden');
             // playerBox.classList.add('hidden');
+
+            //for (let uiElement of playerUi.children) {
+            //    uiElement.classList.add('hidden');
+            //}
         }
 
         if (GameState.player && GameState.player.life > 0) {
@@ -552,6 +574,7 @@ new p5((p5) => {
         GameState.actionsLocations = parsedMessage.features.actionsLocations;
         GameState.buildings = parsedMessage.features.buildings;
         GameState.dragons = parsedMessage.features.dragons;
+        GameState.npcs =  parsedMessage.features.npcs;
         GameState.loot = parsedMessage.features.loot;
 
         const playersListElement = playersList
@@ -592,73 +615,129 @@ new p5((p5) => {
         GameGraphics.tiles = {
             // grass
             0: p5.loadImage('./assets/Pine_Tile0.png'), 
+            0.1: p5.loadImage('./assets/Pine_Tile0.png'),
+            0.2: p5.loadImage('./assets/Grass_Tile1.png'),
+            0.3: p5.loadImage('./assets/Bridge_Tile1.png'),
+            0.4: p5.loadImage('./assets/Pine_Tile01.png'),
+            0.5: p5.loadImage('./assets/Pine_Tile0_Village.png'),
             // sea
-            1: p5.loadImage('./assets/Water_Tile2.png'), 
+            1: p5.loadImage('./assets/Water_Tile1.png'), 
+            1.1: p5.loadImage('./assets/Water_Tile2.png'), 
+            1.2: p5.loadImage('./assets/Water_Tile3.png'), 
+            1.3: p5.loadImage('./assets/Water_Tile1_top_left.png'), 
+            1.4: p5.loadImage('./assets/Water_Tile1_top_right.png'), 
+            1.5: p5.loadImage('./assets/Water_Tile1_top.png'), 
+            1.6: p5.loadImage('./assets/Grass_Pond.png'),
+            1.7: p5.loadImage('./assets/Water_Tile3_top.png'),
             // desert
             2: p5.loadImage('./assets/Desert_Tile0.png'), 
             2.1: p5.loadImage('./assets/Desert_Tile4.png'),
             2.2: p5.loadImage('./assets/Desert_Tile10.png'),
+            2.3: p5.loadImage('./assets/Desert_Tile1.png'),
+            2.4: p5.loadImage('./assets/Desert_Tile2.png'),
+            2.5: p5.loadImage('./assets/Desert_Tile3.png'),
             // forest
             3: p5.loadImage('./assets/Pine_Tile6.png'),
+            3.1: p5.loadImage('./assets/Pine_Tile1.png'),
             // mountain
             4: p5.loadImage('./assets/Stone_Tile19.png'), 
+            4.1: p5.loadImage('./assets/Stone_Tile4.png'), // pietra 
             // swamp
-            5: p5.loadImage('./assets/swamp.png'),
+            5: p5.loadImage('./assets/Swamp_Tile0.png'), 
+            5.1: p5.loadImage('./assets/Swamp_Tile1.png'), 
+            5.2: p5.loadImage('./assets/Swamp_Tile0_top_left.png'), 
+            5.3: p5.loadImage('./assets/Swamp_Tile0_top_right.png'), 
+            5.4: p5.loadImage('./assets/Swamp_Tile0_top.png'), 
+            // 5: p5.loadImage('./assets/swamp.png'),
             // snow
             6: p5.loadImage('./assets/Snow_Tile2.png'), 
+            6.1: p5.loadImage('./assets/Snow_Tile0.png'), 
             // lava
             7: p5.loadImage('./assets/lava.png') 
         }
 
         GameGraphics.oasisImage = p5.loadImage('./assets/oasis.webp');
         GameGraphics.iceFortressImage = p5.loadImage('./assets/ice_fortress.webp');
-        GameGraphics.castleImage = p5.loadImage('./assets/castle.png');
-        GameGraphics.orcsCampImage = p5.loadImage('./assets/orc_camp.png');
+        GameGraphics.castleImage = p5.loadImage('./assets/Grass_Castle.png');
+        GameGraphics.orcsCampImage = p5.loadImage('./assets/Orcs_Tile0.png');
         GameGraphics.teleportImage = p5.loadImage('./assets/teleport.png');
         GameGraphics.piratesImage = p5.loadImage('./assets/pirates.png');
         GameGraphics.dragonImage = p5.loadImage('./assets/dragon.png');
         GameGraphics.lootImage = p5.loadImage('./assets/treasure.png');
-    }
 
+
+        GameGraphics.titleBanner = p5.loadImage('./assets/ui/Banner_Title_Write.png');
+
+        const fire: SpriteSheet = {
+            data: p5.loadJSON('./assets/spritesheets/Fire.json'),
+            sheet: p5.loadImage('./assets/spritesheets/Fire.png'),
+        }
+        GameGraphics.spritesheets.set("fire", fire)
+        const goblin: SpriteSheet = {
+            data: p5.loadJSON('./assets/spritesheets/goblin.json'),
+            sheet: p5.loadImage('./assets/spritesheets/goblin.png'),
+        }
+        GameGraphics.spritesheets.set("goblin", goblin)
+
+        GameGraphics.sprites = new Map<any, Sprite>();
+
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape4_1.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape4_2.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape4_3.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape4_4.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape4_5.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape5_1.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape5_2.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape5_3.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape5_4.png'))
+        GameGraphics.cloudsImages.push(p5.loadImage('./assets/clouds/cloud_shape5_5.png'))
+
+    }
+ 
     p5.setup = function () {
-        const canvas = p5.createCanvas(100, 100);
+        const canvas = p5.createCanvas(100, 100)
         canvas.parent('board-holder')
 
         GameGraphics.maskGraphics = p5.createGraphics(75, 75);
 
+        // GameGraphics.camera = p5.createCamera()
+        // GameGraphics.camera.setPosition(0, 0, 100);
+        // GameGraphics.camera.lookAt(0, 100, 0)
+
+        placeClouds(p5)
+        
         p5.frameRate(10)
     }
 
     p5.draw = function () {
 
-
         // handleViewport(p5);
 
         // this is soooo male
-        if (stage === Stages.HISTORY) {
-            // if history id playing
-            if (
-                p5.frameCount % 10 === 0
-                && GameState.historyState === HistoryState.RUNNING
-            ) {
-                // if is the last step, just pause
-                if (GameState.historyIndex === GameState.history.length - 1) {
-                    GameState.historyState = HistoryState.PAUSED;
-                } else {
-                    GameState.historyIndex = Math.min(GameState.historyIndex + 1, GameState.history.length - 1);
-                    updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
-                    highlightHistoryPlayer(GameState.historyIndex);
-                }
+        // if (stage === Stages.HISTORY) {
+        //     // if history id playing
+        //     if (
+        //         p5.frameCount % 10 === 0
+        //         && GameState.historyState === HistoryState.RUNNING
+        //     ) {
+        //         // if is the last step, just pause
+        //         if (GameState.historyIndex === GameState.history.length - 1) {
+        //             GameState.historyState = HistoryState.PAUSED;
+        //         } else {
+        //             GameState.historyIndex = Math.min(GameState.historyIndex + 1, GameState.history.length - 1);
+        //             updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
+        //             highlightHistoryPlayer(GameState.historyIndex);
+        //         }
 
-            }
-        } else {
-            if (GameState.history.length > 0) {
-                GameState.historyIndex = 0;
-                updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
-                highlightHistoryPlayer(GameState.historyIndex);
-            }
+        //     }
+        // } else {
+        //     if (GameState.history.length > 0) {
+        //         GameState.historyIndex = 0;
+        //         updateBoard(JSON.stringify(GameState.history[GameState.historyIndex].board));
+        //         highlightHistoryPlayer(GameState.historyIndex);
+        //     }
 
-        }
+        // }
 
 
         GameState.activePlayerHover = null;
@@ -668,20 +747,24 @@ new p5((p5) => {
             return;
         }
 
+
         drawBoard(p5);
-        drawCursor(p5);
-        drawPopup(p5);
 
         drawAnimations(p5);
+        drawClouds(p5)
 
-        p5.fill('black');
-        p5.circle(0, 0, 10)
+        drawTitleBanner(p5);
+
+        drawPopup(p5);
+        drawCursor(p5);
+        
+        p5.cursor('./assets/cursor.png'); 
 
     }
 
     p5.keyPressed = function () {
 
-        console.log(p5.keyCode)
+        // console.log(p5.keyCode)
         if (!GameState.player && p5.keyCode !== 80) {
             return;
         }
@@ -725,6 +808,50 @@ new p5((p5) => {
         }
     }
 
+    function startDialogue(hex: any) {
+        
+        GameState.currentState = "dialogue"; 
+
+        function renderDialogue(response:any) {
+            const dialogue = response.dialogue;
+            console.log("response", dialogue)
+            const text = dialogue.text;
+            const options = dialogue.options;
+
+            const dialogueContainer = document.getElementById('dialogue') as HTMLDivElement;
+            const dialogueText = dialogueContainer.querySelector('#dialogue-text') as HTMLParagraphElement;
+            const dialogueOptions = dialogueContainer.querySelector('#dialogue-options') as HTMLDivElement;
+
+            dialogueText.textContent = text;
+            for (let option of options) {
+                const optionButton = document.createElement('button');
+                optionButton.textContent = option.text;
+                optionButton.addEventListener('click', () => {
+                    console.log("choose answer", option)
+                    const payload = {
+                        ...hex,
+                        choice: option.id
+                    }
+                    execAction(sio, payload)
+                        .then(renderDialogue)
+                })
+                dialogueOptions.appendChild(optionButton);
+            }
+
+        }
+
+        MicroModal.show('dialogue', {
+            onShow: () => {
+                GameState.hasFocus = false;
+                execAction(sio, hex)
+                    .then(renderDialogue)
+            },
+            onClose: () => {
+                GameState.hasFocus = true;
+            }
+        });
+    }
+
     p5.mouseClicked = function () {
 
         const boardHolderSize = boardHolder.getBoundingClientRect();
@@ -743,8 +870,19 @@ new p5((p5) => {
                 {x: p5.mouseX - OFFSET.X, y: p5.mouseY - OFFSET.Y},
                 {allowOutside: false}
             );
+
+            const npc = GameState.npcs.find(npc => {
+                return npc.position.q === hex!.q && hex!.r === npc.position.r;
+            });
+
+            if (npc) {
+                if (GameState.localGrid!.distance(GameState.player!.position, npc.position) <= 1) {
+                    startDialogue(hex)
+                }
+            }
+             
             if (hex) {
-                return;
+                return
             }
         }
 
@@ -753,6 +891,7 @@ new p5((p5) => {
             {allowOutside: false}
         );
         if (hex) {
+
 
             if (GameState.currentState !== States.SHOOT) {
                 execAction(sio, hex)

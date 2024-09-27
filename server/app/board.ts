@@ -5,7 +5,9 @@ import db from "../db";
 import {AxialCoordinates, defineHex, Grid, rectangle, spiral} from "honeycomb-grid";
 import {Game} from "./game";
 import {Dragon} from "./Dragon";
+import {NPC} from "./NPC";
 import {Loot} from "./loot";
+import {Dialogue} from "./dialogue/Dialogue";
 
 export enum TileType {
     PLAINS = 0,
@@ -177,6 +179,9 @@ export class Board {
             if (this.game.hasBuildingOn(q, r)) {
                 return pick()
             }
+            if (this.game.hasNPCOn(q, r)) {
+                return pick()
+            }
             return {q, r}
         }
 
@@ -189,18 +194,18 @@ export class Board {
         if (!hex) {
             return false;
         }
-        return WALKABLE_TILES.some((tile) => tile === hex.tile);
+        return WALKABLE_TILES.some((tile) => tile === Math.trunc(hex.tile));
     }
 
     isInRange(source: AxialCoordinates, destination: AxialCoordinates, range: number, isShooting = false) {
         let finalRange = range;
         if (isShooting) {
-            if (this.getTileAt(source.q, source.r) === TileType.MOUNTAIN) {
+            if (Math.trunc(this.getTileAt(source.q, source.r) as number) === TileType.MOUNTAIN) {
                 finalRange += 1;
             }
             if (
-                this.getTileAt(source.q, source.r) === TileType.FOREST
-                || this.getTileAt(destination.q, destination.r) === TileType.FOREST
+                Math.trunc(this.getTileAt(source.q, source.r) as number) === TileType.FOREST
+                || Math.trunc(this.getTileAt(destination.q, destination.r) as number) === TileType.FOREST
             ) {
                 finalRange -= 1;
             }
@@ -256,6 +261,22 @@ export class Board {
         // await db.query('COMMIT');
     }
 
+    getDialogueNearby(q: number, r: number): Dialogue|null {
+        // check  all ajacent hexes forbuildings
+        const hexes = this.board.traverse(spiral<TanksHex>({start: {q, r}, radius: 1}), {});
+        const hexesToCheck:any[] = [];
+        hexes.forEach((hex) => {
+            if (this.game.hasNPCOn(hex.q, hex.r)) {
+                hexesToCheck.push(hex);
+            }
+        })
+        console.log(`hexesToCheck`, hexesToCheck)
+        if (hexesToCheck.length === 0) {
+            return null
+        }
+        return new Dialogue(hexesToCheck[0].dialogue);
+    }
+
     clearCell(q: number, r: number): void {
         this.board.getHex({q, r})!.tank = null;
     }
@@ -274,6 +295,7 @@ export class Board {
     serialize(): string {
         const clone = this.board.toJSON();
         // console.log('dragons to serialize', this.game.dragons)
+        //console.log('npcs to serialize', this.game.npcs)
         return JSON.stringify({
             features: {
                 heartsLocations: this.game.heartsLocations.map((heartPos: AxialCoordinates) => {
@@ -285,6 +307,9 @@ export class Board {
                 buildings: this.game.buildings,
                 dragons: this.game.dragons.map((d:Dragon) => {
                     return d.serialize()
+                }),
+                npcs: this.game.npcs.map((n:NPC) => {
+                    return n.serialize()
                 }),
                 loot: this.game.loot.map((l:Loot) => {
                     return l.serialize()

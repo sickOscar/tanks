@@ -16,17 +16,19 @@ import db, {prepareDb} from "./db";
 import {schedule} from 'node-cron';
 import {PlayerActions} from "./app/playerActions";
 import {serializeActionResult} from "./app/action-result";
+import {Dialogue} from "./app/dialogue/Dialogue";
 
 const assert = require('assert');
 
 type EventType = 'VALIDATE' | 'EXECUTE';
 
-const LOCAL_DEV_DISTRIBUTION_INTERVAl = 1000000;
+const LOCAL_DEV_DISTRIBUTION_INTERVAl =  1000000
 
 async function init() {
 
     const game = new Game();
     await game.loadActive();
+    await Dialogue.setupDialogues();
 
     console.log('Game loaded');
     assert(process.env.ACTION_CRON_EXPRESSION, 'ENV MISSING: ACTION_CRON_EXPRESSION')
@@ -34,77 +36,77 @@ async function init() {
 
     const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
 
-//     if (process.env.LOCAL_ENV) {
-//         console.log('LOCAL ENVIRONMENT');
-//         setInterval(async () => {
-//             try {
-//                 await game.distributeActions();
-//                 // await game.dropHeart();
-//                 // await game.dropAction();
-//
-// //             game.sendMessageToChat(`
-// // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-// //
-// // *Eroi! Avete una nuova azione da utilizzare!*
-// //
-// // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-// //  `, 'action fight')
-//                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//
-//                 // ODDIO UN GENERATOR
-//                 const generator = game.moveDragons();
-//
-//                 while (generator.next().done === false) {
-//                     io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//                     await new Promise(resolve => setTimeout(resolve, 500));
-//                 }
-//
-//                 // add burned hexes arounf dragons
-//                 await game.addBurnedHexesAroundDragons();
-//                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//
-//             } catch (err) {
-//                 console.log(`err`, err)
-//                 console.log('Failed to distribute actions')
-//             }
-//         }, LOCAL_DEV_DISTRIBUTION_INTERVAl)
-//     } else {
-//         console.log('PRODUCTION ENVIRONMENT');
-//         schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
-//             setTimeout(async () => {
-//                 try {
-//                     await game.distributeActions();
-//                     await game.dropHeart();
-//                     await game.dropAction();
-//                     game.sendMessageToChat(`
-// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-//
-// *E' TEMPO DI AZIONE!*
-//
-// 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
-// `, 'action')
-//                     io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//
-//                     // ODDIO UN GENERATOR
-//                     const generator = game.moveDragons();
-//
-//                     while (generator.next().done === false) {
-//                         io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//                         await new Promise(resolve => setTimeout(resolve, 500));
-//                     }
-//
-//                     // add burned hexes arounf dragons
-//                     await game.addBurnedHexesAroundDragons();
-//                     io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-//                 } catch (err) {
-//                     console.log(`err`, err)
-//                     console.log('Failed to distribute actions')
-//                 }
-//
-//             }, Math.round(Math.random()* actionTimeoutDelay))
-//
-//         })
-//     }
+     if (process.env.LOCAL_ENV) {
+         console.log('LOCAL ENVIRONMENT');
+         setInterval(async () => {
+             try {
+                 await game.distributeActions();
+                 // await game.dropHeart();
+                 // await game.dropAction();
+
+ //             game.sendMessageToChat(`
+ // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+ //
+ // *Eroi! Avete una nuova azione da utilizzare!*
+ //
+ // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+ //  `, 'action fight')
+                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+
+                 // ODDIO UN GENERATOR
+                 const generator = game.moveDragons();
+
+                 while (generator.next().done === false) {
+                     io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+                     await new Promise(resolve => setTimeout(resolve, 500));
+                 }
+
+                 // add burned hexes arounf dragons
+                 await game.addBurnedHexesAroundDragons();
+                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+
+             } catch (err) {
+                 console.log(`err`, err)
+                 console.log('Failed to distribute actions')
+             }
+         }, LOCAL_DEV_DISTRIBUTION_INTERVAl)
+     } else {
+         // console.log('PRODUCTION ENVIRONMENT');
+         // schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
+         //     setTimeout(async () => {
+         //         try {
+         //             await game.distributeActions();
+         //             await game.dropHeart();
+         //             await game.dropAction();
+         //             game.sendMessageToChat(`
+ // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+
+ // *E' TEMPO DI AZIONE!*
+
+ // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+ // `, 'action')
+         //             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+
+         //             // ODDIO UN GENERATOR
+         //             const generator = game.moveDragons();
+
+         //             while (generator.next().done === false) {
+         //                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+         //                 await new Promise(resolve => setTimeout(resolve, 500));
+         //             }
+
+         //             // add burned hexes arounf dragons
+         //             await game.addBurnedHexesAroundDragons();
+         //             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+         //         } catch (err) {
+         //             console.log(`err`, err)
+         //             console.log('Failed to distribute actions')
+         //         }
+
+         //     }, Math.round(Math.random()* actionTimeoutDelay))
+
+         // })
+     }
 
     console.log('Create server');
 
@@ -169,6 +171,15 @@ async function init() {
                         return;
                     }
 
+                    if (actionString  === PlayerActions.DIALOGUE) {
+                        const dialogue = game.board.getDialogueNearby(payload.q, payload.r)
+                        console.log("payload", payload)
+                        const res = await Dialogue.for(dialogue, payload);
+                        console.log("res", res)
+                        callback(res)
+                        return;
+                    }
+
                     if (payload && payload.q !== undefined && payload.r !== undefined) {
                         action.destination = {q: payload.q, r: payload.r}
                     }
@@ -199,6 +210,7 @@ async function init() {
                         socket.broadcast.emit(MessageTypes.ACTION, event);
                     }
                 })
+
             } else if (game.isInJury(player)) {
                 // DO NOTHING REAL TIME
             } else {

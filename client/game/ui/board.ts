@@ -5,12 +5,19 @@ import {
     HEX_TOP_TRIANGLE_HEIGHT,
     HEX_WIDTH,
     States,
-    OFFSET
+    OFFSET,
 } from "../../consts";
 import {TanksHex} from "../../../server/app/board";
 import {drawPlayer} from "./player";
 import p5 from "p5";
 import {isInRange, isWalkable} from "../../utils";
+import {setupSpritesheet} from "./animation"
+import {Cloud, CloudDirection} from "../../models/Cloud";
+
+export function drawTitleBanner(p5:p5) {
+    p5.imageMode(p5.CENTER);
+    p5.image(GameGraphics.titleBanner, p5.width / 2, 70);
+}
 
 export function drawBoard(p5: p5) {
     p5.noFill();
@@ -20,10 +27,65 @@ export function drawBoard(p5: p5) {
     });
 }
 
+export function placeClouds(p5:p5) {
+    let cloudsNum = 10;
+    let topStaticClouds = 15;
+    let bottomStaticClouds = 15;
+    for (let i = 0; i < cloudsNum; i++) {
+        let cloud = placeCloud(p5);
+        GameGraphics.clouds[i] = cloud;
+    }
+    for (let i = 0; i < topStaticClouds; i++) {
+        let cloud = placeCloud(
+            p5, 
+            p5.map(i, 0, topStaticClouds, 0, HEX_WIDTH * 20) + p5.random(-40, 40),
+            p5.random(0, 60),
+            0
+        )
+        GameGraphics.clouds[cloudsNum + i] = cloud;
+    }
+    for (let i = 0; i < bottomStaticClouds; i++) {
+        let cloud = placeCloud(
+            p5, 
+            p5.map(i, 0, topStaticClouds, 0, HEX_WIDTH * 20) + p5.random(-40, 40),
+            p5.random(1700, 1750),
+            0
+        )
+        GameGraphics.clouds[cloudsNum + topStaticClouds +  i] = cloud;
+    }
+     
+}
+
+function placeCloud(p5:p5, x?:number, y?:number, speed?:number) {
+    let randomCloudIndex = p5.floor(p5.random(0, GameGraphics.cloudsImages.length))
+    let cloud = new Cloud(
+        GameGraphics.cloudsImages[randomCloudIndex],
+        x != undefined ? x : p5.random(0, HEX_WIDTH * 20),
+        y != undefined ? y : p5.random(0, 1499),
+        speed != undefined ? speed : p5.random(0.01, 0.2),
+        CloudDirection.LEFT
+    )        
+    return cloud
+}
+
+export function drawClouds(p5: p5) {
+    for (let i = 0; i < GameGraphics.clouds.length; i++) {
+        let cloud = GameGraphics.clouds[i];
+        cloud.move();
+        p5.image(
+            cloud.image, 
+            cloud.x,
+            cloud.y, 
+       ) 
+    }
+}
+
 function drawCell(p5: p5, hex: TanksHex) {
     p5.stroke('white')
 
     drawEmptyCell(p5, hex);
+
+    p5.imageMode(p5.CORNER);
 
     if (!hex.tank) {
 
@@ -62,6 +124,16 @@ function drawCell(p5: p5, hex: TanksHex) {
                 drawDragon(p5, hex);
             }
         }
+
+        if (GameState.npcs) {
+            const hasNPC = GameState.npcs.find(npc => {
+                return npc.position.q === hex.q && npc.position.r === hex.r
+            })
+            if (hasNPC) {
+                drawNPC(p5, hex);
+            }
+        }
+
 
 
         if (GameState.loot) {
@@ -106,6 +178,7 @@ function drawEmptyCell(p5: p5, hex: TanksHex) {
     p5.strokeWeight(2);
     p5.stroke('rgba(243,235,173,0.5)');
     // p5.noStroke();
+    p5.imageMode(p5.CORNER);
 
     const [...corners] = hex.corners;
 
@@ -206,6 +279,18 @@ function drawDragon(p5: p5, hex: TanksHex) {
     );
 }
 
+function drawNPC(p5: p5, hex: TanksHex) {
+    const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.dragonImage)
+    p5.image(
+        GameGraphics.dragonImage,
+        centerX,
+        centerY,
+        imageWidth,
+        imageHeight
+    );
+}
+
+
 function drawLoot(p5: p5, hex: TanksHex) {
     const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.lootImage)
     p5.image(
@@ -266,7 +351,23 @@ function drawBuilding(p5: p5, hex: TanksHex, building: any) {
                 imageWidth,
                 imageHeight
             );
-            break;
+            let goblinSprite = GameGraphics.sprites.get(hex);
+            if (goblinSprite) {
+                // just animate
+                goblinSprite.animate(p5)
+            } else {
+                // place and animate
+                const goblinSpritesheet = GameGraphics.spritesheets.get("goblin")
+                if (!goblinSpritesheet) {
+                    break;
+                } 
+                goblinSprite = setupSpritesheet(goblinSpritesheet);
+
+                GameGraphics.sprites.set(hex, goblinSprite)
+                goblinSprite.place(centerX, centerY + 25, 110, 100, true);
+                goblinSprite.animate(p5);
+            } 
+            break
         }
 
         case 'TELEPORT': {
@@ -278,6 +379,22 @@ function drawBuilding(p5: p5, hex: TanksHex, building: any) {
                 imageWidth,
                 imageHeight
             );
+            let fireSprite = GameGraphics.sprites.get(hex);
+            if (fireSprite) {
+                // just animate
+                fireSprite.animate(p5)
+            } else {
+                // place and animate
+                const fireSpritesheet = GameGraphics.spritesheets.get("fire")
+                if (!fireSpritesheet) {
+                    break;
+                } 
+                fireSprite = setupSpritesheet(fireSpritesheet);
+
+                GameGraphics.sprites.set(hex, fireSprite)
+                fireSprite.place(centerX + 8, centerY + 8, 60, 60, true);
+                fireSprite.animate(p5);
+            } 
             break
         }
 

@@ -1,6 +1,19 @@
-import {GameGraphics, GameState, Animation, OFFSET, HEX_WIDTH, HEX_HEIGHT} from "../../consts";
+import {GameGraphics, GameState, Animation, OFFSET, HEX_WIDTH, HEX_HEIGHT, SpriteSheet} from "../../consts";
 import p5 from "p5";
 import {AnimationType} from "./diffing";
+import {Sprite} from "../../models/Sprite"
+
+
+export function setupSpritesheet(spriteSheet: SpriteSheet) {
+    let animation = [];
+    let frames = spriteSheet.data.frames;
+    for (let i = 0; i < frames.length; i++) {
+        let pos = frames[i].position;
+        let img = spriteSheet.sheet.get(pos.x, pos.y, pos.w, pos.h);
+        animation.push(img);
+    }
+    return new Sprite(animation)
+}
 
 export function clearAnimations() {
     // clean ended animations
@@ -10,7 +23,6 @@ export function clearAnimations() {
 }
 
 export function drawAnimations(p5:p5) {
-
 
     // console.log('animations', GameGraphics.animations);
     // draw animations

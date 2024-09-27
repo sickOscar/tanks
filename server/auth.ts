@@ -13,8 +13,16 @@ export const checkJwt = auth({
 });
 
 const jwksClient1 = jwksClient({
-    jwksUri: 'https://codeinthedarkve.eu.auth0.com/.well-known/jwks.json'
+    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
 })
+
+const authPayload = {
+    domain: process.env.AUTH0_DOMAIN || '',
+    clientId: process.env.AUTH0_CLIENT_ID || '',
+    clientSecret: process.env.AUTH0_MANAGEMENT_SECRET,
+    scope: 'read:users'
+}
+const management = new ManagementClient(authPayload);
 
 export function authIoMiddleware() {
     return authorize({
@@ -25,16 +33,10 @@ export function authIoMiddleware() {
         algorithms: ['RS256'],
         onAuthentication: async decodedToken => {
 
-            // fetch user from aut0
-            const management = new ManagementClient({
-                domain: 'codeinthedarkve.eu.auth0.com',
-                clientId: '4dCf4ApFWyusJBIylSltVO4ECa33BlEg',
-                clientSecret: process.env.AUTH0_MANAGEMENT_SECRET,
-                scope: 'read:users',
-            });
-            return await management.getUser({
+            const user = await management.getUser({
                 id: decodedToken.sub
             })
+            return user;
         }
     })
 }

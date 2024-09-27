@@ -6,6 +6,7 @@ import axios from "axios";
 import {AxialCoordinates} from "honeycomb-grid";
 import {GAME_MAP, DEFAULT_BUILDINGS} from "../const";
 import {Dragon} from "./Dragon";
+import {NPC} from "./NPC";
 import {Loot} from "./loot";
 import {LootType} from "./lootType";
 
@@ -20,6 +21,7 @@ interface GameState {
     actionsLocations: AxialCoordinates[];
     buildings: Building[];
     dragons: Dragon[];
+    npcs: NPC[];
     loot: Loot[];
 }
 
@@ -33,6 +35,7 @@ export class Game {
         actionsLocations: [],
         buildings: DEFAULT_BUILDINGS,
         dragons: [],
+        npcs: [],
         loot: []
     };
 
@@ -156,6 +159,8 @@ export class Game {
         //     await this.board.burnAt(randomAdjacent2.q, randomAdjacent2.r)
         //         .catch(err => console.log(err))
         // }
+        
+
         await this.board.updateOnDb();
     }
 
@@ -240,6 +245,33 @@ export class Game {
             console.log(`this.state.buildings`, this.state.buildings)
 
         }
+
+        
+        if (dbBoard.features.npcs && dbBoard.features.npcs.length > 0) {
+            // load npcs from database
+            console.log(`npcs found, loading...`)
+            this.state.npcs = dbBoard.features.npcs.map((npc: any) => {
+                return new NPC(this, npc);
+            })
+            firstTime = true;
+        } else {
+            // create npcs
+            console.log(`No npcs found, creating new ones...`)
+            const npcs = [];
+            const npcCoords = [
+                {q: 8, r: 10, dialogue: 'MERCHANT'}
+            ]
+            for (let i = 0; i < npcCoords.length; i++) {
+                console.log("i " + i,  npcCoords[i])
+                let npc = await NPC.create(this, {
+                    ...npcCoords[i],
+                }, npcCoords[i].dialogue);
+                npcs.push(npc);
+            }
+            this.state.npcs = npcs;
+            firstTime = true;
+        }
+
 
         // if (dbBoard.features.dragons && dbBoard.features.dragons.length > 0) {
         //     // load dragons from database
@@ -557,6 +589,14 @@ export class Game {
         })
     }
 
+    hasNPCOn(x: number, y: number): boolean {
+        return (
+            !!this.npcs.find((npc: NPC) => {
+                return npc.position.q === x && npc.position.r === y;
+            })
+        )
+    }
+
     get heartsLocations(): AxialCoordinates[] {
         return this.state.heartsLocations;
     }
@@ -571,6 +611,10 @@ export class Game {
 
     get buildings(): Building[] {
         return this.state.buildings;
+    }
+
+    get npcs(): NPC[] {
+        return this.state.npcs
     }
 
     get dragons(): Dragon[] {

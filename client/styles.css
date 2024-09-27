@@ -1,52 +1,44 @@
 @import "modal.css";
-@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nothing+You+Could+Do&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 
-@font-face {
-    font-family: 'Sketch Gothic School';
-    src: url('./assets/Sketch Gothic School.ttf');
-}
-
 * {
     box-sizing: border-box;
 }
 
 body {
-    font-family: 'Indie Flower', sans-serif;
+    font-family: 'Nothing You Could Do', cursive;
     background-color: #e8d5b7;
     background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
     background-position-y: -10px;
 }
 
-.image-border {
-    border-image-source: url('/assets/border.webp');
-    border-image-slice: 25;
-    border-image-repeat: round;
-    border-style: inset;
-    border-width: 20px;
-}
-
-#right-side {
-    width: 350px;
-}
-
-.title {
-    font-family: 'Sketch Gothic School', sans-serif;
-}
-
-h1, h2 {
-    font-family: 'Sketch Gothic School', sans-serif;
-}
-
 .player-picture {
+	position: relative;
+	top: 0px;
+	left: 4px;
     width: 100px;
     height: 100px;
-    margin-right: 15px;
 }
+
+#player-image {
+	padding: 4px;
+}
+
+.image-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url('/assets/ui/overlay.png');
+	background-size: cover;
+}
+
 
 .paper-background {
     background-image: url('/assets/paper.png');
@@ -57,18 +49,21 @@ h1, h2 {
     padding-left: 20px;
 }
 
-#actions button {
-    display: block;
-    width: 50%;
-    padding: 5px 0;
-    font-weight: bold;
-    background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
+#actions button, #game-ui button {
+	background-image: url('/assets/ui/Button_Blue_9Slides.png');
+	background-size: cover;
+	display:flex;
+	justify-content: center;
+	align-items: center;
+	height: 62px;
+	width: 62px;
+	font-size: 32px;
 }
 
 #actions button span {
-    font-size: 2em;
-    display: block;
 }
+
+
 
 .counters-background:after {
     position: relative;
@@ -277,4 +272,21 @@ button:disabled {
     width: 100px;
     height: 100px;
     border: 2px solid darkred;
+}
+
+
+.left-banner {
+	background-image: url('/assets/ui/Banner_Short_Left.png');
+	background-size: cover;
+	display: flex;
+	flex-direction: row;
+	font-size: 32px;
+	width: 100px;
+	height: 70px;
+	padding-left: 10px;
+}
+.left-banner .value {
+	margin-left: 15px;
+	color: white;
+	font-size: 45px;
 }

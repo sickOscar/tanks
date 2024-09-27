@@ -8,10 +8,16 @@ export function isInRange(destinationCell:AxialCoordinates, startingCell:AxialCo
     if (shooting) {
         const startingTile = GameState.localGrid?.getHex({q: startingCell.q, r: startingCell.r})?.tile;
         const destinationTile = GameState.localGrid?.getHex({q: destinationCell.q, r: destinationCell.r})?.tile;
-        if (startingTile === 4) {
+
+        if (!startingTile || !destinationTile) {
+            console.warn('Tile not found');
+            return false;
+        }
+
+        if (Math.trunc(startingTile) === 4) {
             finalRange = range + 1;
         }
-        if (startingTile === 3 || destinationTile === 3) {
+        if (Math.trunc(startingTile) === 3 || Math.trunc(destinationTile) === 3) {
             finalRange = range - 1;
         }
     }
@@ -19,7 +25,7 @@ export function isInRange(destinationCell:AxialCoordinates, startingCell:AxialCo
 }
 
 export function isWalkable(hex:TanksHex) {
-    return walkableTiles.includes(hex.tile);
+    return walkableTiles.includes(Math.trunc(hex.tile));
 }
 
 export function resetFont(p5:p5) {
