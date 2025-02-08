@@ -17,12 +17,14 @@ import {schedule} from 'node-cron';
 import {PlayerActions} from "./app/playerActions";
 import {serializeActionResult} from "./app/action-result";
 import {Dialogue} from "./app/dialogue/Dialogue";
+import {PlayerEventPayload} from "./app/models/PlayerEventPayload";
 
 const assert = require('assert');
 
 type EventType = 'VALIDATE' | 'EXECUTE';
 
 const LOCAL_DEV_DISTRIBUTION_INTERVAl =  1000000
+
 
 async function init() {
 
@@ -150,7 +152,7 @@ async function init() {
             if (game.isAlive(player)) {
                 tank = game.getPlayerTank(player) as Tank;
                 socket.emit(MessageTypes.PLAYER, tank.id)
-                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload, type: EventType, callback) => {
+                socket.on(MessageTypes.PLAYER_EVENT, async (actionString, payload:PlayerEventPayload, type: EventType, callback) => {
 
                     const action: Action = {
                         created_at: new Date(),
@@ -174,7 +176,7 @@ async function init() {
                     if (actionString  === PlayerActions.DIALOGUE) {
                         const dialogue = game.board.getDialogueNearby(payload.q, payload.r)
                         console.log("payload", payload)
-                        const res = await Dialogue.for(dialogue, payload);
+                        const res = await Dialogue.for(dialogue, payload.dialogueChoice);
                         console.log("res", res)
                         callback(res)
                         return;
@@ -185,7 +187,9 @@ async function init() {
                     }
 
                     if (actionString === PlayerActions.VOTE) {
-                        action.enemy = game.getPlayerTank({id: payload} as Player)
+                        // @ts-ignore
+                        const voteFor = payload as string;
+                        action.enemy = game.getPlayerTank({id: voteFor} as Player)
                     }
 
                     const actionApplied = await tank.applyAction(action, type === 'VALIDATE');

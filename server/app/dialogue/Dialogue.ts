@@ -1,31 +1,37 @@
 import {DialogueNode} from './DialogueNode';
 import {FailReason} from '../fail-reason';
+import fs from 'node:fs';
+import yaml from 'yaml';
+
+const assert = require('node:assert');
+
+
 
 export class Dialogue {
 
     static dialogues: any = {
         "MERCHANT": {
-            "1": {
+            "0": {
                 text: "Ciao",
                 options: [{
                     text: "Si",
-                    node: "2"
+                    node: "3"
                 }, {
                     text: "No",
-                    node: "3"
+                    node: "2"
+                }]
+            },
+            "1": {
+                text: "OK",
+                options: [{
+                    text: "Bye",
                 }]
             },
             "2": {
-                text: "OK",
-                options: {
-                    text: "Bye",
-                }
-            },
-            "3": {
                 text: "FOOOOOO",
-                options: {
+                options: [{
                     text: "Bye",
-                }
+                }]
             },
         }
         
@@ -37,10 +43,14 @@ export class Dialogue {
         this.id = id;
     }
 
-    getNode(dialogue:Dialogue, choice:string):DialogueNode|null {
+    getNode(dialogue:Dialogue, choice:string|undefined):DialogueNode|null {
         const d = Dialogue.dialogues[dialogue.id];
         if (!d) {
             return null;
+        }
+        // se non viene passata una scelta, torna root node
+        if (!choice) {
+            return d["start"]; 
         }
         if (!d[choice]) {
             return null;
@@ -48,7 +58,10 @@ export class Dialogue {
         return d[choice];
     }
 
-    static for(dialogue: Dialogue|null, choice:string):Promise<any> {
+    static for(dialogue: Dialogue|null, choice:string|undefined):Promise<any> {
+
+        console.log("dialogue", dialogue)
+        console.log("choice", choice)
 
         if (!dialogue) {
             return Promise.resolve({
@@ -79,7 +92,22 @@ export class Dialogue {
 
     static setupDialogues():Promise<boolean> {
 
+        console.log("setupDialogues")
+
+        fs.readdirSync('dialogues').forEach(file => {
+
+            const dialogueName = file.split('.')[0];
+
+            const content = fs.readFileSync(`dialogues/${file}`, 'utf8');
+            const parsedContent = yaml.parse(content);
+
+            Dialogue.dialogues[dialogueName] = parsedContent;
+
+        });
+
+
         return Promise.resolve(true); 
+        
 
     }
 }

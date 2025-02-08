@@ -150,14 +150,14 @@ new p5((p5) => {
 
         if (isAuthenticated) {
             boardContainer.classList.remove('hidden');
-            playerUi.classList.remove('hidden');
+            //playerUi.classList.remove('hidden');
             intro.classList.add('hidden');
-            gameUi.classList.add('hidden');
+            gameUi.classList.remove('hidden');
         } else {
             boardContainer.classList.add('hidden');
             playerUi.classList.add('hidden');
             intro.classList.remove('hidden');
-            gameUi.classList.remove('hidden');
+            gameUi.classList.add('hidden');
         }
 
     }
@@ -499,10 +499,11 @@ new p5((p5) => {
         if (GameState.player) {
             // guestBox.classList.add('hidden');
             // playerBox.classList.remove('hidden');
+            playerUi.classList.remove('hidden');
 
             if (playerImage.src !== GameState.player.picture) {
-                // playerImage.src = GameState.player.picture;
-                playerImage.src = "./assets/ui/generic_profile_image.png"
+                playerImage.src = GameState.player.picture;
+                //playerImage.src = "./assets/ui/generic_profile_image.png"
             }
 
             // playerName.textContent = GameState.player.name;
@@ -583,6 +584,7 @@ new p5((p5) => {
             .sort((a, b) => {
                 const surA = a.name.split(' ')[1];
                 const surB = b.name.split(' ')[1];
+
                 return surA.localeCompare(surB);
             })
             .map(p => `
@@ -598,6 +600,7 @@ new p5((p5) => {
     function setPlayer(id: string) {
         GameState.playerId = id;
     }
+
 
 
     async function getJson(url: string): Promise<any> {
@@ -822,21 +825,54 @@ new p5((p5) => {
             const dialogueText = dialogueContainer.querySelector('#dialogue-text') as HTMLParagraphElement;
             const dialogueOptions = dialogueContainer.querySelector('#dialogue-options') as HTMLDivElement;
 
-            dialogueText.textContent = text;
-            for (let option of options) {
-                const optionButton = document.createElement('button');
-                optionButton.textContent = option.text;
-                optionButton.addEventListener('click', () => {
-                    console.log("choose answer", option)
-                    const payload = {
-                        ...hex,
-                        choice: option.id
-                    }
-                    execAction(sio, payload)
-                        .then(renderDialogue)
-                })
-                dialogueOptions.appendChild(optionButton);
+            dialogueText.textContent = "" 
+            dialogueOptions.innerHTML = '';
+
+            function typeWriter(text: string, i: number, callback:Function) {
+                if (i < text.length) {
+                    dialogueText.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(() => {
+                        typeWriter(text, i, callback);
+                    }, 10);
+                } else {
+                    callback(); 
+                }
             }
+
+            typeWriter(text, 0, () => {
+                if (!options) {
+                    console.log("no options")
+                    const optionButton = document.createElement('button');
+                    optionButton.textContent = "Addio";
+                    optionButton.addEventListener('click', () => {
+                        const payload = {
+                            ...hex,
+                            dialogueChoice: options.next
+                        }
+                        execAction(sio, payload)
+                            .then(renderDialogue)
+                    })
+                    dialogueOptions.appendChild(optionButton);
+                } else {
+                    for (let option of options) {
+                        const optionButton = document.createElement('button'); optionButton.textContent = option.text;
+                        optionButton.addEventListener('click', () => {
+                            console.log("choose answer", option)
+                            const payload = {
+                                ...hex,
+                                dialogueChoice: option.next
+                            }
+                            execAction(sio, payload)
+                                .then(renderDialogue)
+                        })
+                        dialogueOptions.appendChild(optionButton);
+                    }
+                }
+            });
+
+
+
 
         }
 
@@ -852,9 +888,22 @@ new p5((p5) => {
         });
     }
 
-    p5.mouseClicked = function () {
+    p5.mouseClicked = function (event:MouseEvent) {
 
         const boardHolderSize = boardHolder.getBoundingClientRect();
+
+        if (
+            // left sidebar
+            (event.clientX < 90 && event.clientY < 400)
+            // top sidebar
+            || (event.clientY < 90 && event.clientX < 400)
+            // right bottom
+            || (event.clientX > window.innerWidth - 90 && event.clientY > window.innerHeight - 200)
+            ) {
+            console.log("not traced")
+            return;
+        }
+
 
         // check if the click is inside the boardHolder
         if (p5.mouseX - boardHolder.scrollLeft > boardHolderSize.width) {
@@ -872,7 +921,7 @@ new p5((p5) => {
             );
 
             const npc = GameState.npcs.find(npc => {
-                return npc.position.q === hex!.q && hex!.r === npc.position.r;
+                return hex && npc.position.q === hex!.q && hex!.r === npc.position.r;
             });
 
             if (npc) {
@@ -884,6 +933,7 @@ new p5((p5) => {
             if (hex) {
                 return
             }
+
         }
 
         const hex = GameState.localGrid!.pointToHex(

@@ -16,11 +16,18 @@ export function validateAction(sio: any, hex: TanksHex):Promise<boolean> {
 
     })
 
-
 }
 
-export function execAction(sio:any, hex:any|null, forcedState?:string):Promise<ActionResult> {
-    return new Promise((resolve, reject) => {
+type ExecActionPayload = {
+    q: number;
+    r: number;
+    dialogueChoice?: string;
+    tank?: any;
+    tile: number;
+} | null | string;
+
+export function execAction(sio:any, hex:ExecActionPayload, forcedState?:string):Promise<ActionResult> {
+    return new Promise((resolve) => {
         sio.emit('playerevent', forcedState || GameState.currentState, hex, 'EXECUTE', (actionResult: ActionResult) => {
             resolve(actionResult)
         });

@@ -597,6 +597,12 @@ export class Game {
         )
     }
 
+    getNPCAt(x: number, y: number): NPC | undefined {
+        return this.npcs.find((npc: NPC) => {
+            return npc.position.q === x && npc.position.r === y;
+        })
+    }
+
     get heartsLocations(): AxialCoordinates[] {
         return this.state.heartsLocations;
     }

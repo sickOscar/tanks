@@ -1,6 +1,5 @@
 /**************************\
-  Basic Modal Styles
-\**************************/
+  Basic Modal Styles \**************************/
 
 
 .modal__overlay {
@@ -113,7 +112,9 @@
     color: #fff;
 }
 
-
+#dialogue-options button {
+	display: block;
+}
 
 /**************************\
   Demo Animation Style
@@ -166,3 +167,5 @@
 .micromodal-slide .modal__overlay {
     will-change: transform;
 }
+
+

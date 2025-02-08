@@ -5,18 +5,6 @@
 	</head>
 	<body>
 
-		<div class="flex hidden">
-			<div class="flex align-items-center">
-				<div class="" href="#">
-					<h1 class="title text-4xl pb-0">Cortei e Spade: non fidarti di nessuno</h1>
-				</div>
-				<button class="font-bold ml-8"
-					data-micromodal-trigger="rules-modal">
-					📜 REGOLE
-				</button>
-			</div>
-		</div>
-
 
 		<main role="main" class="h-full w-full">
 
@@ -28,7 +16,7 @@
 
 					<div id="intro" class="hidden w-full flex flex-col justify-center items-center">
 
-						<img class="w-[400px]" src="/assets/ui/Banner_Title_Write.png" alt="cover">
+						<img class="w-[400px]" src="/assets/ui/Banner_Title_Write.png" alt="Corte e Spade: non fidarti di nessuno">
 						<p class="mt-7 text-center">
 							<button id="btn-login" disabled="true">
 								ENTRA
@@ -40,7 +28,7 @@
 					<div id="board-holder" class="hidden flex justify-center overflow-scroll h-full w-full"></div>
 
 					<div id="player-ui" class="hidden">
-						<div class="hidden fixed left-[120px] top-0">
+						<div class="fixed left-[120px] top-0">
 							<div id="actions" class="grid grid-cols-5">
 								<button data-action="move" title="Muoviti sulla mappa (M)">
 									<span>🏃‍♂️</span>
@@ -60,7 +48,7 @@
 							</div>
 						</div>
 
-						<div class="hidden fixed left-0 top-0">
+						<div class="fixed left-0 top-0">
 
 							<div class="player-picture">
 								<img id="player-image" src="/assets/top_image.png">
@@ -87,11 +75,12 @@
 							</div>
 						</div>
 					</div>
+					<!-- end player-ui -->
 
 
 					<div id="game-ui" class="hidden">
 						<div class="fixed bottom-[30px] right-[30px]">	
-							<button id="help-button" title="Info">
+							<button id="help-button" title="Info" data-micromodal-trigger="rules-modal">
 								<svg viewBox="0 0 24 24" height="30" width="30" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 17V11" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"></path> <circle cx="1" cy="1" r="1" transform="matrix(1 0 0 -1 11 9)" fill="#1C274C"></circle> <path d="M22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C21.5093 4.43821 21.8356 5.80655 21.9449 8" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"></path> </g></svg>
 							</button>
 							<button id="btn-logout" disabled="true" title="Log out"> 
@@ -99,7 +88,7 @@
 							</button> 
 						</div>
 					</div>
-					<!-- end player-ui -->
+					<!-- end game-ui -->
 
 					<!-- <div id="right-side" class="flex flex-col hidden image-border"> -->
 
@@ -364,7 +353,7 @@
 
 		<div class="modal micromodal-slide" id="dialogue" aria-hidden="true">
 			<div class="modal__overlay" tabindex="-1" data-micromodal-close>
-				<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+				<div class="modal__container w-[60%]" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
 					<header class="modal__header">
 						<h2 class="modal__title" id="dialogue-title">
 							Dialogo
@@ -373,7 +362,7 @@
 					</header>
 					<main class="modal__content" id="dialogue-content">
 						<p id="dialogue-text" class="text-center"></p>
-						<div id="dialogue-options" class="flex justify-center mt-4"></div>
+						<div id="dialogue-options" class="mt-4"></div>
 					</main>
 				</div>
 			</div>

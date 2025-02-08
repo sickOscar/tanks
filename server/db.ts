@@ -42,6 +42,7 @@ export async function prepareDb() {
         console.log('Creating players table');
         await db.query(`
             CREATE TABLE players (
+                id SERIAL PRIMARY KEY,
                 sub VARCHAR,
                 game INTEGER,
                 email VARCHAR,
@@ -74,6 +75,7 @@ export async function prepareDb() {
         console.log('Creating votes table');
         db.query(`
             CREATE TABLE votes (
+                id SERIAL PRIMARY KEY,
                 voted_at DATE DEFAULT CURRENT_DATE,
                 game INTEGER,
                 voter VARCHAR NOT NULL,
@@ -89,6 +91,7 @@ export async function prepareDb() {
         console.log('Creating history table');
         await db.query(`
             CREATE TABLE history (
+                id SERIAL PRIMARY KEY,
                 game INTEGER,
                 board JSONB NOT NULL,
                 created_at timestamptz DEFAULT NOW(),

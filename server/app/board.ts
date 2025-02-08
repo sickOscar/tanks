@@ -264,7 +264,7 @@ export class Board {
     getDialogueNearby(q: number, r: number): Dialogue|null {
         // check  all ajacent hexes forbuildings
         const hexes = this.board.traverse(spiral<TanksHex>({start: {q, r}, radius: 1}), {});
-        const hexesToCheck:any[] = [];
+        const hexesToCheck:TanksHex[] = [];
         hexes.forEach((hex) => {
             if (this.game.hasNPCOn(hex.q, hex.r)) {
                 hexesToCheck.push(hex);
@@ -274,7 +274,11 @@ export class Board {
         if (hexesToCheck.length === 0) {
             return null
         }
-        return new Dialogue(hexesToCheck[0].dialogue);
+        const npc = this.game.getNPCAt(hexesToCheck[0].q, hexesToCheck[0].r);
+        if (!npc) {
+            return null;
+        }
+        return new Dialogue(npc.dialogue);
     }
 
     clearCell(q: number, r: number): void {
@@ -294,7 +298,6 @@ export class Board {
 
     serialize(): string {
         const clone = this.board.toJSON();
-        // console.log('dragons to serialize', this.game.dragons)
         //console.log('npcs to serialize', this.game.npcs)
         return JSON.stringify({
             features: {
