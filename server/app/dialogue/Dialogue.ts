@@ -3,10 +3,6 @@ import {FailReason} from '../fail-reason';
 import fs from 'node:fs';
 import yaml from 'yaml';
 
-const assert = require('node:assert');
-
-
-
 export class Dialogue {
 
     static dialogues: any = {
@@ -15,10 +11,10 @@ export class Dialogue {
                 text: "Ciao",
                 options: [{
                     text: "Si",
-                    node: "3"
+                    next: "3"
                 }, {
                     text: "No",
-                    node: "2"
+                    next: "2"
                 }]
             },
             "1": {
@@ -33,6 +29,14 @@ export class Dialogue {
                     text: "Bye",
                 }]
             },
+            "3": {
+                text: "BAR",
+                outcome: "OUTCOME",
+                options: [{
+                    text: "END",
+                    next: "exit"
+                }]
+            }
         }
         
     };
@@ -55,6 +59,7 @@ export class Dialogue {
         if (!d[choice]) {
             return null;
         }
+
         return d[choice];
     }
 
@@ -79,13 +84,13 @@ export class Dialogue {
             })
         }
 
-
         return Promise.resolve({
             exit: true,
             dialogue: {
                 id: dialogue.id,
                 text: node.text,
-                options: node.options            
+                outcome: node.outcome,
+                options: node.options
             }
         });
     }

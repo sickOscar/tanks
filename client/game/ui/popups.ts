@@ -37,7 +37,7 @@ function drawActionPopupContent(p5: p5, rectSourceX: number, rectSourceY: number
     p5.text('Pozione di forza', rectSourceX + popupXOffset, rectSourceY + 20);
 
     popupTextFont(p5);
-    p5.text('Muoviti qui per ottenere 1 👊', rectSourceX + popupXOffset, rectSourceY + 40);
+    p5.text('Muoviti qui per ottenere 2 👊', rectSourceX + popupXOffset, rectSourceY + 40);
 }
 
 function drawBuildingPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, size: number[], building: { type: string; position: AxialCoordinates }, popupXOffset: number) {
@@ -126,10 +126,17 @@ function drawNPCPopupContent(p5: p5, rectSourceX: number, rectSourceY: number, s
     const npc = GameState.npcs.find(({position}) => position.q === hex.position.q && position.r === hex.position.r);
 
     popupTitleFont(p5);
-    p5.text(`NPC NAME   ${npc!.life} 💓`, rectSourceX + popupXOffset, rectSourceY + 20);
+    //p5.text(`Grezzol il mercante   ${npc!.life} 💓`, rectSourceX + popupXOffset, rectSourceY + 20);
+    p5.text(`Grezzol il mercante`, rectSourceX + popupXOffset, rectSourceY + 20);
+
 
     popupTextFont(p5);
-    p5.text(`NPC Description   
+    p5.text(`Grezzol vaga per il regno in cerca di buoni affari.
+
+Mentre gli sei adiacente, puoi parlare con lui. 
+Non costa nessuna azione.
+
+
 `, rectSourceX + popupXOffset, rectSourceY + 40);
 }
 
@@ -138,22 +145,23 @@ function drawPlayerPopupContent(hex: any, p5: p5, rectSourceX: number, popupXOff
     p5.stroke('white');
     p5.rect(rectSourceX, rectSourceY, size[0], size[1]);
 
-    if (pictures[hex.tank.id]) {
-        p5.image(
-            pictures[hex.tank.id],
-            rectSourceX + popupXOffset,
-            rectSourceY + popupXOffset - 5,
-            30,
-            30
-        );
-    }
+    //if (pictures[hex.tank.id]) {
+    //    p5.image(
+    //        pictures[hex.tank.id],
+    //        rectSourceX + popupXOffset,
+    //        rectSourceY + popupXOffset - 5,
+    //        30,
+    //        30
+    //    );
+    //}
 
     popupTitleFont(p5);
     p5.text(
         hex.tank.name.split(' ').join("\n"),
-        rectSourceX + popupXOffset + 30 + 5,
+        rectSourceX + popupXOffset + 5,
         rectSourceY + 20
     );
+
 
     popupTextFont(p5);
 
@@ -260,6 +268,46 @@ se curato`,
             rectSourceY + 30
         );
     }
+
+    if (hex.tank?.titles?.length > 0) { 
+
+        const titlesPerLine = 3;
+        const lines = Math.ceil(hex.tank.titles.length / titlesPerLine);
+        const lineHeight = 20;
+        const titleHeight = 20;
+
+        const popupHeight = 20 + (lines * lineHeight) + titleHeight;
+
+        p5.fill('rgb(218, 165, 32)');
+        p5.stroke('white');
+        p5.rect(rectSourceX, rectSourceY - popupHeight, size[0] + 65, popupHeight - 5);
+
+        popupTitleFont(p5);
+
+        p5.text(
+            'Titoli',
+            rectSourceX + popupXOffset + 5,
+            rectSourceY - popupHeight + titleHeight
+        );
+
+        popupTextFont(p5);
+
+        for (let i = 0; i < lines; i++) {
+            p5.text(
+                hex.tank.titles
+                    .slice(i * titlesPerLine, i * titlesPerLine + titlesPerLine)
+                    .map((title: string) => {
+                        const lower = title.toLowerCase();
+                        return lower.charAt(0).toUpperCase() + lower.slice(1);
+                    })                    
+                    .join(" "),
+                rectSourceX + popupXOffset + 5,
+                (rectSourceY - popupHeight) + titleHeight + ((i + 1) * lineHeight)
+            );
+        }
+
+    }
+
     resetFont(p5);
 }
 
@@ -274,6 +322,14 @@ function adjustPopupDirection(p5: p5, rectSourceX: number, hex: any, size: numbe
 export function drawPopup(p5: p5) {
 
     if (!GameState.hasFocus) {
+        return;
+    }
+
+    // don't show popup in the top left L shape
+    if (
+        (p5.winMouseX < 60 && p5.winMouseY < 300)
+        || (p5.winMouseX < 500 && p5.winMouseY < 60)
+    ) {
         return;
     }
 
@@ -311,6 +367,11 @@ export function drawPopup(p5: p5) {
 
     let popupXOffset = 15;
     let popupMargin = 5;
+
+    
+    p5.fill('black');
+    p5.stroke('white');
+    p5.strokeWeight(2);
 
     if (GameState.heartsLocations.find(([q, r]) => q === hex.q && r === hex.r)) {
 

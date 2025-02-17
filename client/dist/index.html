@@ -2,8 +2,8 @@
 	<head>
 		<title>Cortei e Spade</title>
 		
-		<script type="module" crossorigin src="/assets/index-d7deaaea.js"></script>
-		<link rel="stylesheet" href="/assets/index-2dafd014.css">
+		<script type="module" crossorigin src="/assets/index-2a8a9cd3.js"></script>
+		<link rel="stylesheet" href="/assets/index-b8ea05b2.css">
 	</head>
 	<body>
 
@@ -20,6 +20,7 @@
 
 						<img class="w-[400px]" src="/assets/Banner_Title_Write-24a75018.png" alt="Corte e Spade: non fidarti di nessuno">
 						<p class="mt-7 text-center">
+
 							<button id="btn-login" disabled="true">
 								ENTRA
 							</button>
@@ -27,24 +28,66 @@
 
 					</div> <!-- end intro -->
 
-					<div id="board-holder" class="hidden flex justify-center overflow-scroll h-full w-full"></div>
+					<!-- TODO CAPIRE PERCHE' STA ROBA: aggiungere justify-center per centrare, ma succede un disastro di scroll e di eventi
+					che non si propagano se la finestra è ridimensionata verso il basso-->
+					<div id="board-holder" class="hidden justify-center flex overflow-scroll h-full w-full"></div>
 
 					<div id="player-ui" class="hidden">
 						<div class="fixed left-[120px] top-0">
 							<div id="actions" class="grid grid-cols-5">
-								<button data-action="move" title="Muoviti sulla mappa (M)">
+								<button data-action="move" 
+									aria-label="Muoviti sulla mappa (M)
+
+Spendi un'azione per muoverti in una 
+casella adiacente non occupata.
+Alcune caselle speciali richiedono più 
+punti azione per essere raggiunte.
+Se ti trovi su una runa del teletrasporto 
+puoi muoverti in una qualsiasi altra runa.
+" 
+									data-microtip-position="bottom-right" 
+									role="tooltip"
+									>
 									<span>🏃‍♂️</span>
 								</button>
-								<button data-action="shoot" title="Attacca una altro giocatore (A)">
+								<button data-action="shoot" aria-label="Attacca una altro giocatore (A)
+
+Spendi un'azione per attaccare un altro 
+giocatore entro gittata."
+									data-microtip-position="bottom-right" 
+									role="tooltip"
+								>
 									<span>⚔️</span> 
 								</button>
-								<button data-action="give-action" title="Regala azione (G)">
+								<button data-action="give-action" aria-label="Regala azione (G)
+
+Spendi un'azione per aggiungere un'azione
+ad un altro giocatore entro gittata."
+
+									data-microtip-position="bottom-right" 
+									role="tooltip"
+								>
 									<span>🤝🏻</span>
 								</button>
-								<button data-action="upgrade" title="Aumenta la tua gittata di 1">
+								<button data-action="upgrade" aria-label="Addestrati (U)
+
+Spendi 3 azioni per aumentare la 
+tua gittata di 1.
+"
+									data-microtip-position="bottom-right" 
+									role="tooltip"
+								>
 									<span>⬆️</span>
 								</button>
-								<button data-action="heal" title="Cura te stesso o un altro a gittata di 1 (H)">
+								<button data-action="heal" aria-label="Cura (H)
+
+Spendi 3 azioni per curare te stesso 
+o un altro giocatore entro gittata.
+"
+
+									data-microtip-position="bottom-right" 
+									role="tooltip"
+								>
 									<span> ❤️‍🩹 </span>
 								</button>
 							</div>
@@ -57,17 +100,43 @@
 								<div class="image-overlay"></div>
 							</div>
 
-							<div class="left-banner mt-[30px]">
+							<div class="left-banner mt-[30px]" 
+								role="tooltip" 
+								aria-label="SALUTE
+
+Questo valore rappresenta la tua salute.
+Quando raggiungerai lo 0, sarai morto.
+Potrai comunque influenzare il gioco
+dall'aldilà (oltre che essere resuscitato)."
+								data-microtip-position="right"
+							>
 								<p class="">❤️</p>
 								<p id="player-health" class="value"></p>
 							</div>
 
-							<div class="left-banner ">
+							<div class="left-banner "
+								role="tooltip"
+								aria-label="AZIONI
+
+Questo è il numero di azioni a tua disposizione.
+Una volta al giorno, una azione verrà
+distribuita ad ogni eroe vivo."
+								data-microtip-position="right"
+							>
 								<p class="">👊</p>
 								<p id="player-actions" class="value"></p>
 							</div>
 
-							<div class="left-banner">
+							<div class="left-banner"
+								role="tooltip"
+								aria-label="GITTATA
+
+Rappresenta il raggio entro il quale 
+puoi effettuare azioni come attaccare o 
+curare. Puoi aumentare la tua gittata
+con l'azione di addestramento."
+								data-microtip-position="right"
+							>
 								<p class="">🎯</p>
 								<p id="player-sight" class="value"></p>
 							</div>
@@ -113,25 +182,29 @@
 
 					<!--     </div> -->
 
-					<form id="poll" class="hidden">
-						<h3 style="margin-right: 50px">Eroe, il tuo corpo giace esanime sul campo di battaglia 😞 </h3>
+					<form id="poll" class="hidden flex flex-col justify-center justify-items-center p-5">
+						<h2 class="text-2xl">Eroe, il tuo corpo giace esanime sul campo di battaglia 😞 </h2>
 						<div class="poll-inner">
-							<label for="vote" style="margin-right: 30px">
-								Il tuo spirito è comunque forte e la tua leggenda può ancora influenzare il regno!<br>
-								Una volta al giorno puoi aiutare segretamente un alto eroe che ritieni meritevole.<br>
-								3 aiuti in un giorno da parte degli spiriti dell'aldilà e quel giocatore riceverà un'azione
-								aggiuntiva<br>
+							<label for="vote" class="mb-5">
+								Il tuo spirito è comunque forte e la tua leggenda può ancora influenzare il regno!
+								<br>
+								Una volta al giorno puoi aiutare segretamente un altro eroe che ritieni meritevole.
+								<br>
+								3 aiuti in un giorno da parte degli spiriti dell'aldilà e quel giocatore riceverà immediatamente 
+								un'azione aggiuntiva<br>
 							</label>
-							<select name="vote" id="vote">
-							</select>
-							<button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
-								style="margin: 0 20px" type="submit">
-								Aiuta!
-							</button>
-							<button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-150 ease-in-out border border-brown-500"
-								type="button" id="show-poll-results">
-								Vedi i risultati correnti
-							</button>
+							<div class="my-5">
+								<select name="vote" id="vote">
+								</select>
+							</div>
+							<div>
+								<button class="button-mid" type="submit">
+									Aiuta!
+								</button>
+								<button class="button-mid" type="button" id="show-poll-results">
+									Risultati 
+								</button>
+							</div>
 						</div>
 
 					</form>
@@ -223,13 +296,16 @@
 				<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
 					<header class="modal__header">
 						<h2 class="modal__title" id="rules-title">
-							Benvenuti eroi! E' tempo di provare il vostro valore!
+							Benvenuti in "Cortei e Spade"!
 						</h2>
 						<button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
 					</header>
 					<main class="modal__content" id="rules-content">
 
-						<h2>La tua quest</h2>
+						<p>
+							Cortei e Spade è un gioco multiplayer sperimentale che rovinerà le tue amicizie.
+
+						<h2>Come funziona</h2>
 
 						<p>
 						L'obiettivo del gioco è quello di rimanere l'ultimo eroe sopravvissuto del regno,
@@ -244,15 +320,14 @@
 						</p>
 						<p>
 						Ogni 24 ore, tutti riceveranno 1 Punto Azione (👊).
-						Il momento in cui viene assegnato il punto può variare di giorno in giorno (comunque all'ora di
-						pranzo).
+						Il momento in cui viene assegnato il punto può variare di giorno in giorno (dalle 14:00 alle 14:30).
 						</p>
 						<p>
 						In qualsiasi momento è possibile eseguire una delle seguenti azioni:
 						</p>
 
 						<div class="action-description">
-							<h3>MOVERSI</h3>
+							<h3>MUOVERSI</h3>
 							<p>
 							Muoversi in una casella adiacente non occupata (costo: 1 👊)
 							</p>
@@ -363,7 +438,13 @@
 						<button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
 					</header>
 					<main class="modal__content" id="dialogue-content">
-						<p id="dialogue-text" class="text-center"></p>
+						<div class="flex">
+							<div class="w-[100px] h-[100px] mr-5 relative">
+								<img id="dialogue-image" src="" alt="dialogue-image" >
+								<img class="image-overlay"></img>
+							</div>
+							<p id="dialogue-text" class="text-left"></p>
+						</div>
 						<div id="dialogue-options" class="mt-4"></div>
 					</main>
 				</div>

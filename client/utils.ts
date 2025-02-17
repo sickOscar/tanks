@@ -9,7 +9,12 @@ export function isInRange(destinationCell:AxialCoordinates, startingCell:AxialCo
         const startingTile = GameState.localGrid?.getHex({q: startingCell.q, r: startingCell.r})?.tile;
         const destinationTile = GameState.localGrid?.getHex({q: destinationCell.q, r: destinationCell.r})?.tile;
 
-        if (!startingTile || !destinationTile) {
+        if (
+            startingTile == undefined 
+            || destinationTile == undefined
+            || startingTile == null
+            || destinationTile == null
+        ) {
             console.warn('Tile not found');
             return false;
         }

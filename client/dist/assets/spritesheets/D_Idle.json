@@ -1,0 +1,41 @@
+{
+ "frames": [
+	{
+		"name": "merchant_idle_00",
+		"position": {
+			"x": 0,
+			"y": 0,
+			"w": 48,
+			"h": 50
+		}
+	},
+	{
+		"name": "merchant_idle_01",
+		"position": {
+			"x": 48,
+			"y": 0,
+			"w": 48,
+			"h": 50 
+		}
+	},
+	{
+		"name": "merchant_idle_02",
+		"position": {
+			"x": 96,
+			"y": 0,
+			"w": 48,
+			"h": 50 
+		}
+	},
+	{
+		"name": "merchant_idle_03",
+		"position": {
+			"x": 144,
+			"y": 0,
+			"w": 48,
+			"h": 50 
+		}
+	}
+ ]
+}
+

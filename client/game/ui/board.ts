@@ -134,8 +134,6 @@ function drawCell(p5: p5, hex: TanksHex) {
             }
         }
 
-
-
         if (GameState.loot) {
             const hasLoot = GameState.loot.find(loot => {
                 return loot.position.q === hex.q && loot.position.r === hex.r && loot.isActive
@@ -144,7 +142,6 @@ function drawCell(p5: p5, hex: TanksHex) {
                 drawLoot(p5, hex);
             }
         }
-
 
     } else {
         let hasBuilding = undefined;
@@ -239,7 +236,6 @@ function drawEmptyCell(p5: p5, hex: TanksHex) {
         }
     }
 
-
     p5.beginShape();
     p5.noStroke();
     let first = true;
@@ -281,13 +277,29 @@ function drawDragon(p5: p5, hex: TanksHex) {
 
 function drawNPC(p5: p5, hex: TanksHex) {
     const [centerX, centerY, imageWidth, imageHeight] = getImageCoordinates(hex.corners, GameGraphics.dragonImage)
-    p5.image(
-        GameGraphics.dragonImage,
-        centerX,
-        centerY,
-        imageWidth,
-        imageHeight
-    );
+    let npcSprite = GameGraphics.sprites.get(hex);
+    if (npcSprite) {
+        // just animate
+        npcSprite.animate(p5)
+    } else {
+        // place and animate
+        const npcSpriteSheet = GameGraphics.spritesheets.get("merchant")
+        if (!npcSpriteSheet) {
+            return;
+        } 
+        npcSprite = setupSpritesheet(npcSpriteSheet);
+
+        GameGraphics.sprites.set(hex, npcSprite)
+        npcSprite.place(centerX - 15, centerY - 8 , 110, 100, true);
+        npcSprite.animate(p5);
+    } 
+    //p5.image(
+    //    GameGraphics.,
+    //    centerX,
+    //    centerY,
+    //    imageWidth,
+    //    imageHeight
+    //);
 }
 
 

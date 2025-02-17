@@ -8,6 +8,7 @@ import {FailReason} from "./fail-reason";
 import {ActionResult, SuccessMessage} from "./action-result";
 import {Dragon} from "./Dragon";
 import {LootType} from "./lootType";
+import {Chat} from "./chat";
 
 const ICE_ARMOR_CHANCE = 0.2;
 const ORC_SKIN_CHANCE = 0.2;
@@ -31,7 +32,8 @@ interface TankParams {
     range: number;
     name: string;
     picture: string;
-    buffs: Set<Buffs>
+    buffs: Set<Buffs>;
+    titles: Set<string>;
 }
 
 
@@ -43,7 +45,8 @@ const DEFAULT_TANK_PARAMS: TankParams = {
     range: 2,
     name: '',
     picture: '',
-    buffs: new Set<Buffs>()
+    buffs: new Set<Buffs>(),
+    titles: new Set<string>()
 }
 
 export class Tank {
@@ -56,9 +59,11 @@ export class Tank {
     name: string;
     picture: string;
     buffs: Set<Buffs>;
+    titles: Set<string>;
 
     constructor(game: Game, params: Partial<TankParams>) {
         this.game = game;
+        console.log(`default tank params`, DEFAULT_TANK_PARAMS)
         const opts: TankParams = Object.assign({}, DEFAULT_TANK_PARAMS, params)
         this.id = opts.id;
         this.position = opts.position;
@@ -67,7 +72,10 @@ export class Tank {
         this.range = opts.range;
         this.name = opts.name;
         this.picture = opts.picture;
+        console.log("buffs", opts.buffs)
         this.buffs = new Set(opts.buffs);
+        console.log("titles", opts.titles)
+        this.titles = new Set(opts.titles);
     }
 
     static async create(game: Game, userId: string, name: string, picture: string): Promise<Tank> {
@@ -108,6 +116,7 @@ export class Tank {
         this.position.q = q;
         this.position.r = r;
     }
+ 
 
     async move(q: number, r: number): Promise<void> {
         const originalPosition = {q: this.position.q, r: this.position.r};
@@ -119,7 +128,7 @@ export class Tank {
         }
 
         if (this.game.hasActionOn(q, r)) {
-            this.actions += 1;
+            this.actions += 2;
             this.game.clearAction(q, r)
         }
 
@@ -183,7 +192,7 @@ export class Tank {
                 console.log(`dragon was killed by ${this.id}`);
                 // create loot
                 this.game.addLoot(enemy.position);
-                this.game.sendMessageToChat(`
+                Chat.sendMessageToChat(`
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
 
 *${this.name.toUpperCase()}* HA APPENA UCCISO UN DRAGO!
@@ -216,7 +225,7 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
                     }
                 }
                 await enemy.die();
-                this.game.sendMessageToChat(`
+                Chat.sendMessageToChat(`
 ⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫⚔🔫
 
 *${enemy.name.toUpperCase()}* è stato ucciso da *${this.name.toUpperCase()}* (${new Date().toLocaleString()})
@@ -239,6 +248,10 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
             actionsToUse = 2;
         }
         this.useAction(actionsToUse);
+    }
+
+    addTitle(title: string): void {
+        this.titles.add(title);
     }
 
     async failShoot(q: number, r: number): Promise<void> {
@@ -304,7 +317,7 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
         if (parseInt(res.rows[0].count) % 3 === 0) {
             enemy.actions += 1;
             await this.game.addAction({id: 'jury'} as Tank, 'give-action', undefined, enemy)
-            this.game.sendMessageToChat(`
+            Chat.sendMessageToChat(`
 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
 
 *Il piano astrale ha aiutato ${enemy.name.toUpperCase()}*
@@ -419,7 +432,6 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
                 }
             }
 
-
             // check if a dragon is close
             const isTerrified = this.game.dragons.some(dragon => {
                 return this.game.board.isInRange(dragon.position, this.position, 3);
@@ -439,9 +451,10 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
 
             // TELEPORTATION
             // check if tank is on a rune of teleportation
-            // if it is and the destination is another run, teleport
+            // if it is and the destination is another rune, teleport
             const runeHere = this.game.buildings.find(building => building.type === 'TELEPORT' && building.position.q === this.position.q && building.position.r === this.position.r);
             const runeThere = this.game.buildings.find(building => building.type === 'TELEPORT' && building.position.q === q && building.position.r === r);
+            console.log(`runeHere, runeThere`, runeHere, runeThere)
             if (runeHere && runeThere) {
                 if (isTerrified && this.actions < 2) {
                     return {
@@ -515,8 +528,8 @@ Un grande TESORO è stato lasciato sul campo di battaglia!
                     // PIRATE happens in any case, even with armor
                     if (this.buffs.has(Buffs.PIRATE)) {
                         if (enemy.actions > 0) {
-                            if (Math.random() <= 0.2) {
-                                !dryRun && (() => enemy.actions -= 1)();
+                            if (Math.random() <= 0.3) {
+                                !dryRun && (() => enemy.actions -= 1)() && (() => this.actions += 1)();
                                 successMessage = SuccessMessage.PIRATE;
                             }
                         }

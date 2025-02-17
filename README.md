@@ -23,8 +23,8 @@ If you need live reload on save, run
 
 ```
 npm run db
-npm run server 
-npm run build-client
+npm run dev
+npm run client 
 ```
 
 ### Contribution

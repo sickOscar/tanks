@@ -18,3 +18,8 @@ down:
 
 db:
 	docker compose -f docker-compose.db.yml up
+
+clear-db:
+	@echo "Clearing database..."
+	docker exec tanks-db-1 psql -U postgres -d postgres -c "drop table games cascade; drop table history cascade; drop table events cascade; drop table maps cascade; drop table votes cascade; drop table players cascade; drop table buildings cascade;"
+	

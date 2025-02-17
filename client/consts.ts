@@ -64,13 +64,13 @@ che il colpo non vada a segno.
 altra Runa di Teletrasporto del regno`
     },
     PIRATES: {
-        name: "Covo dei pirati",
+        name: "Covo dei Pirati",
         description: `Se ti trovi qui quando le azioni vengono
 distribuite, guadagni permanentemente
 
 🏴‍☠️ PIRATA 
-Ogni volta che attacchi, 20% di possibilità di
-causare -1 👊 al tuo avversario`
+Ogni volta che attacchi, 30% di possibilità di
+rubare 1 👊 al tuo avversario`
     }
 }
 

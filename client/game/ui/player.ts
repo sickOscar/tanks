@@ -119,7 +119,7 @@ export function drawPlayer(p5: p5, hex: TanksHex, hasBuilding: boolean) {
 
     const [...corners] = hex.corners;
 
-    if (tank.life === 0) {
+    if (tank.life <= 0) {
         drawSkull(p5, corners);
     }
 

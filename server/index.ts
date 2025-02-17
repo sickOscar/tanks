@@ -19,12 +19,13 @@ import {serializeActionResult} from "./app/action-result";
 import {Dialogue} from "./app/dialogue/Dialogue";
 import {PlayerEventPayload} from "./app/models/PlayerEventPayload";
 
+import {Chat, ChatMessages} from "./app/chat";
+
 const assert = require('assert');
 
 type EventType = 'VALIDATE' | 'EXECUTE';
 
-const LOCAL_DEV_DISTRIBUTION_INTERVAl =  1000000
-
+const LOCAL_DEV_DISTRIBUTION_INTERVAL =  10000000;
 
 async function init() {
 
@@ -38,77 +39,73 @@ async function init() {
 
     const actionTimeoutDelay = parseInt(process.env.ACTION_TIMEOUT_DELAY as string);
 
-     if (process.env.LOCAL_ENV) {
-         console.log('LOCAL ENVIRONMENT');
-         setInterval(async () => {
-             try {
-                 await game.distributeActions();
-                 // await game.dropHeart();
-                 // await game.dropAction();
+    // METTI A POSTO STA ROBA SANTISSMA MADONNA
 
- //             game.sendMessageToChat(`
- // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
- //
- // *Eroi! Avete una nuova azione da utilizzare!*
- //
- // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
- //  `, 'action fight')
-                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+    if (process.env.LOCAL_ENV) {
+        console.log('LOCAL ENVIRONMENT');
+        setInterval(async () => {
+            try {
+                await game.distributeActions();
+                await game.dropHeart();
+                await game.dropAction();
 
-                 // ODDIO UN GENERATOR
-                 const generator = game.moveDragons();
+                Chat.sendMessageToChat(ChatMessages.ACTION, 'action fight')
+                io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
 
-                 while (generator.next().done === false) {
-                     io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-                     await new Promise(resolve => setTimeout(resolve, 500));
-                 }
+                // ODDIO UN GENERATOR
+                const generator = game.moveDragons();
 
-                 // add burned hexes arounf dragons
-                 await game.addBurnedHexesAroundDragons();
-                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+                while (generator.next().done === false) {
+                    io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
 
-             } catch (err) {
-                 console.log(`err`, err)
-                 console.log('Failed to distribute actions')
-             }
-         }, LOCAL_DEV_DISTRIBUTION_INTERVAl)
-     } else {
-         // console.log('PRODUCTION ENVIRONMENT');
-         // schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
-         //     setTimeout(async () => {
-         //         try {
-         //             await game.distributeActions();
-         //             await game.dropHeart();
-         //             await game.dropAction();
-         //             game.sendMessageToChat(`
- // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+                // aggiunge tile burned attorno ai draghi
+                await game.addBurnedHexesAroundDragons();
+                io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
 
- // *E' TEMPO DI AZIONE!*
+            } catch (err) {
+                console.log(`err`, err)
+                console.log('Failed to distribute actions')
+            }
+        }, LOCAL_DEV_DISTRIBUTION_INTERVAL)
+    } else {
+        // console.log('PRODUCTION ENVIRONMENT');
+        // schedule(`${process.env.ACTION_CRON_EXPRESSION}`, async () => {
+        //     setTimeout(async () => {
+        //         try {
+        //             await game.distributeActions();
+        //             await game.dropHeart();
+        //             await game.dropAction();
+        //             Chat.sendMessageToChat(`
+        // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
 
- // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
- // `, 'action')
-         //             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+        // *E' TEMPO DI AZIONE!*
 
-         //             // ODDIO UN GENERATOR
-         //             const generator = game.moveDragons();
+        // 💥💥💫💥💥💫💥💥💫💥💥💫💥💥💫💥
+        // `, 'action')
+        //             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
 
-         //             while (generator.next().done === false) {
-         //                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-         //                 await new Promise(resolve => setTimeout(resolve, 500));
-         //             }
+        //             // ODDIO UN GENERATOR
+        //             const generator = game.moveDragons();
 
-         //             // add burned hexes arounf dragons
-         //             await game.addBurnedHexesAroundDragons();
-         //             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
-         //         } catch (err) {
-         //             console.log(`err`, err)
-         //             console.log('Failed to distribute actions')
-         //         }
+        //             while (generator.next().done === false) {
+        //                 io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+        //                 await new Promise(resolve => setTimeout(resolve, 500));
+        //             }
 
-         //     }, Math.round(Math.random()* actionTimeoutDelay))
+        //             // add burned hexes arounf dragons
+        //             await game.addBurnedHexesAroundDragons();
+        //             io.sockets.emit(MessageTypes.BOARD, game.board.serialize());
+        //         } catch (err) {
+        //             console.log(`err`, err)
+        //             console.log('Failed to distribute actions')
+        //         }
 
-         // })
-     }
+        //     }, Math.round(Math.random()* actionTimeoutDelay))
+
+        // })
+    }
 
     console.log('Create server');
 
@@ -132,6 +129,8 @@ async function init() {
 
         const registeredPlayer = await Player.getByEmail(socket.user.email, game.id)
 
+        // RIFATTORIZZA STA ROBA CRISTODDIO !!
+
         if (registeredPlayer) {
 
             if (!registeredPlayer.sub) {
@@ -147,7 +146,6 @@ async function init() {
             game.addActivePlayer(player);
 
             let tank: Tank;
-
 
             if (game.isAlive(player)) {
                 tank = game.getPlayerTank(player) as Tank;
@@ -178,6 +176,16 @@ async function init() {
                         console.log("payload", payload)
                         const res = await Dialogue.for(dialogue, payload.dialogueChoice);
                         console.log("res", res)
+                        if (res?.dialogue?.outcome) {
+                            tank.addTitle(res.dialogue.outcome)
+                            console.log('OUTCOME', res.dialogue.outcome)
+                        }
+
+                        // DUPLICATO
+                        await game.board.updateOnDb();
+                        socket.emit(MessageTypes.BOARD, game.board.serialize());
+                        socket.broadcast.emit(MessageTypes.BOARD, game.board.serialize());
+
                         callback(res)
                         return;
                     }

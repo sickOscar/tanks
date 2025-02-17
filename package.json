@@ -10,7 +10,8 @@
     "start": "npm run server",
     "dev": "npm run local-server",
     "prepare": "husky install",
-    "db": "docker run --name tanks-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
+    "db": "docker run --name tanks-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres",
+	"test": "(cd server && jest)"
   },
   "keywords": [],
   "author": "",
@@ -45,10 +46,13 @@
   "devDependencies": {
     "@types/auth0": "^2.35.9",
     "@types/express": "^4.17.13",
+    "@types/jest": "^29.5.14",
     "@types/micromodal": "^0.3.3",
     "@types/node": "^18.15.11",
     "@types/node-cron": "^3.0.1",
     "@types/p5": "^1.5.0",
-    "husky": "^8.0.3"
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5"
   }
 }

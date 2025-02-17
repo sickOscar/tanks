@@ -80,48 +80,48 @@ new p5((p5) => {
     const historyRevButton = document.querySelector('#history-rev') as HTMLInputElement;
     const historyFwdButton = document.querySelector('#history-fwd') as HTMLInputElement;
 
-    // pollForm.addEventListener('submit', event => {
-    //     event.preventDefault();
-    //     console.info(voteSelect.value);
-    //     if(!voteSelect.value){
-    //         alert('Prima dovresti scegliere chi aiutare.');
-    //         return;
-    //     }
+     pollForm.addEventListener('submit', event => {
+         event.preventDefault();
+         console.info(voteSelect.value);
+         if(!voteSelect.value){
+             alert('Prima dovresti scegliere chi aiutare.');
+             return;
+         }
 
-    //     sio.emit('playerevent', 'vote', voteSelect.value, null, (response: any) => {
-    //         if (response.exit === true) {
-    //             alert('Grazie! La tua leggenda vive...');
-    //         }
-    //         if (!response || response.exit === false) {
-    //             alert('Il tuo spirito ha già influenzato il regno oggi!');
-    //         }
-    //     })
-    // })
+         sio.emit('playerevent', 'vote', voteSelect.value, null, (response: any) => {
+             if (response.exit === true) {
+                 alert('Grazie! La tua leggenda vive...');
+             }
+             if (!response || response.exit === false) {
+                 alert('Il tuo spirito ha già influenzato il regno oggi!');
+             }
+         })
+     })
 
-    // showPollResultsButton.addEventListener('click', event => {
-    //     event.preventDefault();
-    //     // pollResultsContainer.classList.remove('hidden');
-    //     // modalOverlay.classList.remove('hidden');
+     showPollResultsButton.addEventListener('click', event => {
+         event.preventDefault();
+         // pollResultsContainer.classList.remove('hidden');
+         // modalOverlay.classList.remove('hidden');
 
-    //     MicroModal.show('jury-modal', {
-    //         onShow: () => {
-    //             console.log('show')
-    //             getJson('poll')
-    //                 .then(response => {
-    //                     pollResultsTable.innerHTML = response.map((row: any) => `
-// <tr>
-    // <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
-    // <td>${row.name}</td>
-    // <td>${row.count}</td>
-// </tr>
-    //             `).join('')
-    //                 })
-    //                 .catch(console.error)
-    //         }
-    //     });
+         MicroModal.show('jury-modal', {
+             onShow: () => {
+                 console.log('show')
+                 getJson('poll')
+                     .then(response => {
+                         pollResultsTable.innerHTML = response.map((row: any) => `
+ <tr>
+     <td><img class="img-thumbnail" src="${row.picture}" alt="${row.name}"></td>
+     <td>${row.name}</td>
+     <td>${row.count}</td>
+ </tr>
+                 `).join('')
+                     })
+                     .catch(console.error)
+             }
+         });
 
 
-    // })
+     })
 
 
     const fetchAuthConfig = () => fetch("/auth_config.json");
@@ -193,6 +193,12 @@ new p5((p5) => {
     window.onresize = () => {
         GameState.WIDTH = window.innerWidth - UI_WIDTH;
         GameState.HEIGHT = window.innerHeight - MAIN_BORDER_HEIGHT;
+
+        if (window.innerWidth < 1500) {
+            boardHolder.classList.remove('justify-center');
+        } else {
+            boardHolder.classList.add('justify-center');
+        }
 
         // p5.resizeCanvas(GameState.WIDTH, GameState.HEIGHT);
     }
@@ -549,16 +555,16 @@ new p5((p5) => {
             }
 
             if (GameState.player.actions < 3) {
-                // Array.from(actionButtons)
-                //     .filter(el => {
-                //         return (
-                //             el.getAttribute('data-action') === States.UPGRADE
-                //             || el.getAttribute('data-action') === States.HEAL
-                //         )
-                //     })
-                //     .forEach(el => {
-                //         el.setAttribute(`disabled`, 'true');
-                //     });
+                 Array.from(actionButtons)
+                     .filter(el => {
+                         return (
+                             el.getAttribute('data-action') === States.UPGRADE
+                             || el.getAttribute('data-action') === States.HEAL
+                         )
+                     })
+                     .forEach(el => {
+                         el.setAttribute(`disabled`, 'true');
+                     });
             }
 
 
@@ -592,8 +598,8 @@ new p5((p5) => {
         `);
         playersListElement.unshift(`<option value="">Seleziona un giocatore</option>`)
          
-        // voteSelect.innerHTML  = playersListElement.join('');
-        // debugger;
+        voteSelect.innerHTML  = playersListElement.join('');
+         //debugger;
 
     }
 
@@ -664,7 +670,7 @@ new p5((p5) => {
         GameGraphics.castleImage = p5.loadImage('./assets/Grass_Castle.png');
         GameGraphics.orcsCampImage = p5.loadImage('./assets/Orcs_Tile0.png');
         GameGraphics.teleportImage = p5.loadImage('./assets/teleport.png');
-        GameGraphics.piratesImage = p5.loadImage('./assets/pirates.png');
+        GameGraphics.piratesImage = p5.loadImage('./assets/pirates_1.png');
         GameGraphics.dragonImage = p5.loadImage('./assets/dragon.png');
         GameGraphics.lootImage = p5.loadImage('./assets/treasure.png');
 
@@ -681,6 +687,11 @@ new p5((p5) => {
             sheet: p5.loadImage('./assets/spritesheets/goblin.png'),
         }
         GameGraphics.spritesheets.set("goblin", goblin)
+        const merchant: SpriteSheet = { 
+            data: p5.loadJSON('./assets/spritesheets/D_Idle.json'),
+            sheet: p5.loadImage('./assets/spritesheets/D_Idle.png')
+        }
+        GameGraphics.spritesheets.set("merchant", merchant)
 
         GameGraphics.sprites = new Map<any, Sprite>();
 
@@ -815,22 +826,62 @@ new p5((p5) => {
         
         GameState.currentState = "dialogue"; 
 
-        function renderDialogue(response:any) {
+        type DialogueResponse = {
+            dialogue: {
+                id: string,
+                text: string,
+                options?: {
+                    text: string,
+                    next: string,
+                    outcome?: number,
+                }[]
+            }
+        }
+
+        function renderDialogue(response:DialogueResponse) {
             const dialogue = response.dialogue;
             console.log("response", dialogue)
             const text = dialogue.text;
             const options = dialogue.options;
 
             const dialogueContainer = document.getElementById('dialogue') as HTMLDivElement;
+            const dialogueTitle = dialogueContainer.querySelector('#dialogue-title') as HTMLHeadingElement;
             const dialogueText = dialogueContainer.querySelector('#dialogue-text') as HTMLParagraphElement;
             const dialogueOptions = dialogueContainer.querySelector('#dialogue-options') as HTMLDivElement;
+            const dialogueImage = dialogueContainer.querySelector('#dialogue-image') as HTMLImageElement;
 
             dialogueText.textContent = "" 
             dialogueOptions.innerHTML = '';
 
+            let title = dialogue.id;
+            let image = "assets/grezzol.png"
+            switch (title) {
+                case "MERCHANT":
+                    title = "Grezzol il Mercante";
+                    image = "assets/grezzol.png";
+                    break;
+                default:
+                    title = "Dialogo"
+            }
+
+            dialogueTitle.textContent = title;
+            dialogueImage.src = image;
+
+
+            let currentPar = document.createElement('p'); 
+            dialogueText.appendChild(currentPar);
             function typeWriter(text: string, i: number, callback:Function) {
                 if (i < text.length) {
-                    dialogueText.textContent += text.charAt(i);
+
+                    let currentChar = text.charAt(i);
+
+                    if (currentChar === "\n") {
+                        currentPar = document.createElement('p');
+                        dialogueText.appendChild(currentPar);
+                        //i++
+                    }
+                    currentPar.textContent += currentChar;
+
                     i++;
                     setTimeout(() => {
                         typeWriter(text, i, callback);
@@ -846,12 +897,8 @@ new p5((p5) => {
                     const optionButton = document.createElement('button');
                     optionButton.textContent = "Addio";
                     optionButton.addEventListener('click', () => {
-                        const payload = {
-                            ...hex,
-                            dialogueChoice: options.next
-                        }
-                        execAction(sio, payload)
-                            .then(renderDialogue)
+                        MicroModal.close('dialogue');
+                        GameState.hasFocus = true;
                     })
                     dialogueOptions.appendChild(optionButton);
                 } else {
@@ -859,6 +906,9 @@ new p5((p5) => {
                         const optionButton = document.createElement('button'); optionButton.textContent = option.text;
                         optionButton.addEventListener('click', () => {
                             console.log("choose answer", option)
+                            if (option.outcome) {
+                                alert(`Outcome: ${option.outcome}`)
+                            }
                             const payload = {
                                 ...hex,
                                 dialogueChoice: option.next
@@ -896,7 +946,7 @@ new p5((p5) => {
             // left sidebar
             (event.clientX < 90 && event.clientY < 400)
             // top sidebar
-            || (event.clientY < 90 && event.clientX < 400)
+            || (event.clientY < 90 && event.clientX < 430)
             // right bottom
             || (event.clientX > window.innerWidth - 90 && event.clientY > window.innerHeight - 200)
             ) {

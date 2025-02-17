@@ -111,7 +111,7 @@ export class Board {
     }
 
     isPositionOccupied(q: number, r: number): boolean {
-        return !!this.board.getHex({q, r})?.tank;
+        return !!this.board.getHex({q, r})?.tank || this.game.hasNPCOn(q, r);
     }
 
     isPositionValid(q: number, r: number): boolean {
@@ -325,6 +325,7 @@ export class Board {
                         const tank: any = Object.assign({}, coord.tank);
                         delete tank.game;
                         tank.buffs = Array.from(tank.buffs);
+                        tank.titles = Array.from(tank.titles);
                         return {
                             ...coord,
                             tank

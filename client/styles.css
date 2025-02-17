@@ -1,4 +1,5 @@
 @import "modal.css";
+@import "microtip.css";
 @import url('https://fonts.googleapis.com/css2?family=Nothing+You+Could+Do&display=swap');
 
 @tailwind base;
@@ -11,11 +12,30 @@
 }
 
 body {
-    font-family: 'Nothing You Could Do', cursive;
+    /*font-family: 'Nothing You Could Do', cursive;*/
+	font-family: 'Roboto', sans-serif;
     background-color: #e8d5b7;
     background-image: url('/assets/OLD_PAPER_TEXTURE.jpg');
     background-position-y: -10px;
 }
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Nothing You Could Do', cursive;
+}
+
+.main-content {
+	animation: fadeIn 1s ease-in;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 
 .player-picture {
 	position: relative;
@@ -245,17 +265,23 @@ button:disabled {
 }
 
 #poll {
-    padding-left: 20px;
-    /*display: flex;*/
-    /*align-items: center;*/
-    /*flex-wrap: wrap;*/
 }
 
 #poll .poll-inner {
+}
 
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+.button-mid {
+	background-image: url('/assets/ui/button_med.png');
+	background-size: cover;
+	background-repeat: no-repeat;
+	width: 178px;
+	height: 61px;
+	font-size: 25px;
+	color: white;
+	text-shadow: 1px 1px 1px black;
+	display: inline-block;
+	margin: 0 10px;
+	font-family: 'Nothing You Could Do', cursive;
 }
 
 .attack-button {
@@ -289,4 +315,18 @@ button:disabled {
 	margin-left: 15px;
 	color: white;
 	font-size: 45px;
+}
+
+#dialogue-options button {
+	display: block;
+	padding: 5px 5px;
+	border-bottom: 1px solid white;
+	text-align: left;
+	width: 100%;
+}
+
+#dialogue-options button:hover {
+	background-color: #ffffff;
+	color: black;
+	font-weight: bold;
 }
