@@ -1,0 +1,98 @@
+start:
+  text: Benvenuto alla Gilda dei Design Pattern, come posso aiutarti?
+  options:
+  - text: Sono un umile Dev che vuole imparare
+    next: primoIndovinello
+  - text: So già tutto. Il Singleton è un design pattern!
+    next: end
+  - text: Me la mangio a colazione la GoF
+    next: primoIndovinello
+  - text: Voglio delle info
+    next: info
+  alias: node_0
+
+
+end:
+  text: END
+  options: []
+
+
+primoIndovinello:
+  text: "Bravo, questo è l''atteggiamento giusto. Ma per entrare nella gilda devi\
+    \ superare un indovinello. \n\nSono un maestro della creazione,\nma mai direttamente\
+    \ in azione.\nDelego il compito a chi meglio sa,\nnascondendo il \"new\" alla\
+    \ vista qua e là.\nQuale pattern sono?"
+  options:
+  - text: Devo Studiare
+    next: t2Se5jhuB5TexH7UsHT8D
+  - text: Strategy
+    next: capraStudia
+  - text: Factory
+    next: secondoIndovinello
+  alias: node_3
+
+capraStudia:
+  text: capra. Dovevi seguire il corso di Sir Monad. Sai di chi parlo vero?
+  options:
+  - text: Sir Monad il re della mona?
+    next: 4Q3KTi-n8lLbQFXvNgpTC
+  - text: Sir Monad il re della mona!
+    next: 6sE3AFCQyd7qLyS6AaavW
+  alias: node_4
+
+qbJhGdnLND7vDq1texLRV:
+  text: Bravo, puoi accedere alla Gilda
+  options: []
+  alias: node_5
+  outcome: DP_GUILD
+
+
+success:
+  text: SUCCESS
+  options: []
+  
+winABook:
+  text: Bravo è l'atteggiamento giusto. Ecco un libro magico. Ma ora smamma e ritorna
+    quando sarai più saggio
+  outcome: BOOK_GANGBANG_OF_FOUR
+  options: []
+  alias: node_7
+  next: end
+  
+h6IcHMJ1DQZRdMCXeAa45:
+  text: END
+  options: []
+  
+  
+secondoIndovinello:
+  text: "Ecco il secondo indovinello. \n\nChi è il mago dell'uccello?"
+  options:
+  - text: Sir Milythello
+    next: qbJhGdnLND7vDq1texLRV
+  - text: Metrosexual
+    next: secondoIndovinello
+  - text: Mr Troubles
+    next: success
+  alias: node_9
+  
+info:
+  text: Cosa vuoi sapere?
+  options:
+  - text: 1. A che ora parte la prossima iterazione?
+    next: infoRisposta1
+  - text: 2. Come faccio a vincere?
+    next: infoRisposta2
+  - text: Scherzavo
+    next: start
+  alias: node_10
+
+infoRisposta1:
+  text: Tra le 13 e le 14
+  options: []
+  alias: node_11
+  next: info
+  description: The NPC answer and jump to a node
+
+infoRisposta2:
+  text: END
+  options: []
